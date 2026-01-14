@@ -9,6 +9,8 @@ import { Cliente } from 'src/app/core/models/cliente';
 import { AlertController, LoadingController, ToastController, ModalController } from '@ionic/angular';
 import { FormBuilder, FormGroup, FormArray, Validators, AbstractControl } from '@angular/forms';
 
+import { CajaService } from 'src/app/core/services/caja.service';
+
 @Component({
   standalone: false,
   selector: 'app-ventas',
@@ -50,6 +52,7 @@ export class VentasComponent implements OnInit {
     private productoService: ProductosServices,
     private clienteService: ClientesServices,
     private authService: AuthService,
+    private cajaService: CajaService,
     private alertController: AlertController,
     private loadingController: LoadingController,
     private toastController: ToastController,
@@ -397,6 +400,18 @@ export class VentasComponent implements OnInit {
       return;
     }
 
+    // Validar Caja Abierta si es venta de contado
+    if (this.tipoVenta === 'CONTADO') {
+      const cajaAbierta = await this.verificarCajaAbierta();
+      if (!cajaAbierta) {
+        await this.mostrarAlerta(
+          'Caja Cerrada',
+          'No se pueden realizar ventas de contado porque no hay una caja abierta. Por favor abra la caja en la sección de Finanzas.'
+        );
+        return;
+      }
+    }
+
     // Validar que si es venta fiada, haya cliente
     if (this.tipoVenta === 'FIADO') {
       if (!this.clienteSeleccionado && !this.ventaForm.value.registrarCliente) {
@@ -467,6 +482,33 @@ export class VentasComponent implements OnInit {
       ]
     });
     await confirmAlert.present();
+  }
+
+  async verificarCajaAbierta(): Promise<boolean> {
+    const loading = await this.loadingController.create({
+      message: 'Verificando estado de caja...'
+    });
+    await loading.present();
+
+    return new Promise((resolve) => {
+      this.cajaService.obtenerEstadoCaja().subscribe({
+        next: async (caja) => {
+          await loading.dismiss();
+          // Si hay caja y su estado es ABIERTA
+          if (caja && caja.estado === 'ABIERTA') {
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        },
+        error: async (err) => {
+          await loading.dismiss();
+          console.error('Error verificando caja', err);
+          // Si da 404 es que no hay caja, si da otro error asumimos cerrado por seguridad
+          resolve(false);
+        }
+      });
+    });
   }
 
   async procesarVentaReal() {

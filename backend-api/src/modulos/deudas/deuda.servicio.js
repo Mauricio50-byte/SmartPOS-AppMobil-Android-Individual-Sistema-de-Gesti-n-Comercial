@@ -153,6 +153,30 @@ async function registrarAbono(datos) {
             }
         })
 
+        // --- INTEGRACIÓN CAJA ---
+        // Si hay un usuario responsable y tiene caja abierta, registrar el ingreso
+        if (usuarioId) {
+            const cajaAbierta = await tx.caja.findFirst({
+                where: { usuarioId: Number(usuarioId), estado: 'ABIERTA' }
+            })
+
+            if (cajaAbierta) {
+                await tx.movimientoCaja.create({
+                    data: {
+                        cajaId: cajaAbierta.id,
+                        usuarioId: Number(usuarioId),
+                        tipo: 'ABONO_VENTA',
+                        metodoPago: metodoPago, // EFECTIVO, TRANSFERENCIA, etc.
+                        monto: monto,
+                        descripcion: `Abono a deuda de venta #${deuda.ventaId} ${nota ? '- ' + nota : ''}`,
+                        abonoId: abono.id,
+                        fecha: new Date()
+                    }
+                })
+            }
+        }
+        // ------------------------
+
         // Actualizar la venta si la deuda está pagada
         if (nuevoEstado === 'PAGADO') {
             await tx.venta.update({

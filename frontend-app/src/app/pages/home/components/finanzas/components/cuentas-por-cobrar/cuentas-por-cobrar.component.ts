@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, AlertController, ToastController, ModalController } from '@ionic/angular';
+import { IonicModule, AlertController, ToastController, ModalController, LoadingController } from '@ionic/angular';
 import { DeudaService } from 'src/app/core/services/deuda.service';
+import { CajaService } from 'src/app/core/services/caja.service';
 import { Deuda } from 'src/app/core/models/deuda'; // Adjust path if needed
 import { addIcons } from 'ionicons';
 import { searchOutline, filterOutline, cashOutline, alertCircleOutline, checkmarkCircleOutline } from 'ionicons/icons';
@@ -23,8 +24,10 @@ export class CuentasPorCobrarComponent implements OnInit {
 
   constructor(
     private deudaService: DeudaService,
+    private cajaService: CajaService,
     private alertController: AlertController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private loadingController: LoadingController
   ) {
     addIcons({ searchOutline, filterOutline, cashOutline, alertCircleOutline, checkmarkCircleOutline });
   }
@@ -78,6 +81,18 @@ export class CuentasPorCobrarComponent implements OnInit {
   }
 
   async registrarAbono(deuda: Deuda) {
+    // Verificar caja abierta antes de permitir el abono (asumiendo efectivo)
+    const cajaAbierta = await this.verificarCajaAbierta();
+    if (!cajaAbierta) {
+      const alert = await this.alertController.create({
+        header: 'Caja Cerrada',
+        message: 'No se pueden registrar abonos porque no hay una caja abierta. Por favor abra la caja en la sección de Caja Diaria.',
+        buttons: ['OK']
+      });
+      await alert.present();
+      return;
+    }
+
     const alert = await this.alertController.create({
       header: 'Registrar Abono',
       subHeader: `Cliente: ${deuda.cliente?.nombre}`,
@@ -137,6 +152,32 @@ export class CuentasPorCobrarComponent implements OnInit {
         console.error(err);
         this.mostrarToast('Error al registrar abono', 'danger');
       }
+    });
+  }
+
+  async verificarCajaAbierta(): Promise<boolean> {
+    const loading = await this.loadingController.create({
+      message: 'Verificando caja...',
+      duration: 3000
+    });
+    await loading.present();
+
+    return new Promise((resolve) => {
+      this.cajaService.obtenerEstadoCaja().subscribe({
+        next: async (caja) => {
+          await loading.dismiss();
+          if (caja && caja.estado === 'ABIERTA') {
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        },
+        error: async (err) => {
+          await loading.dismiss();
+          console.error('Error verificando caja', err);
+          resolve(false);
+        }
+      });
     });
   }
 
