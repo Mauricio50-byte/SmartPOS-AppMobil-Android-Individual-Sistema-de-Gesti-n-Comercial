@@ -1,4 +1,4 @@
-const PUERTO = process.env.PUERTO
+const PUERTO = process.env.PUERTO || process.env.PORT || 3000
 const JWT_SECRETO = process.env.JWT_SECRETO
 const DATABASE_URL = process.env.DATABASE_URL
 const ADMIN_CORREO = process.env.ADMIN_CORREO

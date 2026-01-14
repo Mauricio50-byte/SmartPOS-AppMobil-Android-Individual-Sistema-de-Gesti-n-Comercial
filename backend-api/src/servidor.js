@@ -85,6 +85,14 @@ async function iniciar() {
 
   app.decorate('prisma', prisma)
 
+  app.get('/', async (req, res) => {
+    return { 
+      mensaje: 'API Backend funcionando correctamente', 
+      estado: 'en linea',
+      docs: '/documentation' // Si tuvieras swagger
+    }
+  })
+
   app.get('/salud', async () => ({ ok: true }))
 
   await asegurarPermisosYAdmin()
@@ -101,7 +109,8 @@ async function iniciar() {
   await registrarRutasModulos(app)
 
   try {
-    await app.listen({ port: PUERTO, host: '0.0.0.0' })
+    const address = await app.listen({ port: Number(PUERTO), host: '0.0.0.0' })
+    console.log(`Servidor escuchando en ${address}`)
   } catch (e) {
     console.error(e)
     process.exit(1)
