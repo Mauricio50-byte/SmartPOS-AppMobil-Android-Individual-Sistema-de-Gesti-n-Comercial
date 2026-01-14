@@ -5,23 +5,32 @@
   </div>
 
   <div class="segments-container">
-    <ion-segment [value]="segment" (ionChange)="segmentChanged($event)" color="tertiary" scrollable="true">
+    <ion-segment [value]="segment" (ionChange)="segmentChanged($event)" color="tertiary" mode="md">
       <ion-segment-button value="caja">
         <ion-label>
-          <ion-icon name="file-tray-full-outline"></ion-icon>
-          Caja Diaria
+          <div class="segment-content">
+            <ion-icon name="file-tray-full-outline"></ion-icon>
+            <span class="segment-text">Caja</span>
+            <span class="segment-text-full">Caja Diaria</span>
+          </div>
         </ion-label>
       </ion-segment-button>
       <ion-segment-button value="por-cobrar">
         <ion-label>
-          <ion-icon name="wallet-outline"></ion-icon>
-          Cuentas por Cobrar
+          <div class="segment-content">
+            <ion-icon name="wallet-outline"></ion-icon>
+            <span class="segment-text">Cobrar</span>
+            <span class="segment-text-full">Cuentas por Cobrar</span>
+          </div>
         </ion-label>
       </ion-segment-button>
       <ion-segment-button value="por-pagar">
         <ion-label>
-          <ion-icon name="card-outline"></ion-icon>
-          Cuentas por Pagar
+          <div class="segment-content">
+            <ion-icon name="card-outline"></ion-icon>
+            <span class="segment-text">Pagar</span>
+            <span class="segment-text-full">Cuentas por Pagar</span>
+          </div>
         </ion-label>
       </ion-segment-button>
     </ion-segment>

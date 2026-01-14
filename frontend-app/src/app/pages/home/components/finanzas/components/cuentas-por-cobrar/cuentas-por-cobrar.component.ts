@@ -50,14 +50,19 @@ export class CuentasPorCobrarComponent implements OnInit {
       });
   }
 
-  onSearchChange(event: any) {
-    this.searchTerm = event.detail.value;
-    this.filterDeudas();
+  onSearchInput(event: any) {
+    const query = event.target.value;
+    this.searchTerm = query;
+    this.applyFilters();
   }
 
   onFilterChange(event: any) {
     this.filterEstado = event.detail.value;
     this.cargarDeudas();
+  }
+
+  applyFilters() {
+    this.filterDeudas();
   }
 
   filterDeudas() {

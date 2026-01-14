@@ -4,6 +4,12 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  background-color: #f4f5f8;
+
+  @media (max-width: 576px) {
+    padding: 10px;
+    gap: 15px;
+  }
 
   .finanzas-header {
     h1 {
@@ -11,29 +17,85 @@
       font-size: 24px;
       font-weight: 700;
       color: var(--ion-color-dark);
+
+      @media (max-width: 576px) {
+        font-size: 20px;
+      }
     }
     
     .subtitle {
       margin: 5px 0 0;
       color: var(--ion-color-medium);
       font-size: 14px;
+
+      @media (max-width: 576px) {
+        font-size: 12px;
+      }
     }
   }
 
   .segments-container {
     background: white;
     border-radius: 12px;
-    padding: 5px;
+    padding: 4px; // Slightly tighter padding to maximize space
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    
+    // Ensure the segment takes full width
+    ion-segment {
+      width: 100%;
+      background: transparent;
+    }
 
     ion-segment-button {
+      --color: var(--ion-color-medium);
       --color-checked: var(--ion-color-tertiary);
-      --indicator-color: var(--ion-color-tertiary-tint);
-      font-weight: 500;
+      --indicator-color: var(--ion-color-tertiary);
+      --indicator-height: 3px; // More visible indicator
+      
+      min-width: 0; // Allow shrinking if absolutely needed
+      flex: 1;      // Force equal width
+      margin: 0;
+      
+      ion-label {
+        width: 100%;
+        margin: 8px 0; // Vertical spacing
+      }
+
+      .segment-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        
+        // Stack on very small screens if needed, but horizontal is preferred
+        @media (max-width: 340px) {
+            gap: 4px;
+        }
+      }
       
       ion-icon {
-        margin-right: 8px;
-        font-size: 18px;
+        font-size: 20px; // Larger icon for visibility
+      }
+      
+      // Enhance text visibility
+      span {
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+        
+        @media (max-width: 360px) {
+          font-size: 13px;
+        }
+      }
+      
+      // Active state enhancement
+      &.segment-button-checked {
+        ion-icon {
+          transform: scale(1.1); // Subtle pop effect
+        }
+        span {
+          font-weight: 700; // Bold text for active
+        }
       }
     }
   }
@@ -45,6 +107,27 @@
     border-radius: 16px;
     box-shadow: 0 4px 16px rgba(0,0,0,0.05);
     padding: 20px;
+
+    @media (max-width: 576px) {
+      padding: 15px;
+    }
+  }
+}
+
+// Responsive Text Logic
+.segment-text {
+  display: inline;
+}
+.segment-text-full {
+  display: none;
+}
+
+@media (min-width: 576px) {
+  .segment-text {
+    display: none;
+  }
+  .segment-text-full {
+    display: inline;
   }
 }
 

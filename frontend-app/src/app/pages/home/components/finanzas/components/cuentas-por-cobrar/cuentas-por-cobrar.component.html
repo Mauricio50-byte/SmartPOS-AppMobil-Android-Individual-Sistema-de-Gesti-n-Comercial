@@ -1,8 +1,15 @@
 <div class="toolbar">
-  <ion-searchbar placeholder="Buscar cliente..." (ionInput)="onSearchChange($event)" class="search-bar"></ion-searchbar>
+  <div class="search-wrapper">
+    <ion-icon name="search-outline" class="search-icon"></ion-icon>
+    <input 
+      type="text" 
+      placeholder="Buscar cliente..." 
+      (input)="onSearchInput($event)"
+      class="custom-search-input">
+  </div>
 
-  <div class="filter-container">
-    <ion-select [value]="filterEstado" (ionChange)="onFilterChange($event)" interface="popover">
+  <div class="filter-wrapper">
+    <ion-select [value]="filterEstado" (ionChange)="onFilterChange($event)" interface="popover" mode="ios">
       <ion-select-option value="PENDIENTE">Pendientes</ion-select-option>
       <ion-select-option value="VENCIDO">Vencidos</ion-select-option>
       <ion-select-option value="PAGADO">Pagados</ion-select-option>

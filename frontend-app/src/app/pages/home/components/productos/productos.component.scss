@@ -11,12 +11,20 @@
     padding: 10px 16px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     z-index: 10;
+
+    @media (max-width: 576px) {
+        padding: 8px 10px;
+    }
 }
 
 .products-content {
     flex: 1;
     overflow-y: auto;
     padding: 16px;
+
+    @media (max-width: 576px) {
+        padding: 10px;
+    }
 }
 
 .fade-in {
@@ -38,4 +46,18 @@
 .gestion-view {
     display: flex;
     justify-content: center;
+}
+
+// Ensure segment buttons wrap text or shrink properly if needed, though short text helps.
+ion-segment-button {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    
+    ion-label {
+        font-size: 0.9rem;
+        
+        @media (max-width: 360px) {
+            font-size: 0.8rem;
+        }
+    }
 }

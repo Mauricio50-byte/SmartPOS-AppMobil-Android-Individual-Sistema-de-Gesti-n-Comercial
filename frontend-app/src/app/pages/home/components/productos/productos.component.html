@@ -1,11 +1,13 @@
 <div class="products-wrapper">
   <div class="products-header">
-    <ion-segment [value]="segment" (ionChange)="segmentChanged($event)" color="tertiary">
+    <ion-segment [value]="segment" (ionChange)="segmentChanged($event)" color="tertiary" mode="ios">
       <ion-segment-button value="info">
-        <ion-label>Información de Inventario</ion-label>
+        <ion-icon name="list-outline"></ion-icon>
+        <ion-label>Inventario</ion-label>
       </ion-segment-button>
       <ion-segment-button value="gestion">
-        <ion-label>Gestión de Productos</ion-label>
+        <ion-icon name="create-outline"></ion-icon>
+        <ion-label>Gestión</ion-label>
       </ion-segment-button>
     </ion-segment>
   </div>
