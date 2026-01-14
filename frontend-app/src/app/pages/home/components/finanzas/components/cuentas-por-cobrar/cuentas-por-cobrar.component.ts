@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule, NgFor, NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { IonicModule, AlertController, ToastController, ModalController } from '@ionic/angular';
 import { DeudaService } from 'src/app/core/services/deuda.service';
 import { Deuda } from 'src/app/core/models/deuda'; // Adjust path if needed
@@ -12,7 +12,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './cuentas-por-cobrar.component.html',
   styleUrls: ['./cuentas-por-cobrar.component.scss'],
   standalone: true,
-  imports: [CommonModule, NgIf, NgFor, IonicModule, FormsModule]
+  imports: [CommonModule, IonicModule, FormsModule]
 })
 export class CuentasPorCobrarComponent implements OnInit {
   deudas: Deuda[] = [];

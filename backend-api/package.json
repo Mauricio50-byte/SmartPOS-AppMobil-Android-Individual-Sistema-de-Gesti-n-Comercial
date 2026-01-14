@@ -4,8 +4,8 @@
   "description": "",
   "main": "src/servidor.js",
   "scripts": {
-    "dev": "nodemon src/servidor.js",
-    "start": "node src/servidor.js",
+    "dev": "nodemon -r dotenv/config src/servidor.js",
+    "start": "node -r dotenv/config src/servidor.js",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:migrate": "prisma migrate dev --name init"

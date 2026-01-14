@@ -17,52 +17,68 @@
           <ion-label>Dashboard</ion-label>
         </ion-item>
 
-        <ion-item *ngIf="hasModule('inventario') || hasModule('productos') || hasPermission('VER_INVENTARIO')" button [class.active]="currentView === 'productos'"
-          (click)="setView('productos')" title="Productos" aria-label="Productos">
-          <ion-icon slot="start" name="cube-outline"></ion-icon>
-          <ion-label>Productos</ion-label>
-        </ion-item>
+        @if (hasModule('inventario') || hasModule('productos') || hasPermission('VER_INVENTARIO')) {
+          <ion-item button [class.active]="currentView === 'productos'"
+            (click)="setView('productos')" title="Productos" aria-label="Productos">
+            <ion-icon slot="start" name="cube-outline"></ion-icon>
+            <ion-label>Productos</ion-label>
+          </ion-item>
+        }
 
-        <ion-item *ngIf="hasModule('ventas') || hasPermission('VENDER') || hasPermission('VER_VENTAS')" button [class.active]="currentView === 'ventas'"
-          (click)="setView('ventas')" title="Ventas" aria-label="Ventas">
-          <ion-icon slot="start" name="cart-outline"></ion-icon>
-          <ion-label>Ventas</ion-label>
-        </ion-item>
+        @if (hasModule('ventas') || hasPermission('VENDER') || hasPermission('VER_VENTAS')) {
+          <ion-item button [class.active]="currentView === 'ventas'"
+            (click)="setView('ventas')" title="Ventas" aria-label="Ventas">
+            <ion-icon slot="start" name="cart-outline"></ion-icon>
+            <ion-label>Ventas</ion-label>
+          </ion-item>
+        }
 
-        <ion-item *ngIf="hasModule('usuarios') || hasPermission('VER_USUARIOS')" button [class.active]="currentView === 'users'"
-          (click)="setView('users')" title="Usuarios" aria-label="Usuarios">
-          <ion-icon slot="start" name="people-circle-outline"></ion-icon>
-          <ion-label>Usuarios</ion-label>
-        </ion-item>
+        @if (hasModule('usuarios') || hasPermission('VER_USUARIOS')) {
+          <ion-item button [class.active]="currentView === 'users'"
+            (click)="setView('users')" title="Usuarios" aria-label="Usuarios">
+            <ion-icon slot="start" name="people-circle-outline"></ion-icon>
+            <ion-label>Usuarios</ion-label>
+          </ion-item>
+        }
 
-        <ion-item *ngIf="hasModule('clientes') || hasPermission('VER_CLIENTES')" button [class.active]="currentView === 'clientes'" (click)="setView('clientes')" title="Clientes" aria-label="Clientes">
-          <ion-icon slot="start" name="people-outline"></ion-icon>
-          <ion-label>Clientes</ion-label>
-        </ion-item>
+        @if (hasModule('clientes') || hasPermission('VER_CLIENTES')) {
+          <ion-item button [class.active]="currentView === 'clientes'" (click)="setView('clientes')" title="Clientes" aria-label="Clientes">
+            <ion-icon slot="start" name="people-outline"></ion-icon>
+            <ion-label>Clientes</ion-label>
+          </ion-item>
+        }
 
-        <ion-item *ngIf="hasModule('modulos') || hasPermission('GESTION_MODULOS')" button [class.active]="currentView === 'modulos'"
-          (click)="setView('modulos')" title="Módulos" aria-label="Módulos">
-          <ion-icon slot="start" name="grid-outline"></ion-icon>
-          <ion-label>Módulos</ion-label>
-        </ion-item>
+        @if (hasModule('modulos') || hasPermission('GESTION_MODULOS')) {
+          <ion-item button [class.active]="currentView === 'modulos'"
+            (click)="setView('modulos')" title="Módulos" aria-label="Módulos">
+            <ion-icon slot="start" name="grid-outline"></ion-icon>
+            <ion-label>Módulos</ion-label>
+          </ion-item>
+        }
 
-        <ion-item *ngIf="hasModule('finanzas') || hasPermission('VER_FINANZAS')" button [class.active]="currentView === 'finanzas'"
-          (click)="setView('finanzas')" title="Finanzas" aria-label="Finanzas">
-          <ion-icon slot="start" name="cash-outline"></ion-icon>
-          <ion-label>Finanzas</ion-label>
-        </ion-item>
+        @if (hasModule('finanzas') || hasPermission('VER_FINANZAS')) {
+          <ion-item button [class.active]="currentView === 'finanzas'"
+            (click)="setView('finanzas')" title="Finanzas" aria-label="Finanzas">
+            <ion-icon slot="start" name="cash-outline"></ion-icon>
+            <ion-label>Finanzas</ion-label>
+          </ion-item>
+        }
 
-        <ion-item *ngIf="hasModule('reportes') || hasPermission('VER_REPORTES')" button [class.active]="currentView === 'reportes'"
-          (click)="setView('reportes')" title="Reportes" aria-label="Reportes">
-          <ion-icon slot="start" name="bar-chart-outline"></ion-icon>
-          <ion-label>Reportes</ion-label>
-        </ion-item>
+        @if (hasModule('reportes') || hasPermission('VER_REPORTES')) {
+          <ion-item button [class.active]="currentView === 'reportes'"
+            (click)="setView('reportes')" title="Reportes" aria-label="Reportes">
+            <ion-icon slot="start" name="bar-chart-outline"></ion-icon>
+            <ion-label>Reportes</ion-label>
+          </ion-item>
+        }
 
-        <ion-item *ngIf="hasModule('configuracion') || hasPermission('VER_CONFIGURACION')" button [class.active]="currentView === 'configuracion'"
-          (click)="setView('configuracion')" title="Configuración" aria-label="Configuración">
-          <ion-icon slot="start" name="settings-outline"></ion-icon>
-          <ion-label>Configuración</ion-label>
-        </ion-item>
+        @if (hasModule('configuracion') || hasPermission('VER_CONFIGURACION')) {
+          <ion-item button [class.active]="currentView === 'configuracion'"
+            (click)="setView('configuracion')" title="Configuración" aria-label="Configuración">
+            <ion-icon slot="start" name="settings-outline"></ion-icon>
+            <ion-label>Configuración</ion-label>
+          </ion-item>
+        }
       </ion-list>
     </ion-content>
   </ion-menu>
@@ -80,9 +96,11 @@
 
           <ion-button id="notifications-trigger" aria-label="Notificaciones" class="notification-btn">
             <ion-icon name="notifications-outline"></ion-icon>
-            <ion-badge *ngIf="(unreadCount$ | async) as count" color="danger" class="notification-badge">
-              {{ count > 9 ? '9+' : count }}
-            </ion-badge>
+            @if ((unreadCount$ | async); as count) {
+              <ion-badge color="danger" class="notification-badge">
+                {{ count > 9 ? '9+' : count }}
+              </ion-badge>
+            }
           </ion-button>
 
           <ion-popover trigger="notifications-trigger" dismissOnSelect="true" class="notification-popover" side="bottom" alignment="end" [showBackdrop]="false">
@@ -94,33 +112,37 @@
                     Marcar leídas
                   </ion-button>
                 </div>
-                
+
                 <div class="notification-list-wrapper">
                   <ion-list lines="full" class="ion-no-padding">
-                    <ion-item button *ngFor="let n of notifications$ | async" 
-                              [class.unread]="!n.read" 
-                              (click)="markAsRead(n)"
-                              detail="false"
-                              class="notification-item">
-                      <div class="notif-icon-wrapper" slot="start" [class]="n.type">
-                        <ion-icon [name]="getIconForType(n.type)"></ion-icon>
-                      </div>
-                      <ion-label class="ion-text-wrap">
-                        <div class="notif-top">
-                          <span class="notif-title">{{ n.title }}</span>
-                          <span class="notif-time">{{ n.timestamp | date:'shortTime' }}</span>
+                    @for (n of notifications$ | async; track n) {
+                      <ion-item button
+                        [class.unread]="!n.read"
+                        (click)="markAsRead(n)"
+                        detail="false"
+                        class="notification-item">
+                        <div class="notif-icon-wrapper" slot="start" [class]="n.type">
+                          <ion-icon [name]="getIconForType(n.type)"></ion-icon>
                         </div>
-                        <p class="notif-msg">{{ n.message }}</p>
-                      </ion-label>
-                      <ion-button slot="end" fill="clear" color="medium" size="small" (click)="removeNotification($event, n.id)">
-                        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
-                      </ion-button>
-                    </ion-item>
+                        <ion-label class="ion-text-wrap">
+                          <div class="notif-top">
+                            <span class="notif-title">{{ n.title }}</span>
+                            <span class="notif-time">{{ n.timestamp | date:'shortTime' }}</span>
+                          </div>
+                          <p class="notif-msg">{{ n.message }}</p>
+                        </ion-label>
+                        <ion-button slot="end" fill="clear" color="medium" size="small" (click)="removeNotification($event, n.id)">
+                          <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+                        </ion-button>
+                      </ion-item>
+                    }
 
-                    <div class="empty-notifications" *ngIf="(notifications$ | async)?.length === 0">
-                      <ion-icon name="notifications-off-outline"></ion-icon>
-                      <p>No tienes notificaciones</p>
-                    </div>
+                    @if ((notifications$ | async)?.length === 0) {
+                      <div class="empty-notifications">
+                        <ion-icon name="notifications-off-outline"></ion-icon>
+                        <p>No tienes notificaciones</p>
+                      </div>
+                    }
                   </ion-list>
                 </div>
               </div>
@@ -128,7 +150,7 @@
           </ion-popover>
 
           <div class="user-profile-widget">
-            <ng-container *ngIf="currentUser; else loadingTemplate">
+            @if (currentUser) {
               <div class="user-details">
                 <span class="user-name">{{ currentUser.nombre }}</span>
                 <span class="user-role">{{ currentUser.roles[0] || 'Usuario' }}</span>
@@ -136,16 +158,15 @@
               <div class="user-avatar">
                 <span>{{ currentUser.nombre.charAt(0).toUpperCase() }}</span>
               </div>
-            </ng-container>
-
-            <ng-template #loadingTemplate>
+            } @else {
               <div class="user-details" style="opacity: 0.5;">
                 <span class="user-name">Cargando...</span>
               </div>
               <div class="user-avatar" style="background: #e0e0e0;">
                 <ion-spinner name="dots" color="primary" style="transform: scale(0.5);"></ion-spinner>
               </div>
-            </ng-template>
+            }
+
 
             <ion-button fill="clear" class="logout-btn" (click)="logout()" title="Cerrar Sesión">
               <ion-icon name="log-out-outline" slot="icon-only"></ion-icon>
@@ -156,15 +177,33 @@
     </ion-header>
 
     <div class="content-container">
-      <app-dashboard *ngIf="currentView === 'dashboard'" (navigate)="setView($event)"></app-dashboard>
-      <app-users *ngIf="currentView === 'users'"></app-users>
-      <app-ventas *ngIf="currentView === 'ventas'"></app-ventas>
-      <app-productos *ngIf="currentView === 'productos'"></app-productos>
-      <app-clientes *ngIf="currentView === 'clientes'"></app-clientes>
-      <app-modulos *ngIf="currentView === 'modulos'"></app-modulos>
-      <app-finanzas *ngIf="currentView === 'finanzas'"></app-finanzas>
-      <app-reportes *ngIf="currentView === 'reportes'"></app-reportes>
-      <app-configuracion *ngIf="currentView === 'configuracion'"></app-configuracion>
+      @if (currentView === 'dashboard') {
+        <app-dashboard (navigate)="setView($event)"></app-dashboard>
+      }
+      @if (currentView === 'users') {
+        <app-users></app-users>
+      }
+      @if (currentView === 'ventas') {
+        <app-ventas></app-ventas>
+      }
+      @if (currentView === 'productos') {
+        <app-productos></app-productos>
+      }
+      @if (currentView === 'clientes') {
+        <app-clientes></app-clientes>
+      }
+      @if (currentView === 'modulos') {
+        <app-modulos></app-modulos>
+      }
+      @if (currentView === 'finanzas') {
+        <app-finanzas></app-finanzas>
+      }
+      @if (currentView === 'reportes') {
+        <app-reportes></app-reportes>
+      }
+      @if (currentView === 'configuracion') {
+        <app-configuracion></app-configuracion>
+      }
     </div>
 
     <div class="mobile-tabbar" role="tablist" aria-label="Navegación inferior">
@@ -174,55 +213,71 @@
         <span>Inicio</span>
       </button>
 
-      <button class="item" *ngIf="hasModule('inventario') || hasModule('productos') || hasPermission('VER_INVENTARIO') || hasPermission('ADMIN')" [class.active]="currentView === 'productos'"
-        (click)="setView('productos')" role="tab" [attr.aria-selected]="currentView === 'productos'">
-        <ion-icon name="cube-outline"></ion-icon>
-        <span>Prod.</span>
-      </button>
+      @if (hasModule('inventario') || hasModule('productos') || hasPermission('VER_INVENTARIO') || hasPermission('ADMIN')) {
+        <button class="item" [class.active]="currentView === 'productos'"
+          (click)="setView('productos')" role="tab" [attr.aria-selected]="currentView === 'productos'">
+          <ion-icon name="cube-outline"></ion-icon>
+          <span>Prod.</span>
+        </button>
+      }
 
-      <button class="item" *ngIf="hasModule('ventas') || hasPermission('VENDER') || hasPermission('VER_VENTAS') || hasPermission('ADMIN')" [class.active]="currentView === 'ventas'"
-        (click)="setView('ventas')" role="tab" [attr.aria-selected]="currentView === 'ventas'">
-        <ion-icon name="cart-outline"></ion-icon>
-        <span>Ventas</span>
-      </button>
+      @if (hasModule('ventas') || hasPermission('VENDER') || hasPermission('VER_VENTAS') || hasPermission('ADMIN')) {
+        <button class="item" [class.active]="currentView === 'ventas'"
+          (click)="setView('ventas')" role="tab" [attr.aria-selected]="currentView === 'ventas'">
+          <ion-icon name="cart-outline"></ion-icon>
+          <span>Ventas</span>
+        </button>
+      }
 
-      <button class="item" *ngIf="hasModule('usuarios') || hasPermission('VER_USUARIOS') || hasPermission('ADMIN')" [class.active]="currentView === 'users'"
-        (click)="setView('users')" role="tab" [attr.aria-selected]="currentView === 'users'">
-        <ion-icon name="people-circle-outline"></ion-icon>
-        <span>Users</span>
-      </button>
+      @if (hasModule('usuarios') || hasPermission('VER_USUARIOS') || hasPermission('ADMIN')) {
+        <button class="item" [class.active]="currentView === 'users'"
+          (click)="setView('users')" role="tab" [attr.aria-selected]="currentView === 'users'">
+          <ion-icon name="people-circle-outline"></ion-icon>
+          <span>Users</span>
+        </button>
+      }
 
-      <button class="item" *ngIf="hasModule('clientes') || hasPermission('VER_CLIENTES') || hasPermission('ADMIN')" [class.active]="currentView === 'clientes'"
-        (click)="setView('clientes')" role="tab" [attr.aria-selected]="currentView === 'clientes'">
-        <ion-icon name="people-outline"></ion-icon>
-        <span>Clientes</span>
-      </button>
+      @if (hasModule('clientes') || hasPermission('VER_CLIENTES') || hasPermission('ADMIN')) {
+        <button class="item" [class.active]="currentView === 'clientes'"
+          (click)="setView('clientes')" role="tab" [attr.aria-selected]="currentView === 'clientes'">
+          <ion-icon name="people-outline"></ion-icon>
+          <span>Clientes</span>
+        </button>
+      }
 
-      <button class="item" *ngIf="hasModule('modulos') || hasPermission('GESTION_MODULOS') || hasPermission('ADMIN')" [class.active]="currentView === 'modulos'"
-        (click)="setView('modulos')" role="tab" [attr.aria-selected]="currentView === 'modulos'">
-        <ion-icon name="grid-outline"></ion-icon>
-        <span>Módulos</span>
-      </button>
+      @if (hasModule('modulos') || hasPermission('GESTION_MODULOS') || hasPermission('ADMIN')) {
+        <button class="item" [class.active]="currentView === 'modulos'"
+          (click)="setView('modulos')" role="tab" [attr.aria-selected]="currentView === 'modulos'">
+          <ion-icon name="grid-outline"></ion-icon>
+          <span>Módulos</span>
+        </button>
+      }
 
-      <button class="item" *ngIf="hasModule('finanzas') || hasPermission('VER_FINANZAS') || hasPermission('ADMIN')"
-        [class.active]="currentView === 'finanzas'" (click)="setView('finanzas')" role="tab"
-        [attr.aria-selected]="currentView === 'finanzas'">
-        <ion-icon name="cash-outline"></ion-icon>
-        <span>Finanzas</span>
-      </button>
-      
-      <button class="item" *ngIf="hasModule('reportes') || hasPermission('VER_REPORTES') || hasPermission('ADMIN')"
-        [class.active]="currentView === 'reportes'" (click)="setView('reportes')" role="tab"
-        [attr.aria-selected]="currentView === 'reportes'">
-        <ion-icon name="bar-chart-outline"></ion-icon>
-        <span>Reportes</span>
-      </button>
+      @if (hasModule('finanzas') || hasPermission('VER_FINANZAS') || hasPermission('ADMIN')) {
+        <button class="item"
+          [class.active]="currentView === 'finanzas'" (click)="setView('finanzas')" role="tab"
+          [attr.aria-selected]="currentView === 'finanzas'">
+          <ion-icon name="cash-outline"></ion-icon>
+          <span>Finanzas</span>
+        </button>
+      }
 
-      <button class="item" *ngIf="hasModule('configuracion') || hasPermission('VER_CONFIGURACION') || hasPermission('ADMIN')" role="tab"
-        [class.active]="currentView === 'configuracion'" (click)="setView('configuracion')" [attr.aria-selected]="currentView === 'configuracion'">
-        <ion-icon name="settings-outline"></ion-icon>
-        <span>Config.</span>
-      </button>
+      @if (hasModule('reportes') || hasPermission('VER_REPORTES') || hasPermission('ADMIN')) {
+        <button class="item"
+          [class.active]="currentView === 'reportes'" (click)="setView('reportes')" role="tab"
+          [attr.aria-selected]="currentView === 'reportes'">
+          <ion-icon name="bar-chart-outline"></ion-icon>
+          <span>Reportes</span>
+        </button>
+      }
+
+      @if (hasModule('configuracion') || hasPermission('VER_CONFIGURACION') || hasPermission('ADMIN')) {
+        <button class="item" role="tab"
+          [class.active]="currentView === 'configuracion'" (click)="setView('configuracion')" [attr.aria-selected]="currentView === 'configuracion'">
+          <ion-icon name="settings-outline"></ion-icon>
+          <span>Config.</span>
+        </button>
+      }
     </div>
   </ion-content>
 </ion-split-pane>

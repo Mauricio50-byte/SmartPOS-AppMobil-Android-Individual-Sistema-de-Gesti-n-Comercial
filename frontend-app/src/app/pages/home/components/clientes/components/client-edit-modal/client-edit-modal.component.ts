@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { IonicModule, ModalController } from '@ionic/angular';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Cliente } from 'src/app/core/models/cliente';
@@ -9,7 +9,7 @@ import { Cliente } from 'src/app/core/models/cliente';
   templateUrl: './client-edit-modal.component.html',
   styleUrls: ['./client-edit-modal.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, ReactiveFormsModule]
+  imports: [IonicModule, ReactiveFormsModule]
 })
 export class ClientEditModalComponent implements OnInit {
   @Input() cliente!: Cliente;

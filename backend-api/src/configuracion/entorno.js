@@ -2,9 +2,9 @@ const PUERTO = process.env.PUERTO ? Number(process.env.PUERTO) : 3000
 const JWT_SECRETO = process.env.JWT_SECRETO || 'secreto-super-seguro'
 
 // Supabase Configuration
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://lczrzowgimhtwvpsuagi.supabase.co'
-const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_3-S_ut1yytVUIAXEk_MDEw_0li2yn63'
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'sb_secret_Z50aFkamxasfvZgTt1v7RA_KDVu7iUf'
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://fdilpjklepgbqnyygyyn.supabase.co'
+const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_XxUKbXbmNl80cH52-9TppA_LDMylH4L'
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'sb_secret_sNO0X_jC7y94WNNH453fXA_rn5ntb8a'
 
 // DB Connection (Supabase Postgres)
 // Format: postgres://[db-user]:[db-password]@aws-0-[region].pooler.supabase.com:6543/[db-name]?pgbouncer=true

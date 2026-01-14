@@ -5,7 +5,7 @@
       <span class="panel-subtitle">Distribución de ingresos</span>
     </div>
   </div>
-  
+
   <div class="panel-content">
     <div class="chart-section">
       <div class="chart-wrapper">
@@ -14,29 +14,35 @@
           [options]="chartOptions"
           [type]="chartType">
         </canvas>
-        <div class="chart-center-text" *ngIf="stats.length > 0">
-          <span class="total-label">Total</span>
-        </div>
+        @if (stats.length > 0) {
+          <div class="chart-center-text">
+            <span class="total-label">Total</span>
+          </div>
+        }
       </div>
     </div>
 
     <div class="legend-section">
       <div class="legend-grid">
-        <div class="legend-item" *ngFor="let stat of stats">
-          <div class="item-left">
-            <div class="legend-indicator" [style.background-color]="stat.color"></div>
-            <span class="legend-name" title="{{ stat.name }}">{{ stat.name }}</span>
+        @for (stat of stats; track stat) {
+          <div class="legend-item">
+            <div class="item-left">
+              <div class="legend-indicator" [style.background-color]="stat.color"></div>
+              <span class="legend-name" title="{{ stat.name }}">{{ stat.name }}</span>
+            </div>
+            <div class="item-right">
+              <span class="legend-amount">{{ stat.revenue | currency:'USD':'symbol':'1.0-0' }}</span>
+              <span class="legend-percent">{{ stat.percentage | number:'1.0-1' }}%</span>
+            </div>
           </div>
-          <div class="item-right">
-            <span class="legend-amount">{{ stat.revenue | currency:'USD':'symbol':'1.0-0' }}</span>
-            <span class="legend-percent">{{ stat.percentage | number:'1.0-1' }}%</span>
-          </div>
+        }
+      </div>
+
+      @if (stats.length === 0) {
+        <div class="empty-state">
+          <p>No hay datos disponibles</p>
         </div>
-      </div>
-      
-      <div *ngIf="stats.length === 0" class="empty-state">
-        <p>No hay datos disponibles</p>
-      </div>
+      }
     </div>
   </div>
 </div>

@@ -11,13 +11,15 @@
 
 <ion-content class="ion-padding">
   <form [formGroup]="editForm" (ngSubmit)="guardar()">
-    
+
     <ion-item>
       <ion-label position="stacked">Nombre *</ion-label>
       <ion-input formControlName="nombre" type="text" placeholder="Nombre completo"></ion-input>
-      <ion-note slot="error" *ngIf="editForm.get('nombre')?.invalid && editForm.get('nombre')?.touched">
-        El nombre es requerido
-      </ion-note>
+      @if (editForm.get('nombre')?.invalid && editForm.get('nombre')?.touched) {
+        <ion-note slot="error">
+          El nombre es requerido
+        </ion-note>
+      }
     </ion-item>
 
     <ion-item>

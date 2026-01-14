@@ -28,16 +28,22 @@
   </div>
 
   <div class="finanzas-content">
-    <div *ngIf="segment === 'caja'" class="fade-in">
-      <app-caja></app-caja>
-    </div>
+    @if (segment === 'caja') {
+      <div class="fade-in">
+        <app-caja></app-caja>
+      </div>
+    }
 
-    <div *ngIf="segment === 'por-cobrar'" class="fade-in">
-      <app-cuentas-por-cobrar></app-cuentas-por-cobrar>
-    </div>
-    
-    <div *ngIf="segment === 'por-pagar'" class="fade-in">
-      <app-cuentas-por-pagar></app-cuentas-por-pagar>
-    </div>
+    @if (segment === 'por-cobrar') {
+      <div class="fade-in">
+        <app-cuentas-por-cobrar></app-cuentas-por-cobrar>
+      </div>
+    }
+
+    @if (segment === 'por-pagar') {
+      <div class="fade-in">
+        <app-cuentas-por-pagar></app-cuentas-por-pagar>
+      </div>
+    }
   </div>
 </div>

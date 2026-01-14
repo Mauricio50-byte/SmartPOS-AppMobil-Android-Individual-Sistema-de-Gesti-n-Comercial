@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule, NgFor, NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { IonicModule, AlertController, ToastController, ModalController } from '@ionic/angular';
 import { GastoService } from 'src/app/core/services/gasto.service';
 import { Gasto } from 'src/app/core/models/gasto';
@@ -12,7 +12,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
   templateUrl: './cuentas-por-pagar.component.html',
   styleUrls: ['./cuentas-por-pagar.component.scss'],
   standalone: true,
-  imports: [CommonModule, NgIf, NgFor, IonicModule, FormsModule, ReactiveFormsModule]
+  imports: [CommonModule, IonicModule, FormsModule, ReactiveFormsModule]
 })
 export class CuentasPorPagarComponent implements OnInit {
   gastos: Gasto[] = [];

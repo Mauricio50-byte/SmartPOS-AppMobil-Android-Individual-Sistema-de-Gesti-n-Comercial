@@ -15,114 +15,130 @@
     </div>
   </div>
 
-  <div class="table-container" *ngIf="!loading; else loadingTpl">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Cliente</th>
-          <th>Teléfono</th>
-          <th>Cédula</th>
-          <th>Crédito Disp.</th>
-          <th>Saldo Deuda</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let c of filtrados">
-          <td data-label="Cliente">
-            <div class="client-info"><span class="name">{{ c.nombre }}</span></div>
-          </td>
-          <td data-label="Teléfono">{{ c.telefono || '-' }}</td>
-          <td data-label="Cédula">{{ c.cedula || '-' }}</td>
-          <td data-label="Crédito Disp.">{{ creditoDisponible(c) | currency:'USD' }}</td>
-          <td data-label="Saldo Deuda" class="amount-pending">{{ c.saldoDeuda || 0 | currency:'USD' }}</td>
-          <td data-label="Estado">
-            <ion-badge [color]="(c.saldoDeuda || 0) > 0 ? 'warning' : 'success'">
-              {{ (c.saldoDeuda || 0) > 0 ? 'Con deuda' : 'Sin deuda' }}
-            </ion-badge>
-            <ion-badge *ngIf="c.activo === false" color="medium" style="margin-left: 5px;">Inactivo</ion-badge>
-          </td>
-          <td data-label="Acciones">
-            <ion-button size="small" (click)="verEstado(c)" fill="clear" title="Ver Estado">
-              <ion-icon slot="icon-only" name="document-text-outline"></ion-icon>
-            </ion-button>
-            <ion-button size="small" (click)="editarCliente(c)" color="secondary" fill="clear" title="Editar">
-              <ion-icon slot="icon-only" name="create-outline"></ion-icon>
-            </ion-button>
-            <ion-button size="small" (click)="toggleActivo(c)" [color]="c.activo === false ? 'success' : 'medium'" fill="clear" [title]="c.activo === false ? 'Activar' : 'Desactivar'">
-              <ion-icon slot="icon-only" name="power-outline"></ion-icon>
-            </ion-button>
-          </td>
-        </tr>
-        <tr *ngIf="filtrados.length === 0">
-          <td colspan="7" class="empty-state">No se encontraron clientes.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <ng-template #loadingTpl>
+  @if (!loading) {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Teléfono</th>
+            <th>Cédula</th>
+            <th>Crédito Disp.</th>
+            <th>Saldo Deuda</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of filtrados; track c) {
+            <tr>
+              <td data-label="Cliente">
+                <div class="client-info"><span class="name">{{ c.nombre }}</span></div>
+              </td>
+              <td data-label="Teléfono">{{ c.telefono || '-' }}</td>
+              <td data-label="Cédula">{{ c.cedula || '-' }}</td>
+              <td data-label="Crédito Disp.">{{ creditoDisponible(c) | currency:'USD' }}</td>
+              <td data-label="Saldo Deuda" class="amount-pending">{{ c.saldoDeuda || 0 | currency:'USD' }}</td>
+              <td data-label="Estado">
+                <ion-badge [color]="(c.saldoDeuda || 0) > 0 ? 'warning' : 'success'">
+                  {{ (c.saldoDeuda || 0) > 0 ? 'Con deuda' : 'Sin deuda' }}
+                </ion-badge>
+                @if (c.activo === false) {
+                  <ion-badge color="medium" style="margin-left: 5px;">Inactivo</ion-badge>
+                }
+              </td>
+              <td data-label="Acciones">
+                <ion-button size="small" (click)="verEstado(c)" fill="clear" title="Ver Estado">
+                  <ion-icon slot="icon-only" name="document-text-outline"></ion-icon>
+                </ion-button>
+                <ion-button size="small" (click)="editarCliente(c)" color="secondary" fill="clear" title="Editar">
+                  <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+                </ion-button>
+                <ion-button size="small" (click)="toggleActivo(c)" [color]="c.activo === false ? 'success' : 'medium'" fill="clear" [title]="c.activo === false ? 'Activar' : 'Desactivar'">
+                  <ion-icon slot="icon-only" name="power-outline"></ion-icon>
+                </ion-button>
+              </td>
+            </tr>
+          }
+          @if (filtrados.length === 0) {
+            <tr>
+              <td colspan="7" class="empty-state">No se encontraron clientes.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
     <div class="skeleton-container" style="padding: 20px;">
-        <div class="table-header-skeleton" style="display: flex; gap: 15px; margin-bottom: 20px;">
-            <ion-skeleton-text animated style="width: 20%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
-            <ion-skeleton-text animated style="width: 15%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
-            <ion-skeleton-text animated style="width: 15%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
-            <ion-skeleton-text animated style="width: 15%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
-            <ion-skeleton-text animated style="width: 15%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
-            <ion-skeleton-text animated style="width: 10%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
-        </div>
-        <ion-list>
-            <ion-item *ngFor="let i of [1,2,3,4,5,6,7,8]" lines="none" style="--padding-start: 0; --inner-padding-end: 0; margin-bottom: 10px;">
-                <ion-label>
-                    <div style="display: flex; gap: 15px; align-items: center;">
-                        <div style="width: 20%; display: flex; align-items: center; gap: 10px;">
-                            <ion-skeleton-text animated style="width: 32px; height: 32px; border-radius: 50%;"></ion-skeleton-text>
-                            <ion-skeleton-text animated style="width: 60%; height: 20px;"></ion-skeleton-text>
-                        </div>
-                        <ion-skeleton-text animated style="width: 15%; height: 20px;"></ion-skeleton-text>
-                        <ion-skeleton-text animated style="width: 15%; height: 20px;"></ion-skeleton-text>
-                        <ion-skeleton-text animated style="width: 15%; height: 20px;"></ion-skeleton-text>
-                        <ion-skeleton-text animated style="width: 15%; height: 20px;"></ion-skeleton-text>
-                        <ion-skeleton-text animated style="width: 10%; height: 20px; border-radius: 10px;"></ion-skeleton-text>
-                    </div>
-                </ion-label>
-            </ion-item>
-        </ion-list>
+      <div class="table-header-skeleton" style="display: flex; gap: 15px; margin-bottom: 20px;">
+        <ion-skeleton-text animated style="width: 20%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width: 15%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width: 15%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width: 15%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width: 15%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width: 10%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
+      </div>
+      <ion-list>
+        @for (i of [1,2,3,4,5,6,7,8]; track i) {
+          <ion-item lines="none" style="--padding-start: 0; --inner-padding-end: 0; margin-bottom: 10px;">
+            <ion-label>
+              <div style="display: flex; gap: 15px; align-items: center;">
+                <div style="width: 20%; display: flex; align-items: center; gap: 10px;">
+                  <ion-skeleton-text animated style="width: 32px; height: 32px; border-radius: 50%;"></ion-skeleton-text>
+                  <ion-skeleton-text animated style="width: 60%; height: 20px;"></ion-skeleton-text>
+                </div>
+                <ion-skeleton-text animated style="width: 15%; height: 20px;"></ion-skeleton-text>
+                <ion-skeleton-text animated style="width: 15%; height: 20px;"></ion-skeleton-text>
+                <ion-skeleton-text animated style="width: 15%; height: 20px;"></ion-skeleton-text>
+                <ion-skeleton-text animated style="width: 15%; height: 20px;"></ion-skeleton-text>
+                <ion-skeleton-text animated style="width: 10%; height: 20px; border-radius: 10px;"></ion-skeleton-text>
+              </div>
+            </ion-label>
+          </ion-item>
+        }
+      </ion-list>
     </div>
-  </ng-template>
+  }
 
-  <div class="detalle-panel" *ngIf="seleccionado">
-    <div class="detalle-header">
-      <div class="title"><ion-icon name="person-outline"></ion-icon><strong>{{ seleccionado.nombre }}</strong></div>
-      <ion-button fill="clear" (click)="cerrarDetalle()"><ion-icon name="close-outline"></ion-icon></ion-button>
-    </div>
-    <div class="detalle-content" *ngIf="estadoCuenta; else cargandoDetalle">
-      <div class="resumen">
-        <div><span class="label">Crédito Máximo</span><span class="value">{{ estadoCuenta.cliente.creditoMaximo | currency:'USD' }}</span></div>
-        <div><span class="label">Saldo Deuda</span><span class="value">{{ estadoCuenta.cliente.saldoDeuda | currency:'USD' }}</span></div>
-        <div><span class="label">Crédito Disponible</span><span class="value">{{ estadoCuenta.creditoDisponible | currency:'USD' }}</span></div>
+
+  @if (seleccionado) {
+    <div class="detalle-panel">
+      <div class="detalle-header">
+        <div class="title"><ion-icon name="person-outline"></ion-icon><strong>{{ seleccionado.nombre }}</strong></div>
+        <ion-button fill="clear" (click)="cerrarDetalle()"><ion-icon name="close-outline"></ion-icon></ion-button>
       </div>
-      <div class="deudas-list">
-        <h3>Deudas</h3>
-        <table class="data-table mini">
-          <thead><tr><th>Fecha</th><th>Total</th><th>Saldo</th><th>Estado</th></tr></thead>
-          <tbody>
-            <tr *ngFor="let d of estadoCuenta.deudas">
-              <td>{{ d.fechaCreacion | date:'shortDate' }}</td>
-              <td>{{ d.montoTotal | currency:'USD' }}</td>
-              <td>{{ d.saldoPendiente | currency:'USD' }}</td>
-              <td><ion-badge [color]="d.estado === 'PAGADO' ? 'success' : (d.estado === 'VENCIDO' ? 'danger' : 'warning')">{{ d.estado }}</ion-badge></td>
-            </tr>
-            <tr *ngIf="estadoCuenta.deudas.length === 0">
-              <td colspan="4" class="empty-state">Sin deudas registradas.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      @if (estadoCuenta) {
+        <div class="detalle-content">
+          <div class="resumen">
+            <div><span class="label">Crédito Máximo</span><span class="value">{{ estadoCuenta.cliente.creditoMaximo | currency:'USD' }}</span></div>
+            <div><span class="label">Saldo Deuda</span><span class="value">{{ estadoCuenta.cliente.saldoDeuda | currency:'USD' }}</span></div>
+            <div><span class="label">Crédito Disponible</span><span class="value">{{ estadoCuenta.creditoDisponible | currency:'USD' }}</span></div>
+          </div>
+          <div class="deudas-list">
+            <h3>Deudas</h3>
+            <table class="data-table mini">
+              <thead><tr><th>Fecha</th><th>Total</th><th>Saldo</th><th>Estado</th></tr></thead>
+              <tbody>
+                @for (d of estadoCuenta.deudas; track d) {
+                  <tr>
+                    <td>{{ d.fechaCreacion | date:'shortDate' }}</td>
+                    <td>{{ d.montoTotal | currency:'USD' }}</td>
+                    <td>{{ d.saldoPendiente | currency:'USD' }}</td>
+                    <td><ion-badge [color]="d.estado === 'PAGADO' ? 'success' : (d.estado === 'VENCIDO' ? 'danger' : 'warning')">{{ d.estado }}</ion-badge></td>
+                  </tr>
+                }
+                @if (estadoCuenta.deudas.length === 0) {
+                  <tr>
+                    <td colspan="4" class="empty-state">Sin deudas registradas.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      } @else {
+        <div class="loading"><ion-spinner name="dots" color="primary"></ion-spinner></div>
+      }
     </div>
-    <ng-template #cargandoDetalle>
-      <div class="loading"><ion-spinner name="dots" color="primary"></ion-spinner></div>
-    </ng-template>
-  </div>
+  }
 </div>

@@ -12,33 +12,36 @@
     </ion-segment>
   </div>
 
-  <div class="tab-content" *ngIf="activeTab === 'usuario'">
-    <app-manual-usuario></app-manual-usuario>
-  </div>
+  @if (activeTab === 'usuario') {
+    <div class="tab-content">
+      <app-manual-usuario></app-manual-usuario>
+    </div>
+  }
 
-  <div class="tab-content help-content" *ngIf="activeTab === 'ayuda'">
-    <div class="contact-cards">
-      <div class="contact-card" *ngFor="let contacto of contactos">
-        <div class="avatar-container">
-          <!-- Using a generic avatar if no specific avatar image is provided, or we could use the QR as avatar placeholder if needed, but icon is better -->
-          <div class="avatar-circle">
-            <ion-icon name="person"></ion-icon>
+  @if (activeTab === 'ayuda') {
+    <div class="tab-content help-content">
+      <div class="contact-cards">
+        @for (contacto of contactos; track contacto) {
+          <div class="contact-card">
+            <div class="avatar-container">
+              <!-- Using a generic avatar if no specific avatar image is provided, or we could use the QR as avatar placeholder if needed, but icon is better -->
+              <div class="avatar-circle">
+                <ion-icon name="person"></ion-icon>
+              </div>
+            </div>
+            <div class="card-body">
+              <h2 class="contact-name">{{ contacto.nombre }}</h2>
+              <p class="contact-subtitle">Contacto de WhatsApp</p>
+              <div class="qr-container">
+                <img [src]="contacto.qrImage" alt="Código QR de WhatsApp">
+              </div>
+              <p class="info-text">
+                Tu código QR es privado. Si lo compartes con alguien, esa persona podrá escanearlo con la cámara de WhatsApp para añadirte como contacto.
+              </p>
+            </div>
           </div>
-        </div>
-        
-        <div class="card-body">
-          <h2 class="contact-name">{{ contacto.nombre }}</h2>
-          <p class="contact-subtitle">Contacto de WhatsApp</p>
-          
-          <div class="qr-container">
-            <img [src]="contacto.qrImage" alt="Código QR de WhatsApp">
-          </div>
-          
-          <p class="info-text">
-            Tu código QR es privado. Si lo compartes con alguien, esa persona podrá escanearlo con la cámara de WhatsApp para añadirte como contacto.
-          </p>
-        </div>
+        }
       </div>
     </div>
-  </div>
+  }
 </div>

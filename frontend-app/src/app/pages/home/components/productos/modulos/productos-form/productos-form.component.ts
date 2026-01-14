@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -19,8 +19,7 @@ import { FormularioRestauranteComponent } from '../formulario-restaurante/formul
   templateUrl: './productos-form.component.html',
   styleUrls: ['./productos-form.component.scss'],
   imports: [
-    CommonModule, 
-    IonicModule, 
+    IonicModule,
     ReactiveFormsModule,
     FormularioRopaComponent,
     FormularioAlimentosComponent,
@@ -28,7 +27,7 @@ import { FormularioRestauranteComponent } from '../formulario-restaurante/formul
     FormularioFarmaciaComponent,
     FormularioPapeleriaComponent,
     FormularioRestauranteComponent
-  ]
+]
 })
 export class ProductosFormComponent implements OnChanges {
   @Input() product: Producto | null = null;

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { IonicModule } from '@ionic/angular';
 import { CuentasPorCobrarComponent } from './components/cuentas-por-cobrar/cuentas-por-cobrar.component';
 import { CuentasPorPagarComponent } from './components/cuentas-por-pagar/cuentas-por-pagar.component';
@@ -12,7 +12,7 @@ import { walletOutline, cashOutline, cardOutline, fileTrayFullOutline } from 'io
   templateUrl: './finanzas.component.html',
   styleUrls: ['./finanzas.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, CuentasPorCobrarComponent, CuentasPorPagarComponent, CajaComponent]
+  imports: [IonicModule, CuentasPorCobrarComponent, CuentasPorPagarComponent, CajaComponent]
 })
 export class FinanzasComponent {
   segment: 'caja' | 'por-cobrar' | 'por-pagar' = 'caja';

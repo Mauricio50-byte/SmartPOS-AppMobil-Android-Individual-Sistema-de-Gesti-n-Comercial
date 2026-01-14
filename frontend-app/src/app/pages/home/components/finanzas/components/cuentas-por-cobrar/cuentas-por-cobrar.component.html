@@ -1,6 +1,6 @@
 <div class="toolbar">
   <ion-searchbar placeholder="Buscar cliente..." (ionInput)="onSearchChange($event)" class="search-bar"></ion-searchbar>
-  
+
   <div class="filter-container">
     <ion-select [value]="filterEstado" (ionChange)="onFilterChange($event)" interface="popover">
       <ion-select-option value="PENDIENTE">Pendientes</ion-select-option>
@@ -25,34 +25,40 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let deuda of filteredDeudas">
-        <td data-label="Cliente">
-          <div class="client-info">
-            <span class="name">{{ deuda.cliente?.nombre }}</span>
-            <span class="cedula">{{ deuda.cliente?.cedula }}</span>
-          </div>
-        </td>
-        <td data-label="Fecha">{{ deuda.fechaCreacion | date:'shortDate' }}</td>
-        <td data-label="Vencimiento">{{ deuda.fechaVencimiento ? (deuda.fechaVencimiento | date:'shortDate') : '-' }}</td>
-        <td data-label="Monto Total">{{ deuda.montoTotal | currency:'USD' }}</td>
-        <td data-label="Saldo" class="amount-pending">{{ deuda.saldoPendiente | currency:'USD' }}</td>
-        <td data-label="Estado">
-          <ion-badge [color]="deuda.estado === 'PAGADO' ? 'success' : (deuda.estado === 'VENCIDO' ? 'danger' : 'warning')">
-            {{ deuda.estado }}
-          </ion-badge>
-        </td>
-        <td data-label="Acciones">
-          <ion-button *ngIf="deuda.estado !== 'PAGADO'" size="small" (click)="registrarAbono(deuda)">
-            <ion-icon slot="start" name="cash-outline"></ion-icon>
-            Abonar
-          </ion-button>
-        </td>
-      </tr>
-      <tr *ngIf="filteredDeudas.length === 0">
-        <td colspan="7" class="empty-state">
-          No se encontraron deudas con los filtros seleccionados.
-        </td>
-      </tr>
+      @for (deuda of filteredDeudas; track deuda) {
+        <tr>
+          <td data-label="Cliente">
+            <div class="client-info">
+              <span class="name">{{ deuda.cliente?.nombre }}</span>
+              <span class="cedula">{{ deuda.cliente?.cedula }}</span>
+            </div>
+          </td>
+          <td data-label="Fecha">{{ deuda.fechaCreacion | date:'shortDate' }}</td>
+          <td data-label="Vencimiento">{{ deuda.fechaVencimiento ? (deuda.fechaVencimiento | date:'shortDate') : '-' }}</td>
+          <td data-label="Monto Total">{{ deuda.montoTotal | currency:'USD' }}</td>
+          <td data-label="Saldo" class="amount-pending">{{ deuda.saldoPendiente | currency:'USD' }}</td>
+          <td data-label="Estado">
+            <ion-badge [color]="deuda.estado === 'PAGADO' ? 'success' : (deuda.estado === 'VENCIDO' ? 'danger' : 'warning')">
+              {{ deuda.estado }}
+            </ion-badge>
+          </td>
+          <td data-label="Acciones">
+            @if (deuda.estado !== 'PAGADO') {
+              <ion-button size="small" (click)="registrarAbono(deuda)">
+                <ion-icon slot="start" name="cash-outline"></ion-icon>
+                Abonar
+              </ion-button>
+            }
+          </td>
+        </tr>
+      }
+      @if (filteredDeudas.length === 0) {
+        <tr>
+          <td colspan="7" class="empty-state">
+            No se encontraron deudas con los filtros seleccionados.
+          </td>
+        </tr>
+      }
     </tbody>
   </table>
 </div>

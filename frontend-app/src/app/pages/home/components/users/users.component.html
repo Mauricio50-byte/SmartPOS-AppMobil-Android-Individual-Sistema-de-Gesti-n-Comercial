@@ -11,98 +11,105 @@
   </div>
 
   <!-- Loading State (Skeleton) -->
-  <div *ngIf="isLoading" class="usuarios-grid">
-    <div class="usuario-card skeleton-card" *ngFor="let i of [1,2,3,4,5,6]">
-      <div class="card-header">
-        <div class="skeleton-avatar skeleton"></div>
-        <div class="skeleton-badge skeleton"></div>
-      </div>
-      <div class="card-body">
-        <div class="skeleton-text title skeleton"></div>
-        <div class="skeleton-text subtitle skeleton"></div>
-        <div class="roles-container">
-          <div class="skeleton-badge small skeleton"></div>
-          <div class="skeleton-badge small skeleton"></div>
+  @if (isLoading) {
+    <div class="usuarios-grid">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="usuario-card skeleton-card">
+          <div class="card-header">
+            <div class="skeleton-avatar skeleton"></div>
+            <div class="skeleton-badge skeleton"></div>
+          </div>
+          <div class="card-body">
+            <div class="skeleton-text title skeleton"></div>
+            <div class="skeleton-text subtitle skeleton"></div>
+            <div class="roles-container">
+              <div class="skeleton-badge small skeleton"></div>
+              <div class="skeleton-badge small skeleton"></div>
+            </div>
+          </div>
+          <div class="card-actions">
+            <div class="skeleton-icon skeleton"></div>
+            <div class="skeleton-icon skeleton"></div>
+            <div class="skeleton-icon skeleton"></div>
+          </div>
         </div>
-      </div>
-      <div class="card-actions">
-        <div class="skeleton-icon skeleton"></div>
-        <div class="skeleton-icon skeleton"></div>
-        <div class="skeleton-icon skeleton"></div>
-      </div>
+      }
     </div>
-  </div>
+  }
 
   <!-- Lista de usuarios -->
-  <div class="usuarios-grid" *ngIf="!isLoading">
-    <div *ngFor="let usuario of usuarios" class="usuario-card">
-      <div class="card-header">
-        <div class="usuario-avatar" [class.admin]="usuario.roles && usuario.roles.includes('ADMIN')" [class.trabajador]="usuario.roles && usuario.roles.includes('TRABAJADOR')">
-          <span class="avatar-initial">{{ (usuario.nombre || 'U') | slice:0:1 | uppercase }}</span>
-        </div>
-        <div class="status-badge" [class.activo]="usuario.activo" [class.inactivo]="!usuario.activo">
-          {{usuario.activo ? 'Activo' : 'Inactivo'}}
-        </div>
-      </div>
-
-      <div class="card-body">
-        <h3 class="usuario-nombre">{{usuario.nombre}}</h3>
-        <p class="usuario-email">{{usuario.correo}}</p>
-        
-        <div class="roles-container">
-          <div class="role-badge" *ngFor="let rol of usuario.roles">
-            {{ rol | titlecase }}
+  @if (!isLoading) {
+    <div class="usuarios-grid">
+      @for (usuario of usuarios; track usuario) {
+        <div class="usuario-card">
+          <div class="card-header">
+            <div class="usuario-avatar" [class.admin]="usuario.roles && usuario.roles.includes('ADMIN')" [class.trabajador]="usuario.roles && usuario.roles.includes('TRABAJADOR')">
+              <span class="avatar-initial">{{ (usuario.nombre || 'U') | slice:0:1 | uppercase }}</span>
+            </div>
+            <div class="status-badge" [class.activo]="usuario.activo" [class.inactivo]="!usuario.activo">
+              {{usuario.activo ? 'Activo' : 'Inactivo'}}
+            </div>
           </div>
-          <div class="role-badge empty" *ngIf="!usuario.roles || usuario.roles.length === 0">
-            Sin roles asignados
+          <div class="card-body">
+            <h3 class="usuario-nombre">{{usuario.nombre}}</h3>
+            <p class="usuario-email">{{usuario.correo}}</p>
+            <div class="roles-container">
+              @for (rol of usuario.roles; track rol) {
+                <div class="role-badge">
+                  {{ rol | titlecase }}
+                </div>
+              }
+              @if (!usuario.roles || usuario.roles.length === 0) {
+                <div class="role-badge empty">
+                  Sin roles asignados
+                </div>
+              }
+            </div>
+          </div>
+          <div class="card-actions">
+            <ion-button fill="clear" size="small" (click)="editarUsuario(usuario)" title="Editar información básica">
+              <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" size="small" color="secondary" (click)="gestionarPermisos(usuario)" title="Gestionar Permisos y Módulos">
+              <ion-icon slot="icon-only" name="shield-checkmark-outline"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" size="small" color="tertiary" (click)="cambiarContrasena(usuario.id, 'dummy')" title="Cambiar Contraseña">
+              <ion-icon slot="icon-only" name="key-outline"></ion-icon>
+            </ion-button>
+            <ion-button
+              fill="clear"
+              size="small"
+              [color]="usuario.activo ? 'danger' : 'success'"
+              (click)="toggleEstadoUsuario(usuario)"
+              [title]="usuario.activo ? 'Desactivar usuario' : 'Activar usuario'"
+              [disabled]="usuario.correo === 'admin@sistema-pos.local'">
+              <ion-icon slot="icon-only" name="power-outline"></ion-icon>
+            </ion-button>
+            <ion-button
+              fill="clear"
+              size="small"
+              color="danger"
+              (click)="eliminarUsuario(usuario)"
+              title="Eliminar usuario"
+              [disabled]="usuario.correo === 'admin@sistema-pos.local'">
+              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+            </ion-button>
           </div>
         </div>
-      </div>
-
-      <div class="card-actions">
-        <ion-button fill="clear" size="small" (click)="editarUsuario(usuario)" title="Editar información básica">
-          <ion-icon slot="icon-only" name="create-outline"></ion-icon>
-        </ion-button>
-        
-        <ion-button fill="clear" size="small" color="secondary" (click)="gestionarPermisos(usuario)" title="Gestionar Permisos y Módulos">
-          <ion-icon slot="icon-only" name="shield-checkmark-outline"></ion-icon>
-        </ion-button>
-
-        <ion-button fill="clear" size="small" color="tertiary" (click)="cambiarContrasena(usuario.id, 'dummy')" title="Cambiar Contraseña">
-           <ion-icon slot="icon-only" name="key-outline"></ion-icon>
-        </ion-button>
-
-        <ion-button 
-          fill="clear" 
-          size="small" 
-          [color]="usuario.activo ? 'danger' : 'success'" 
-          (click)="toggleEstadoUsuario(usuario)"
-          [title]="usuario.activo ? 'Desactivar usuario' : 'Activar usuario'"
-          [disabled]="usuario.correo === 'admin@sistema-pos.local'">
-          <ion-icon slot="icon-only" name="power-outline"></ion-icon>
-        </ion-button>
-
-        <ion-button 
-          fill="clear" 
-          size="small" 
-          color="danger" 
-          (click)="eliminarUsuario(usuario)"
-          title="Eliminar usuario"
-          [disabled]="usuario.correo === 'admin@sistema-pos.local'">
-          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-        </ion-button>
-      </div>
+      }
     </div>
-  </div>
+  }
 
   <!-- Estado vacío -->
-  <div *ngIf="!isLoading && usuarios.length === 0" class="empty-state">
-    <div class="empty-icon">
-      <ion-icon name="people-outline"></ion-icon>
+  @if (!isLoading && usuarios.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <ion-icon name="people-outline"></ion-icon>
+      </div>
+      <h3>No hay usuarios registrados</h3>
+      <p>Comienza creando un nuevo usuario con el botón superior.</p>
     </div>
-    <h3>No hay usuarios registrados</h3>
-    <p>Comienza creando un nuevo usuario con el botón superior.</p>
-  </div>
+  }
 </div>
 
 <!-- Modal para crear/editar usuario -->
@@ -118,41 +125,49 @@
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
-    
+
     <ion-content class="ion-padding">
       <form [formGroup]="formgroup" (ngSubmit)="guardarUsuario()" class="professional-form">
-        
+
         <div class="form-section">
           <h4>Información Personal</h4>
           <div class="form-grid">
             <div class="form-group">
               <ion-label position="stacked">Nombre Completo <ion-text color="danger">*</ion-text></ion-label>
               <ion-input formControlName="nombre" type="text" placeholder="Ej. Juan Pérez" fill="outline"></ion-input>
-              <div class="error-msg" *ngIf="formgroup.get('nombre')?.invalid && formgroup.get('nombre')?.touched">
-                Nombre es requerido (min 3 caracteres)
-              </div>
+              @if (formgroup.get('nombre')?.invalid && formgroup.get('nombre')?.touched) {
+                <div class="error-msg">
+                  Nombre es requerido (min 3 caracteres)
+                </div>
+              }
             </div>
 
             <div class="form-group">
               <ion-label position="stacked">Correo Electrónico <ion-text color="danger">*</ion-text></ion-label>
               <ion-input formControlName="correo" type="email" placeholder="juan@ejemplo.com" fill="outline"></ion-input>
-              <div class="error-msg" *ngIf="formgroup.get('correo')?.invalid && formgroup.get('correo')?.touched">
-                Correo válido es requerido
-              </div>
+              @if (formgroup.get('correo')?.invalid && formgroup.get('correo')?.touched) {
+                <div class="error-msg">
+                  Correo válido es requerido
+                </div>
+              }
             </div>
           </div>
         </div>
 
-        <div class="form-section" *ngIf="!isEditMode">
-          <h4>Seguridad</h4>
-          <div class="form-group">
-            <ion-label position="stacked">Contraseña Inicial <ion-text color="danger">*</ion-text></ion-label>
-            <ion-input formControlName="passwordHash" type="password" placeholder="Mínimo 6 caracteres" fill="outline"></ion-input>
-            <div class="error-msg" *ngIf="formgroup.get('passwordHash')?.invalid && formgroup.get('passwordHash')?.touched">
-              Contraseña requerida (min 6 caracteres)
+        @if (!isEditMode) {
+          <div class="form-section">
+            <h4>Seguridad</h4>
+            <div class="form-group">
+              <ion-label position="stacked">Contraseña Inicial <ion-text color="danger">*</ion-text></ion-label>
+              <ion-input formControlName="passwordHash" type="password" placeholder="Mínimo 6 caracteres" fill="outline"></ion-input>
+              @if (formgroup.get('passwordHash')?.invalid && formgroup.get('passwordHash')?.touched) {
+                <div class="error-msg">
+                  Contraseña requerida (min 6 caracteres)
+                </div>
+              }
             </div>
           </div>
-        </div>
+        }
 
         <div class="form-section">
           <h4>Acceso y Estado</h4>
