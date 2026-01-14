@@ -1,7 +1,3 @@
-
-// Cargar variables de entorno explícitamente si no se han cargado (aunque dotenv/config en el script de inicio ya lo hace)
-// require('dotenv').config() 
-
 const PUERTO = process.env.PUERTO
 const JWT_SECRETO = process.env.JWT_SECRETO
 const DATABASE_URL = process.env.DATABASE_URL
