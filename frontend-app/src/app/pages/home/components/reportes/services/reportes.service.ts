@@ -31,7 +31,7 @@ export class ReportesService {
   private ventaService = inject(VentaServices);
   private productoService = inject(ProductosServices);
 
-  constructor() {}
+  constructor() { }
 
   getGeneralReport(): Observable<ReportData> {
     return forkJoin({
@@ -44,17 +44,19 @@ export class ReportesService {
 
   private calculateMetrics(ventas: any[], productos: any[]): ReportData {
     const productMap = new Map(productos.map(p => [p.id, p]));
-    const categoryStats: Record<string, { 
-      volume: number, 
-      revenue: number, 
-      cost: number, 
-      prevRevenue: number 
+    const categoryStats: Record<string, {
+      volume: number,
+      revenue: number,
+      cost: number,
+      prevRevenue: number
     }> = {};
 
     const now = new Date();
+    const currentDay = now.getDate();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
-    const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+    const prevMonthDate = new Date(currentYear, currentMonth - 1, 1);
     const prevMonth = prevMonthDate.getMonth();
     const prevYear = prevMonthDate.getFullYear();
 
@@ -63,23 +65,30 @@ export class ReportesService {
     let totalVolume = 0;
 
     ventas.forEach(v => {
+      if (!v.fecha) return;
       const vDate = new Date(v.fecha);
+
       const isCurrentPeriod = vDate.getMonth() === currentMonth && vDate.getFullYear() === currentYear;
-      const isPrevPeriod = vDate.getMonth() === prevMonth && vDate.getFullYear() === prevYear;
+
+      // For a more fair comparison (Month-to-Date), compare with previous month up to the same day
+      const isPrevPeriod = vDate.getMonth() === prevMonth &&
+        vDate.getFullYear() === prevYear &&
+        vDate.getDate() <= currentDay;
 
       if (!isCurrentPeriod && !isPrevPeriod) return;
 
-      const items = v.items || v.detalles || [];
+      const items = v.detalles || v.items || [];
       items.forEach((item: any) => {
         const pId = item.producto?.id || item.productoId;
         const product = productMap.get(pId);
         if (!product) return;
 
-        const cat = product.categoria || product.tipo || 'General';
-        const qty = item.cantidad || 1;
-        // Prioritize subtotal, then calculated total, then explicit total
-        const itemRevenue = Number(item.subtotal) || (Number(item.precioUnitario) * qty) || Number(item.total) || 0;
-        const unitCost = product.precioCosto || 0;
+        const cat = (product.categoria || product.tipo || 'General').trim();
+        const qty = Number(item.cantidad) || 0;
+
+        // Prioritize subtotal, then calculated, then unit * qty
+        const itemRevenue = Number(item.subtotal) || Number(item.total) || (Number(item.precioUnitario) * qty) || 0;
+        const unitCost = Number(product.precioCosto) || 0;
         const itemCost = unitCost * qty;
 
         if (!categoryStats[cat]) {
@@ -101,7 +110,18 @@ export class ReportesService {
 
     const metrics = Object.entries(categoryStats).map(([name, stats]) => {
       const margin = stats.revenue > 0 ? ((stats.revenue - stats.cost) / stats.revenue) * 100 : 0;
-      const growth = stats.prevRevenue > 0 ? ((stats.revenue - stats.prevRevenue) / stats.prevRevenue) * 100 : 0;
+
+      // Growth calculation:
+      // If we had sales before: (Current - Previous) / Previous
+      // If we had NO sales before and HAVE sales now: 100% growth
+      // If we had sales before and HAVE NONE now: -100% growth
+      let growth = 0;
+      if (stats.prevRevenue > 0) {
+        growth = ((stats.revenue - stats.prevRevenue) / stats.prevRevenue) * 100;
+      } else if (stats.revenue > 0) {
+        growth = 100; // From zero to something is 100% growth for dashboard purposes
+      }
+
       const share = totalRevenue > 0 ? (stats.revenue / totalRevenue) * 100 : 0;
 
       return {
@@ -121,7 +141,7 @@ export class ReportesService {
   exportToPDF(data: ReportMetric[], title: string = 'Reporte de Categorías') {
     const doc = new jsPDF();
     const date = new Date().toLocaleDateString();
-    
+
     doc.setFontSize(18);
     doc.text(title, 14, 22);
     doc.setFontSize(11);
