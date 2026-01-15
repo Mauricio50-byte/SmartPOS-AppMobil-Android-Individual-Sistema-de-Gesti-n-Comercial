@@ -3,8 +3,9 @@ import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { camera, trash } from 'ionicons/icons';
+import { camera, trash, shuffleOutline } from 'ionicons/icons';
 import { Producto } from 'src/app/core/models/producto';
+import { ProductosServices } from 'src/app/core/services/producto.service';
 
 import { FormularioRopaComponent } from '../formulario-ropa/formulario-ropa.component';
 import { FormularioAlimentosComponent } from '../formulario-alimentos/formulario-alimentos.component';
@@ -38,9 +39,9 @@ export class ProductosFormComponent implements OnChanges {
   productForm: FormGroup;
   isEditing: boolean = false;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private productoService: ProductosServices) {
     this.productForm = this.initForm();
-    addIcons({ camera, trash });
+    addIcons({ camera, trash, 'shuffle-outline': shuffleOutline });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -260,5 +261,30 @@ export class ProductosFormComponent implements OnChanges {
 
   isModuleActive(moduleId: string): boolean {
     return this.modulosActivos.has(moduleId);
+  }
+
+  generarSkuAutomatico() {
+    const categoria = this.productForm.get('categoria')?.value;
+    if (!categoria || categoria.length < 3) {
+      // TODO: Mostrar toast indicando que la categoría debe tener al menos 3 caracteres
+      return;
+    }
+    
+    this.productoService.obtenerSiguienteSku(categoria).subscribe({
+      next: (response: any) => {
+        if (response && response.sku) {
+          this.productForm.patchValue({ sku: response.sku });
+        }
+      },
+      error: (err) => console.error('Error generando SKU:', err)
+    });
+  }
+
+  onCategoriaBlur() {
+    const currentSku = this.productForm.get('sku')?.value;
+    // Solo generar automáticamente si el SKU está vacío
+    if (!currentSku) {
+      this.generarSkuAutomatico();
+    }
   }
 }

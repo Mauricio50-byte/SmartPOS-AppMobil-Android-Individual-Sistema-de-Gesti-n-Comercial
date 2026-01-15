@@ -3,10 +3,19 @@ const {
   obtenerProductoPorId,
   crearProducto,
   actualizarProducto,
-  eliminarProducto
+  eliminarProducto,
+  generarSiguienteSku
 } = require('./producto.servicio')
 
 async function registrarRutasProducto(app) {
+  app.get('/productos/siguiente-sku', { preHandler: [app.requiereModulo('productos')] }, async (req, res) => {
+    const { categoria } = req.query
+    if (!categoria) return { sku: '' }
+    
+    const sku = await generarSiguienteSku(categoria)
+    return { sku: sku || '' }
+  })
+
   app.get('/productos', { preHandler: [app.requiereModulo('productos'), app.requierePermiso('VER_INVENTARIO')] }, async (req, res) => {
     const datos = await listarProductos()
     return res.send(datos)

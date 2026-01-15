@@ -46,5 +46,9 @@ export class ProductosServices {
       tap(() => this._productoChanged.next())
     );
   }
+
+  obtenerSiguienteSku(categoria: string): Observable<{sku: string}> {
+    return this.http.get<{sku: string}>(`${this.apiUrl}/siguiente-sku?categoria=${categoria}`);
+  }
   
 }

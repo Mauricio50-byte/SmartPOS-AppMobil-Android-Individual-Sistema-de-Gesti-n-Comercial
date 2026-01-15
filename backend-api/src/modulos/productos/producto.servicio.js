@@ -124,10 +124,46 @@ async function eliminarProducto(id) {
   return prisma.producto.delete({ where: { id } })
 }
 
+async function generarSiguienteSku(categoria) {
+  if (!categoria || categoria.length < 3) return null
+
+  // 1. Generar prefijo (3 letras mayúsculas)
+  const prefijo = categoria.substring(0, 3).toUpperCase()
+  
+  // 2. Buscar último SKU con ese prefijo
+  // Buscamos productos que contengan el guión para evitar falsos positivos
+  const productos = await prisma.producto.findMany({
+    where: {
+      sku: {
+        startsWith: `${prefijo}-`
+      }
+    },
+    select: { sku: true },
+    orderBy: { sku: 'desc' }, // Esto puede no ser perfecto si los números tienen distinta longitud, pero con 001 funciona bien
+    take: 1
+  })
+
+  let secuencia = 1
+  if (productos.length > 0 && productos[0].sku) {
+    const parts = productos[0].sku.split('-')
+    if (parts.length === 2) {
+      const currentSeq = parseInt(parts[1], 10)
+      if (!isNaN(currentSeq)) {
+        secuencia = currentSeq + 1
+      }
+    }
+  }
+
+  // 3. Formatear con padding de 3 ceros
+  const secuenciaStr = secuencia.toString().padStart(3, '0')
+  return `${prefijo}-${secuenciaStr}`
+}
+
 module.exports = {
   listarProductos,
   obtenerProductoPorId,
   crearProducto,
   actualizarProducto,
-  eliminarProducto
+  eliminarProducto,
+  generarSiguienteSku
 }

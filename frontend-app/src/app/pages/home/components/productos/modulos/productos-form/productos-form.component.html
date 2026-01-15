@@ -49,8 +49,8 @@
       }
 
       <ion-item class="input-item">
-        <ion-label position="stacked">SKU / Código Interno</ion-label>
-        <ion-input formControlName="sku" placeholder="Ej. CAM-001"></ion-input>
+        <ion-label position="stacked">Categoría</ion-label>
+        <ion-input formControlName="categoria" placeholder="Ej. Ropa, Flores" (ionBlur)="onCategoriaBlur()"></ion-input>
       </ion-item>
     </div>
 
@@ -115,8 +115,11 @@
     <div class="form-section">
       <h3>Categorización</h3>
       <ion-item class="input-item">
-        <ion-label position="stacked">Categoría</ion-label>
-        <ion-input formControlName="categoria"></ion-input>
+        <ion-label position="stacked">SKU / Código Interno</ion-label>
+        <ion-input formControlName="sku" placeholder="Ej. ROP-001"></ion-input>
+        <ion-button slot="end" fill="clear" (click)="generarSkuAutomatico()" title="Generar SKU Automático">
+          <ion-icon name="shuffle-outline" slot="icon-only"></ion-icon>
+        </ion-button>
       </ion-item>
       <ion-item class="input-item">
         <ion-label position="stacked">Marca</ion-label>

@@ -354,3 +354,9 @@ model PagoGasto {
   gasto      Gasto    @relation(fields: [gastoId], references: [id])
   usuario    Usuario? @relation(fields: [usuarioId], references: [id])
 }
+
+model CategoriaSecuencia {
+  id        Int    @id @default(autoincrement())
+  categoria String @unique
+  secuencia Int    @default(0)
+}
