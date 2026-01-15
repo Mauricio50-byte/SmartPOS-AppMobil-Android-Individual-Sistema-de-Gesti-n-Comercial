@@ -1,46 +1,112 @@
 .product-card {
   background: white;
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 16px;
+  /* Increased for modern look */
+  padding: 12px;
   text-align: center;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  /* Softer shadow */
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #e5e7eb;
+  justify-content: space-between;
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  overflow: hidden;
+  position: relative;
 
   &:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
   }
 
   &:hover {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    transform: translateY(-4px);
+    border-color: var(--ion-color-primary-tint);
   }
 
-  .icon-container {
-    font-size: 40px;
-    color: var(--ion-color-dark);
-    margin-bottom: 8px;
-    
-    ion-icon {
-        --ionicon-stroke-width: 32px;
+  .image-container {
+    width: 100%;
+    height: 140px;
+    /* Generous height for images */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f8f9fa;
+    /* Light neutral background for transparent images */
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      /* Ensures the entire product is visible */
+      transition: transform 0.3s ease;
     }
   }
 
-  .product-name {
-    font-weight: 500;
-    color: var(--ion-color-dark);
-    font-size: 14px;
-    line-height: 1.2;
+  /* Slight zoom effect on image hover */
+  &:hover .image-container img {
+    transform: scale(1.05);
   }
 
-    .product-price {
-    margin-top: 4px;
-    font-size: 12px;
+  .icon-container {
+    height: 100px;
+    /* Reduced height compared to image for standard icon look, or could match */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
     color: var(--ion-color-medium);
+    margin-bottom: 8px;
+
+    ion-icon {
+      --ionicon-stroke-width: 32px;
+    }
+  }
+
+  .product-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    /* Align bottom if content is short */
+    width: 100%;
+  }
+
+  .product-name {
+    font-weight: 600;
+    color: var(--ion-color-dark);
+    font-size: 14px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+
+    /* Truncate nicely */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .product-price {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ion-color-primary);
+    background: var(--ion-color-primary-contrast);
+    /* Or simpler */
+    color: var(--ion-color-primary);
+
+    /* Optional: Tag style */
+    /* 
+    background: rgba(var(--ion-color-primary-rgb), 0.1);
+    padding: 4px 8px;
+    border-radius: 6px;
+    width: fit-content;
+    margin: 0 auto;
+    */
   }
 }

@@ -1,23 +1,28 @@
 <div class="product-card" (click)="onAdd()">
+
+  @if (product.imagen && product.imagen.trim() !== '') {
+  <div class="image-container">
+    <img [src]="product.imagen" [alt]="product.nombre" loading="lazy">
+  </div>
+  } @else {
   <div class="icon-container">
     <!-- Icono por defecto si no hay imagen específica -->
-    @if (!product.image && product.nombre.toLowerCase().includes('cam')) {
-      <ion-icon name="shirt-outline"></ion-icon>
-    }
-    @if (!product.image && !product.nombre.toLowerCase().includes('cam')) {
-      <ion-icon name="pricetag-outline"
-      ></ion-icon>
-    }
-    @if (product.image) {
-      <img [src]="product.image" alt="Product Image">
+    @if (product.nombre.toLowerCase().includes('cam')) {
+    <ion-icon name="shirt-outline"></ion-icon>
+    } @else {
+    <ion-icon name="pricetag-outline"></ion-icon>
     }
   </div>
-  <div class="product-name">
-    {{ product.nombre }}
-  </div>
+  }
 
-  <!-- Opcional: Mostrar precio en la tarjeta si se desea -->
-  <div class="product-price">
-    {{ product.precioVenta | currency:'USD':'symbol':'1.0-0' }}
+  <div class="product-info">
+    <div class="product-name">
+      {{ product.nombre }}
+    </div>
+
+    <!-- Opcional: Mostrar precio en la tarjeta si se desea -->
+    <div class="product-price">
+      {{ product.precioVenta | currency:'USD':'symbol':'1.0-0' }}
+    </div>
   </div>
 </div>
