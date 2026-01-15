@@ -25,7 +25,8 @@ async function crearProducto(datos) {
   const {
     nombre, sku, descripcion, imagen, categoria, subcategoria, marca,
     precioCosto, precioVenta, descuento, stock, stockMinimo, unidadMedida,
-    iva, proveedor, activo, tipo,
+
+    margenGanancia, proveedor, activo, tipo,
     ...restoDatos // Datos específicos del plugin
   } = datos
 
@@ -46,7 +47,7 @@ async function crearProducto(datos) {
         stock,
         stockMinimo,
         unidadMedida,
-        iva,
+        margenGanancia,
         proveedor,
         activo: activo !== undefined ? activo : true,
         tipo: tipo || 'GENERAL'
@@ -71,7 +72,8 @@ async function actualizarProducto(id, datos) {
   const {
     nombre, sku, descripcion, imagen, categoria, subcategoria, marca,
     precioCosto, precioVenta, descuento, stock, stockMinimo, unidadMedida,
-    iva, proveedor, activo, tipo,
+
+    margenGanancia, proveedor, activo, tipo,
     ...restoDatos
   } = datos
 
@@ -93,7 +95,7 @@ async function actualizarProducto(id, datos) {
         stock,
         stockMinimo,
         unidadMedida,
-        iva,
+        margenGanancia,
         proveedor,
         activo,
         // No permitimos cambiar el tipo fácilmente por ahora, pero si se requiere:
@@ -105,7 +107,7 @@ async function actualizarProducto(id, datos) {
     // Usamos el tipo del producto actual o el nuevo si se envió
     const tipoProducto = tipo || producto.tipo
     const plugin = obtenerPlugin(tipoProducto)
-    
+
     if (plugin) {
       await plugin.actualizarDetalle(tx, producto.id, restoDatos)
     }
@@ -129,7 +131,7 @@ async function generarSiguienteSku(categoria) {
 
   // 1. Generar prefijo (3 letras mayúsculas)
   const prefijo = categoria.substring(0, 3).toUpperCase()
-  
+
   // 2. Buscar último SKU con ese prefijo
   // Buscamos productos que contengan el guión para evitar falsos positivos
   const productos = await prisma.producto.findMany({

@@ -28,7 +28,7 @@ import { FormularioRestauranteComponent } from '../formulario-restaurante/formul
     FormularioFarmaciaComponent,
     FormularioPapeleriaComponent,
     FormularioRestauranteComponent
-]
+  ]
 })
 export class ProductosFormComponent implements OnChanges {
   @Input() product: Producto | null = null;
@@ -42,6 +42,26 @@ export class ProductosFormComponent implements OnChanges {
   constructor(private fb: FormBuilder, private productoService: ProductosServices) {
     this.productForm = this.initForm();
     addIcons({ camera, trash, 'shuffle-outline': shuffleOutline });
+    this.setupMarginCalculation();
+  }
+
+  setupMarginCalculation() {
+    // Escuchar cambios en precioCosto y precioVenta
+    this.productForm.get('precioCosto')?.valueChanges.subscribe(() => this.calculateMargin());
+    this.productForm.get('precioVenta')?.valueChanges.subscribe(() => this.calculateMargin());
+  }
+
+  calculateMargin() {
+    const costo = this.productForm.get('precioCosto')?.value || 0;
+    const venta = this.productForm.get('precioVenta')?.value || 0;
+
+    if (costo > 0 && venta > 0) {
+      const margen = ((venta - costo) / costo) * 100;
+      // Redondear a 2 decimales
+      this.productForm.patchValue({ margenGanancia: parseFloat(margen.toFixed(2)) }, { emitEvent: false });
+    } else {
+      this.productForm.patchValue({ margenGanancia: 0 }, { emitEvent: false });
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -49,8 +69,8 @@ export class ProductosFormComponent implements OnChanges {
       this.isEditing = true;
       this.patchForm(this.product);
     } else if (changes['product'] && !this.product) {
-        this.isEditing = false;
-        this.resetForm();
+      this.isEditing = false;
+      this.resetForm();
     }
   }
 
@@ -125,8 +145,8 @@ export class ProductosFormComponent implements OnChanges {
       tieneAlcohol: [false],
       calorias: [null],
 
-      // Impuestos
-      iva: [0, [Validators.min(0), Validators.max(100)]],
+      // Margen de Ganancia
+      margenGanancia: [0, [Validators.min(0)]],
 
       // Proveedor
       proveedor: [''],
@@ -156,7 +176,7 @@ export class ProductosFormComponent implements OnChanges {
       stock: product.stock,
       stockMinimo: product.stockMinimo || 0,
       unidadMedida: product.unidadMedida || '',
-      iva: product.iva || 0,
+      margenGanancia: product.margenGanancia || 0,
       proveedor: product.proveedor || '',
       activo: product.activo
     };
@@ -219,7 +239,7 @@ export class ProductosFormComponent implements OnChanges {
       esVegetariano: false,
       tieneAlcohol: false,
       calorias: null,
-      iva: 0,
+      margenGanancia: 0,
       proveedor: '',
       notas: '',
       activo: true
@@ -269,7 +289,7 @@ export class ProductosFormComponent implements OnChanges {
       // TODO: Mostrar toast indicando que la categoría debe tener al menos 3 caracteres
       return;
     }
-    
+
     this.productoService.obtenerSiguienteSku(categoria).subscribe({
       next: (response: any) => {
         if (response && response.sku) {

@@ -10,7 +10,7 @@ interface Column {
   key: string;
   label: string;
   path?: string; // Para acceder a propiedades anidadas como 'detalleRopa.talla'
-  type?: 'text' | 'currency' | 'boolean' | 'badge' | 'date';
+  type?: 'text' | 'currency' | 'boolean' | 'badge' | 'date' | 'percentage';
   badgeColor?: (value: any) => string;
 }
 
@@ -30,9 +30,9 @@ export class ProductosListaComponent implements OnChanges, OnInit {
   filteredProducts: Producto[] = [];
   searchTerm: string = '';
   selectedModule: string = 'TODOS';
-  
+
   displayedColumns: Column[] = [];
-  
+
   availableModules: any[] = [];
 
   // Configuración de Columnas Base (Comunes)
@@ -41,14 +41,15 @@ export class ProductosListaComponent implements OnChanges, OnInit {
     { key: 'sku', label: 'SKU', type: 'text' },
     { key: 'categoria', label: 'Categoría', type: 'text' },
     { key: 'precioVenta', label: 'Precio', type: 'currency' },
+    { key: 'margenGanancia', label: 'Margen', type: 'percentage' },
     { key: 'stock', label: 'Stock', type: 'text' },
     { key: 'unidadMedida', label: 'Unidad', type: 'text' },
     { key: 'proveedor', label: 'Proveedor', type: 'text' },
-    { 
-      key: 'activo', 
-      label: 'Estado', 
-      type: 'badge', 
-      badgeColor: (val) => val ? 'success' : 'medium' 
+    {
+      key: 'activo',
+      label: 'Estado',
+      type: 'badge',
+      badgeColor: (val) => val ? 'success' : 'medium'
     }
   ];
 
@@ -118,7 +119,7 @@ export class ProductosListaComponent implements OnChanges, OnInit {
       // Convertir el ID del módulo a minúsculas para coincidir con modulosActivos (ej: ROPA -> ropa)
       return this.modulosActivos.has(m.id.toLowerCase()) || this.modulosActivos.has(m.id);
     });
-    
+
     // Si el módulo seleccionado ya no está disponible, volver a TODOS
     const isSelectedAvailable = this.availableModules.some(m => m.id === this.selectedModule);
     if (!isSelectedAvailable) {
@@ -142,7 +143,7 @@ export class ProductosListaComponent implements OnChanges, OnInit {
   updateColumns() {
     // Comenzar con las columnas base
     let cols = [...this.baseColumns];
-    
+
     // Insertar columnas específicas del módulo si no es TODOS ni GENERAL
     if (this.selectedModule !== 'TODOS' && this.selectedModule !== 'GENERAL') {
       const specificCols = this.moduleColumns[this.selectedModule] || [];

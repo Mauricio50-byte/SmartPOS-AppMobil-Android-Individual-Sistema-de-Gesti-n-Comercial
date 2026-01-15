@@ -55,37 +55,37 @@ export interface ProductoRestaurante {
 export interface Producto {
   id: number;
   tipo: TipoProducto | string;
-  
+
   // Identificación
   nombre: string;
   sku?: string;
-  
+
   // Descripción
   descripcion?: string;
   imagen?: string;
-  
+
   // Categorización
   categoria?: string;
   subcategoria?: string;
   marca?: string;
-  
+
   // Precios
   precioCosto?: number;
   precioVenta: number;
   descuento?: number;
-  
+
   // Inventario
   stock: number;
   stockMinimo?: number;
   unidadMedida?: string;
-  
+
   // Impuestos y Proveedor
-  iva?: number;
+  margenGanancia?: number;
   proveedor?: string;
-  
+
   // Estado
   activo: boolean;
-  
+
   // Detalles Modulares
   detalleRopa?: ProductoRopa;
   detalleAlimento?: ProductoAlimento;
@@ -93,7 +93,7 @@ export interface Producto {
   detalleFarmacia?: ProductoFarmacia;
   detallePapeleria?: ProductoPapeleria;
   detalleRestaurante?: ProductoRestaurante;
-  
+
   // Timestamps
   creadoEn?: string | Date;
   actualizadoEn?: string | Date;

@@ -119,7 +119,7 @@ model Producto {
   stock              Int                  @default(0)
   stockMinimo        Int?                 @default(0)
   unidadMedida       String?              @default("UNIDAD")
-  iva                Float?               @default(0)
+  margenGanancia     Float?               @default(0)
   proveedor          String?
   activo             Boolean              @default(true)
   creadoEn           DateTime             @default(now())

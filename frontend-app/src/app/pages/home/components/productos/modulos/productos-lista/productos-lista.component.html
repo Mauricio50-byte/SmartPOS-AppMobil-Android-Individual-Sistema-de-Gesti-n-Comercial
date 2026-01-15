@@ -1,15 +1,16 @@
 <div class="filters-container">
   <div class="search-wrapper">
     <ion-searchbar placeholder="Buscar por nombre o SKU..." animated="true" debounce="500"
-    (ionInput)="onSearch($event)"></ion-searchbar>
+      (ionInput)="onSearch($event)"></ion-searchbar>
   </div>
 
   <div class="module-selector">
     <ion-item lines="none" class="filter-item">
       <ion-icon name="filter-outline" slot="start" color="medium"></ion-icon>
-      <ion-select [value]="selectedModule" (ionChange)="onModuleChange($event)" interface="popover" placeholder="Filtrar por Módulo">
+      <ion-select [value]="selectedModule" (ionChange)="onModuleChange($event)" interface="popover"
+        placeholder="Filtrar por Módulo">
         @for (mod of availableModules; track mod) {
-          <ion-select-option [value]="mod.id">{{ mod.label }}</ion-select-option>
+        <ion-select-option [value]="mod.id">{{ mod.label }}</ion-select-option>
         }
       </ion-select>
     </ion-item>
@@ -21,78 +22,84 @@
     <thead>
       <tr>
         @for (col of displayedColumns; track col) {
-          <th>{{ col.label }}</th>
+        <th>{{ col.label }}</th>
         }
         <th>Acciones</th>
       </tr>
     </thead>
     <tbody>
       @for (product of filteredProducts; track product) {
-        <tr>
-          @for (col of displayedColumns; track col) {
-            <td [attr.data-label]="col.label">
-              @switch (col.type) {
-                <!-- Currency -->
-                @case ('currency') {
-                  <span>{{ getValue(product, col) | currency:'USD' }}</span>
-                }
-                <!-- Date -->
-                @case ('date') {
-                  <span>{{ getValue(product, col) | date:'shortDate' }}</span>
-                }
-                <!-- Badge (Estado) -->
-                @case ('badge') {
-                  <ion-badge [color]="col.badgeColor ? col.badgeColor(getValue(product, col)) : 'primary'">
-                    {{ getValue(product, col) ? 'Activo' : 'Inactivo' }}
-                  </ion-badge>
-                }
-                <!-- Boolean -->
-                @case ('boolean') {
-                  <span>
-                    <ion-icon [name]="getValue(product, col) ? 'checkmark-circle' : 'close-circle'"
-                    [color]="getValue(product, col) ? 'success' : 'medium'"></ion-icon>
-                    {{ getValue(product, col) ? 'Sí' : 'No' }}
-                  </span>
-                }
-                <!-- Default Text -->
-                @default {
-                  <span>
-                    <!-- Special case for Name to show SKU -->
-                    @if (col.key === 'nombre') {
-                      <strong>{{ product.nombre }}</strong>
-                    }
-                    <!-- Special case for Stock -->
-                    @if (col.key === 'stock') {
-                      <span [class.low-stock-text]="isLowStock(product)">
-                        {{ getValue(product, col) || '0' }}
-                      </span>
-                    }
-                    <!-- Standard Text for other columns -->
-                    @if (col.key !== 'nombre' && col.key !== 'stock') {
-                      {{ getValue(product, col) || '-' }}
-                    }
-                  </span>
-                }
-              }
-            </td>
+      <tr>
+        @for (col of displayedColumns; track col) {
+        <td [attr.data-label]="col.label">
+          @switch (col.type) {
+          <!-- Currency -->
+          @case ('currency') {
+          <span>{{ getValue(product, col) | currency:'USD' }}</span>
           }
-          <td class="actions" data-label="Acciones">
-            <ion-button fill="clear" size="small" (click)="onEdit(product)">
-              <ion-icon slot="icon-only" name="create-outline"></ion-icon>
-            </ion-button>
-            <ion-button fill="clear" size="small" color="danger" (click)="onDelete(product)">
-              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-            </ion-button>
-          </td>
-        </tr>
+          <!-- Date -->
+          @case ('date') {
+          <span>{{ getValue(product, col) | date:'shortDate' }}</span>
+          }
+          <!-- Percentage (Margen) -->
+          @case ('percentage') {
+          <span class="margin-badge">
+            {{ getValue(product, col) | number:'1.0-2' }}%
+          </span>
+          }
+          <!-- Badge (Estado) -->
+          @case ('badge') {
+          <ion-badge [color]="col.badgeColor ? col.badgeColor(getValue(product, col)) : 'primary'">
+            {{ getValue(product, col) ? 'Activo' : 'Inactivo' }}
+          </ion-badge>
+          }
+          <!-- Boolean -->
+          @case ('boolean') {
+          <span>
+            <ion-icon [name]="getValue(product, col) ? 'checkmark-circle' : 'close-circle'"
+              [color]="getValue(product, col) ? 'success' : 'medium'"></ion-icon>
+            {{ getValue(product, col) ? 'Sí' : 'No' }}
+          </span>
+          }
+          <!-- Default Text -->
+          @default {
+          <span>
+            <!-- Special case for Name to show SKU -->
+            @if (col.key === 'nombre') {
+            <strong>{{ product.nombre }}</strong>
+            }
+            <!-- Special case for Stock -->
+            @if (col.key === 'stock') {
+            <span [class.low-stock-text]="isLowStock(product)">
+              {{ getValue(product, col) || '0' }}
+            </span>
+            }
+            <!-- Standard Text for other columns -->
+            @if (col.key !== 'nombre' && col.key !== 'stock') {
+            {{ getValue(product, col) || '-' }}
+            }
+          </span>
+          }
+          }
+        </td>
+        }
+        <td class="actions" data-label="Acciones">
+          <ion-button fill="clear" size="small" (click)="onEdit(product)">
+            <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" size="small" color="danger" (click)="onDelete(product)">
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-button>
+        </td>
+      </tr>
       }
 
       @if (filteredProducts.length === 0) {
-        <tr>
-          <td [attr.colspan]="displayedColumns.length + 1" class="empty-cell">
-            No se encontraron productos con los filtros seleccionados.
-          </td>
-        </tr>
+      <tr>
+        <td [attr.colspan]="displayedColumns.length + 1" class="empty-cell">
+          No se encontraron productos con los filtros seleccionados.
+        </td>
+      </tr>
       }
     </tbody>
   </table>
