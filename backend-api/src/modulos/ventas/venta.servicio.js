@@ -67,7 +67,6 @@ async function crearVenta(payload) {
           telefono: datosCliente.telefono,
           cedula: datosCliente.cedula || null, // Convertir '' a null
           correo: datosCliente.correo || null, // Convertir '' a null
-          direccion: datosCliente.direccion,
           creditoMaximo: datosCliente.creditoMaximo || 0,
           diasCredito: datosCliente.diasCredito || 30
         }
@@ -116,7 +115,7 @@ async function crearVenta(payload) {
       console.log('Procesando item:', i);
       const p = mapa.get(Number(i.productoId))
       if (!p) throw new Error(`Producto con ID ${i.productoId} no existe`)
-      
+
       console.log('Producto encontrado:', p);
 
       // MODIFICACIÓN: Permitir stock negativo temporalmente para no bloquear ventas
@@ -124,30 +123,30 @@ async function crearVenta(payload) {
       // if (p.stock < Number(i.cantidad)) {
       //   throw new Error(`Stock insuficiente para ${p.nombre}. Disponible: ${p.stock}, Solicitado: ${i.cantidad}`)
       // }
-      
+
       const cantidad = Number(i.cantidad)
       // Usar precioVenta en lugar de precio, asegurando que sea numérico
       // Priorizar precioVenta, luego precioCosto, y finalmente 0. Asegurar conversión a Number.
       let precioRaw = p.precioVenta;
       if (precioRaw === null || precioRaw === undefined) {
-          precioRaw = p.precio; // Fallback por si acaso
+        precioRaw = p.precio; // Fallback por si acaso
       }
       console.log(`Precio raw para ${p.id}:`, precioRaw);
-      
+
       const precioUnitario = Number(precioRaw || 0);
-      
+
       if (isNaN(precioUnitario)) {
-         console.error(`Error de precio en producto ${p.id}:`, p);
-         throw new Error(`Precio inválido para producto ${p.nombre} (ID: ${p.id})`);
+        console.error(`Error de precio en producto ${p.id}:`, p);
+        throw new Error(`Precio inválido para producto ${p.nombre} (ID: ${p.id})`);
       }
-      
+
       const subtotal = cantidad * precioUnitario
       console.log(`Subtotal calculado para ${p.id}: ${subtotal}`);
-      
+
       total += subtotal
       return { productoId: p.id, cantidad, precioUnitario, subtotal }
     })
-    
+
     console.log('Total calculado:', total);
 
     // Calcular saldo pendiente
@@ -167,11 +166,11 @@ async function crearVenta(payload) {
     // Lo más simple y robusto si ya tenemos el ID es pasar el ID escalar directamente,
     // y NO usar el bloque `usuario: { connect: ... }` si no es estrictamente necesario.
     // O si usamos connect, NO pasar el usuarioId escalar en el objeto principal.
-    
+
     // Vamos a optar por pasar los IDs escalares directamente, que es lo que Prisma usa por debajo
     // y suele ser menos propenso a errores de "missing argument" en relaciones nested complejas
     // a menos que sea una creación anidada.
-    
+
     const ventaData = {
       total: totalFinal,
       metodoPago,
@@ -181,7 +180,7 @@ async function crearVenta(payload) {
       usuarioId: Number(usuarioId), // Pasar directo el ID
       clienteId: clienteIdFinal ? Number(clienteIdFinal) : null // Pasar directo el ID o null
     }
-    
+
     console.log('Data final para Prisma (Simple IDs):', JSON.stringify(ventaData, null, 2));
 
     // Crear la venta
@@ -248,7 +247,7 @@ async function crearVenta(payload) {
 
     // --- INTEGRACIÓN CAJA ---
     console.log(`[Caja Integration] Iniciando verificación. UsuarioId: ${usuarioId}, MontoPagado: ${montoPagadoValidado}`);
-    
+
     // Registrar cualquier venta en la caja abierta del usuario, independientemente del método de pago
     if (montoPagadoValidado > 0) {
       const cajaAbierta = await tx.caja.findFirst({
@@ -276,7 +275,7 @@ async function crearVenta(payload) {
         console.warn(`[Caja Integration] ADVERTENCIA: Se realizó una venta pero el usuario ${usuarioId} no tiene caja abierta.`);
       }
     } else {
-        console.log(`[Caja Integration] Omitido: Monto pagado es 0 o menor.`);
+      console.log(`[Caja Integration] Omitido: Monto pagado es 0 o menor.`);
     }
     // ------------------------
 
@@ -287,7 +286,7 @@ async function crearVenta(payload) {
   // Una vez confirmada la transacción, obtener la venta completa
   console.log(`Transacción completada. Recuperando venta ID: ${ventaId}`);
   const ventaCompleta = await obtenerVentaPorId(ventaId);
-  
+
   if (!ventaCompleta) {
     console.error(`ERROR CRÍTICO: No se pudo recuperar la venta ${ventaId} después de la transacción.`);
     // Intentar recuperación de emergencia o devolver objeto básico

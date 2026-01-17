@@ -62,7 +62,7 @@ async function obtenerEstadoCuentaCliente(id) {
 }
 
 async function crearCliente(datos) {
-  const { nombre, correo, telefono, cedula, direccion, creditoMaximo = 0, diasCredito = 30 } = datos
+  const { nombre, correo, telefono, cedula, creditoMaximo = 0, diasCredito = 30 } = datos
 
   // Validar que no exista cliente con la misma cédula si se proporciona
   if (cedula) {
@@ -82,7 +82,6 @@ async function crearCliente(datos) {
       correo: correo || null, // Convertir '' a null para evitar error de unique
       telefono,
       cedula: cedula || null, // Convertir '' a null para evitar error de unique
-      direccion,
       creditoMaximo,
       diasCredito
     }
@@ -95,7 +94,6 @@ async function actualizarCliente(id, datos) {
   if (datos.correo !== undefined) campos.correo = datos.correo
   if (datos.telefono !== undefined) campos.telefono = datos.telefono
   if (datos.cedula !== undefined) campos.cedula = datos.cedula
-  if (datos.direccion !== undefined) campos.direccion = datos.direccion
   if (typeof datos.activo === 'boolean') campos.activo = datos.activo
   if (typeof datos.creditoMaximo === 'number') campos.creditoMaximo = datos.creditoMaximo
   if (typeof datos.diasCredito === 'number') campos.diasCredito = datos.diasCredito

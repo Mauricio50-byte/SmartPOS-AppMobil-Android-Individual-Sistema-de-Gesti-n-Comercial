@@ -4,7 +4,6 @@ export interface Cliente {
   correo?: string | null;
   telefono?: string | null;
   cedula?: string | null;
-  direccion?: string | null;
   activo?: boolean;
   creditoMaximo?: number;
   saldoDeuda?: number;

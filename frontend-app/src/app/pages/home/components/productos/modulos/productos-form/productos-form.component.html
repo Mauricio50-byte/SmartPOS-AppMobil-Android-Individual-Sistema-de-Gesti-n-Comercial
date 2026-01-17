@@ -11,23 +11,23 @@
         <ion-select formControlName="tipo" placeholder="Seleccionar tipo">
           <ion-select-option value="GENERAL">General</ion-select-option>
           @if (isModuleActive('ropa')) {
-            <ion-select-option value="ROPA">Ropa y Accesorios</ion-select-option>
+          <ion-select-option value="ROPA">Ropa y Accesorios</ion-select-option>
           }
           @if (isModuleActive('alimentos')) {
-            <ion-select-option value="ALIMENTO">Alimentos y
+          <ion-select-option value="ALIMENTO">Alimentos y
             Perecederos</ion-select-option>
           }
           @if (isModuleActive('servicios')) {
-            <ion-select-option value="SERVICIO">Servicios</ion-select-option>
+          <ion-select-option value="SERVICIO">Servicios</ion-select-option>
           }
           @if (isModuleActive('farmacia')) {
-            <ion-select-option value="FARMACIA">Farmacia</ion-select-option>
+          <ion-select-option value="FARMACIA">Farmacia</ion-select-option>
           }
           @if (isModuleActive('papeleria')) {
-            <ion-select-option value="PAPELERIA">Papelería</ion-select-option>
+          <ion-select-option value="PAPELERIA">Papelería</ion-select-option>
           }
           @if (isModuleActive('restaurante')) {
-            <ion-select-option value="RESTAURANTE">Restaurante</ion-select-option>
+          <ion-select-option value="RESTAURANTE">Restaurante</ion-select-option>
           }
         </ion-select>
       </ion-item>
@@ -39,18 +39,25 @@
 
       <ion-item class="input-item">
         <ion-label position="stacked">Nombre del Producto *</ion-label>
-        <ion-input formControlName="nombre"
-        placeholder="Ej. Camisa Polo, Manzanas, Corte de Cabello"></ion-input>
+        <ion-input formControlName="nombre" placeholder="Ej. Camisa Polo, Manzanas, Corte de Cabello"></ion-input>
       </ion-item>
       @if (productForm.get('nombre')?.touched && productForm.get('nombre')?.invalid) {
-        <div class="error-msg">
-          El nombre es requerido (min 3 caracteres).
-        </div>
+      <div class="error-msg">
+        El nombre es requerido (min 3 caracteres).
+      </div>
       }
 
       <ion-item class="input-item">
         <ion-label position="stacked">Categoría</ion-label>
         <ion-input formControlName="categoria" placeholder="Ej. Ropa, Flores" (ionBlur)="onCategoriaBlur()"></ion-input>
+      </ion-item>
+
+      <ion-item class="input-item">
+        <ion-label position="stacked">Subcategoría (Opcional)</ion-label>
+        <ion-input formControlName="subcategoria" placeholder="Ej. Camisas, Rosas"></ion-input>
+        <ion-note slot="helper" class="help-text">
+          Úselo para una clasificación secundaria (ej: Categoría: Bebidas -> Subcategoría: Jugos).
+        </ion-note>
       </ion-item>
     </div>
 
@@ -69,46 +76,46 @@
           Seleccionar Imagen
         </ion-button>
         @if (previewImage || productForm.get('imagen')?.value) {
-          <div class="ion-margin-top ion-text-center">
-            <img [src]="previewImage || productForm.get('imagen')?.value" style="max-height: 200px; border-radius: 8px;">
-            <ion-button fill="clear" color="danger" (click)="removeImage()">
-              <ion-icon name="trash" slot="start"></ion-icon>
-              Quitar Imagen
-            </ion-button>
-          </div>
+        <div class="ion-margin-top ion-text-center">
+          <img [src]="previewImage || productForm.get('imagen')?.value" style="max-height: 200px; border-radius: 8px;">
+          <ion-button fill="clear" color="danger" (click)="removeImage()">
+            <ion-icon name="trash" slot="start"></ion-icon>
+            Quitar Imagen
+          </ion-button>
+        </div>
         }
       </ion-item>
     </div>
 
     <!-- SUB-COMPONENTES POR MÓDULO -->
     @if (productForm.get('tipo')?.value === 'ROPA') {
-      <app-formulario-ropa [parentForm]="productForm">
-      </app-formulario-ropa>
+    <app-formulario-ropa [parentForm]="productForm">
+    </app-formulario-ropa>
     }
 
     @if (productForm.get('tipo')?.value === 'ALIMENTO') {
-      <app-formulario-alimentos [parentForm]="productForm">
-      </app-formulario-alimentos>
+    <app-formulario-alimentos [parentForm]="productForm">
+    </app-formulario-alimentos>
     }
 
     @if (productForm.get('tipo')?.value === 'SERVICIO') {
-      <app-formulario-servicios [parentForm]="productForm">
-      </app-formulario-servicios>
+    <app-formulario-servicios [parentForm]="productForm">
+    </app-formulario-servicios>
     }
 
     @if (productForm.get('tipo')?.value === 'FARMACIA') {
-      <app-formulario-farmacia [parentForm]="productForm">
-      </app-formulario-farmacia>
+    <app-formulario-farmacia [parentForm]="productForm">
+    </app-formulario-farmacia>
     }
 
     @if (productForm.get('tipo')?.value === 'PAPELERIA') {
-      <app-formulario-papeleria [parentForm]="productForm">
-      </app-formulario-papeleria>
+    <app-formulario-papeleria [parentForm]="productForm">
+    </app-formulario-papeleria>
     }
 
     @if (productForm.get('tipo')?.value === 'RESTAURANTE') {
-      <app-formulario-restaurante [parentForm]="productForm">
-      </app-formulario-restaurante>
+    <app-formulario-restaurante [parentForm]="productForm">
+    </app-formulario-restaurante>
     }
 
     <!-- CATEGORIZACIÓN -->
@@ -152,24 +159,23 @@
 
     <!-- INVENTARIO -->
     @if (productForm.get('tipo')?.value !== 'SERVICIO') {
-      <div class="form-section">
-        <h3>Inventario</h3>
-        <div class="two-columns">
-          <ion-item class="input-item">
-            <ion-label position="stacked">Stock Actual *</ion-label>
-            <ion-input type="number" formControlName="stock"></ion-input>
-          </ion-item>
-          <ion-item class="input-item">
-            <ion-label position="stacked">Stock Mínimo</ion-label>
-            <ion-input type="number" formControlName="stockMinimo"></ion-input>
-          </ion-item>
-        </div>
+    <div class="form-section">
+      <h3>Inventario</h3>
+      <div class="two-columns">
         <ion-item class="input-item">
-          <ion-label position="stacked">Unidad de Medida</ion-label>
-          <ion-input formControlName="unidadMedida"
-          placeholder="Ej. Unidad, Caja, Paquete, Kg, Litro"></ion-input>
+          <ion-label position="stacked">Stock Actual *</ion-label>
+          <ion-input type="number" formControlName="stock"></ion-input>
+        </ion-item>
+        <ion-item class="input-item">
+          <ion-label position="stacked">Stock Mínimo</ion-label>
+          <ion-input type="number" formControlName="stockMinimo"></ion-input>
         </ion-item>
       </div>
+      <ion-item class="input-item">
+        <ion-label position="stacked">Unidad de Medida</ion-label>
+        <ion-input formControlName="unidadMedida" placeholder="Ej. Unidad, Caja, Paquete, Kg, Litro"></ion-input>
+      </ion-item>
+    </div>
     }
 
     <!-- ESTADO -->

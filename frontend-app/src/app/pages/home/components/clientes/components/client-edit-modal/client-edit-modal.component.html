@@ -16,9 +16,9 @@
       <ion-label position="stacked">Nombre *</ion-label>
       <ion-input formControlName="nombre" type="text" placeholder="Nombre completo"></ion-input>
       @if (editForm.get('nombre')?.invalid && editForm.get('nombre')?.touched) {
-        <ion-note slot="error">
-          El nombre es requerido
-        </ion-note>
+      <ion-note slot="error">
+        El nombre es requerido
+      </ion-note>
       }
     </ion-item>
 
@@ -37,10 +37,7 @@
       <ion-input formControlName="correo" type="email" placeholder="email@ejemplo.com"></ion-input>
     </ion-item>
 
-    <ion-item>
-      <ion-label position="stacked">Dirección</ion-label>
-      <ion-input formControlName="direccion" type="text" placeholder="Dirección de residencia"></ion-input>
-    </ion-item>
+
 
     <div class="section-divider">
       Información Financiera

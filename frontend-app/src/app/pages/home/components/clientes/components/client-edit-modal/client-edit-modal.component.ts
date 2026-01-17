@@ -18,7 +18,7 @@ export class ClientEditModalComponent implements OnInit {
   constructor(
     private modalController: ModalController,
     private fb: FormBuilder
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.editForm = this.fb.group({
@@ -26,7 +26,6 @@ export class ClientEditModalComponent implements OnInit {
       telefono: [this.cliente.telefono],
       cedula: [this.cliente.cedula],
       correo: [this.cliente.correo],
-      direccion: [this.cliente.direccion],
       creditoMaximo: [this.cliente.creditoMaximo || 0],
       saldoDeuda: [this.cliente.saldoDeuda || 0] // Allow editing balance
     });

@@ -39,7 +39,7 @@ async function obtenerUsuarioPorId(id) {
     const permisosRoles = usuario.roles.flatMap(r => r.rol.permisos.map(p => p.permiso.clave))
     // Flatten direct permissions
     const permisosDirectos = usuario.permisos.map(p => p.permiso.clave)
-    
+
     usuario.roles = rolesNombres
     usuario.permisos = [...new Set([...permisosRoles, ...permisosDirectos])]
     usuario.permisosDirectos = permisosDirectos // To distinguish in frontend if needed
@@ -107,7 +107,7 @@ async function eliminarUsuario(id) {
     prisma.usuarioPermiso.deleteMany({ where: { usuarioId: id } }),
     prisma.usuario.delete({ where: { id } })
   ])
-  
+
   return usuarioEliminado
 }
 
@@ -122,7 +122,7 @@ async function asignarRolesAUsuario(id, roles = []) {
 
 async function crearUsuario(datos) {
   const passwordHash = await bcrypt.hash(datos.password, 10)
-  
+
   // Create user
   const usuario = await prisma.usuario.create({
     data: {
@@ -136,7 +136,7 @@ async function crearUsuario(datos) {
 
   // Assign role if provided
   if (datos.rol) {
-    const rol = await prisma.rol.findUnique({ 
+    const rol = await prisma.rol.findUnique({
       where: { nombre: datos.rol },
       include: { permisos: true }
     })
@@ -182,7 +182,7 @@ async function crearUsuario(datos) {
       }
 
     } else if (datos.rol === 'trabajador') {
-        // Caso fallback si rol minúscula o no existe en DB pero se pasó string
+      // Caso fallback si rol minúscula o no existe en DB pero se pasó string
     }
   }
 
@@ -192,7 +192,7 @@ async function crearUsuario(datos) {
 async function asignarPermisosDirectos(id, permisos = [], adminId = null) {
   // Clear existing direct permissions
   await prisma.usuarioPermiso.deleteMany({ where: { usuarioId: id } })
-  
+
   if (Array.isArray(permisos) && permisos.length > 0) {
     const permsDb = await prisma.permiso.findMany({ where: { clave: { in: permisos } } })
     for (const p of permsDb) {
@@ -202,16 +202,7 @@ async function asignarPermisosDirectos(id, permisos = [], adminId = null) {
     }
   }
 
-  // Log audit
-  if (adminId) {
-    await prisma.auditLog.create({
-      data: {
-        usuarioId: adminId,
-        accion: 'ASIGNAR_PERMISOS_USUARIO',
-        detalle: `Usuario ID: ${id}, Permisos: ${permisos.join(', ')}`
-      }
-    })
-  }
+
 
   return obtenerUsuarioPorId(id)
 }
