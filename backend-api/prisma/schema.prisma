@@ -24,6 +24,7 @@ model Usuario {
   ventas          Venta[]
   cajas           Caja[]
   movimientosCaja MovimientoCaja[]
+  notificaciones  Notificacion[]
 }
 
 model Caja {
@@ -344,4 +345,16 @@ model PagoGasto {
   nota       String?
   gasto      Gasto    @relation(fields: [gastoId], references: [id])
   usuario    Usuario? @relation(fields: [usuarioId], references: [id])
+}
+
+model Notificacion {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  titulo    String
+  mensaje   String
+  tipo      String   @default("info") // urgent, info, success, warning
+  leido     Boolean  @default(false)
+  link      String?
+  creadoEn  DateTime @default(now())
 }

@@ -19,7 +19,7 @@ export class HomePage implements OnInit {
   currentView: HomeView = 'dashboard';
   pageTitle: string = 'Dashboard';
   currentUser: UsuarioPerfil | null = null;
-  
+
   notifications$: Observable<AppNotification[]>;
   unreadCount$: Observable<number>;
   isNotificationsOpen = false;
@@ -29,7 +29,7 @@ export class HomePage implements OnInit {
     private router: Router,
     private modalCtrl: ModalController,
     private notificationService: NotificationService
-  ) { 
+  ) {
     this.notifications$ = this.notificationService.notifications$;
     this.unreadCount$ = this.notificationService.unreadCount$;
   }
@@ -128,7 +128,7 @@ export class HomePage implements OnInit {
     this.notificationService.markAllAsRead();
   }
 
-  removeNotification(event: Event, id: string) {
+  removeNotification(event: Event, id: string | number) {
     event.stopPropagation();
     this.notificationService.deleteNotification(id);
   }

@@ -5,6 +5,7 @@
 export const environment = {
   production: false,
   apiUrl: 'https://smartpos-appmobil-android-individual.onrender.com',
+  //apiUrl: 'http://localhost:3000',
 };
 
 /*

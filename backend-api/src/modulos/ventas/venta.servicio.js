@@ -199,10 +199,23 @@ async function crearVenta(payload) {
           subtotal: d.subtotal
         }
       })
-      await tx.producto.update({
+      const prodActualizado = await tx.producto.update({
         where: { id: d.productoId },
         data: { stock: { decrement: d.cantidad } }
       })
+
+      // Generar notificación si el stock cae por debajo del mínimo
+      if (prodActualizado.stock <= (prodActualizado.stockMinimo || 5)) {
+        await tx.notificacion.create({
+          data: {
+            usuarioId: Number(usuarioId),
+            titulo: 'Stock Crítico',
+            mensaje: `El producto ${prodActualizado.nombre} tiene solo ${prodActualizado.stock} unidades restantes.`,
+            tipo: 'urgent',
+            link: 'productos'
+          }
+        })
+      }
     }
 
     // Si es venta fiada, crear la deuda

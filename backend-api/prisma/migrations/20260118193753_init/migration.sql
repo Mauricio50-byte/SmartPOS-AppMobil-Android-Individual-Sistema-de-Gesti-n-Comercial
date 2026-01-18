@@ -104,7 +104,7 @@ CREATE TABLE "Producto" (
     "stock" INTEGER NOT NULL DEFAULT 0,
     "stockMinimo" INTEGER DEFAULT 0,
     "unidadMedida" TEXT DEFAULT 'UNIDAD',
-    "iva" DOUBLE PRECISION DEFAULT 0,
+    "margenGanancia" DOUBLE PRECISION DEFAULT 0,
     "proveedor" TEXT,
     "activo" BOOLEAN NOT NULL DEFAULT true,
     "creadoEn" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -202,7 +202,6 @@ CREATE TABLE "Cliente" (
     "correo" TEXT,
     "telefono" TEXT,
     "cedula" TEXT,
-    "direccion" TEXT,
     "activo" BOOLEAN NOT NULL DEFAULT true,
     "creditoMaximo" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "diasCredito" INTEGER NOT NULL DEFAULT 30,
@@ -285,17 +284,6 @@ CREATE TABLE "DetalleVenta" (
 );
 
 -- CreateTable
-CREATE TABLE "AuditLog" (
-    "id" SERIAL NOT NULL,
-    "usuarioId" INTEGER,
-    "accion" TEXT NOT NULL,
-    "detalle" TEXT,
-    "fecha" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "AuditLog_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "Deuda" (
     "id" SERIAL NOT NULL,
     "clienteId" INTEGER NOT NULL,
@@ -352,12 +340,17 @@ CREATE TABLE "PagoGasto" (
 );
 
 -- CreateTable
-CREATE TABLE "CategoriaSecuencia" (
+CREATE TABLE "Notificacion" (
     "id" SERIAL NOT NULL,
-    "categoria" TEXT NOT NULL,
-    "secuencia" INTEGER NOT NULL DEFAULT 0,
+    "usuarioId" INTEGER NOT NULL,
+    "titulo" TEXT NOT NULL,
+    "mensaje" TEXT NOT NULL,
+    "tipo" TEXT NOT NULL DEFAULT 'info',
+    "leido" BOOLEAN NOT NULL DEFAULT false,
+    "link" TEXT,
+    "creadoEn" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "CategoriaSecuencia_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Notificacion_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -398,9 +391,6 @@ CREATE UNIQUE INDEX "Permiso_clave_key" ON "Permiso"("clave");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Deuda_ventaId_key" ON "Deuda"("ventaId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "CategoriaSecuencia_categoria_key" ON "CategoriaSecuencia"("categoria");
 
 -- AddForeignKey
 ALTER TABLE "Usuario" ADD CONSTRAINT "Usuario_negocioId_fkey" FOREIGN KEY ("negocioId") REFERENCES "Negocio"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -478,9 +468,6 @@ ALTER TABLE "DetalleVenta" ADD CONSTRAINT "DetalleVenta_productoId_fkey" FOREIGN
 ALTER TABLE "DetalleVenta" ADD CONSTRAINT "DetalleVenta_ventaId_fkey" FOREIGN KEY ("ventaId") REFERENCES "Venta"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "Usuario"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Deuda" ADD CONSTRAINT "Deuda_clienteId_fkey" FOREIGN KEY ("clienteId") REFERENCES "Cliente"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -497,3 +484,6 @@ ALTER TABLE "PagoGasto" ADD CONSTRAINT "PagoGasto_gastoId_fkey" FOREIGN KEY ("ga
 
 -- AddForeignKey
 ALTER TABLE "PagoGasto" ADD CONSTRAINT "PagoGasto_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "Usuario"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notificacion" ADD CONSTRAINT "Notificacion_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "Usuario"("id") ON DELETE CASCADE ON UPDATE CASCADE;
