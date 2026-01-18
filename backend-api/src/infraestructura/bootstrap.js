@@ -34,7 +34,7 @@ async function asegurarPermisosYAdmin() {
       { clave: 'EDITAR_VENTA', descripcion: 'Modificar ventas existentes' },
       { clave: 'ANULAR_VENTA', descripcion: 'Anular ventas realizadas' },
       { clave: 'REPORTES_VENTAS', descripcion: 'Ver reportes específicos de ventas' },
-      { clave: 'VENDER', descripcion: 'Acceso general al punto de venta (Legacy)' } 
+      { clave: 'VENDER', descripcion: 'Acceso general al punto de venta (Legacy)' }
     ],
     productos: [
       { clave: 'VER_INVENTARIO', descripcion: 'Ver lista de productos y stock' },
@@ -123,14 +123,14 @@ async function asegurarPermisosYAdmin() {
 
   // 5. Asignar todos los permisos al rol ADMIN
   const allPermisos = await prisma.permiso.findMany({})
-  
+
   for (const p of allPermisos) {
-     const exists = await prisma.rolPermiso.findUnique({
-         where: { rolId_permisoId: { rolId: adminRol.id, permisoId: p.id } }
-     })
-     if (!exists) {
-         await prisma.rolPermiso.create({ data: { rolId: adminRol.id, permisoId: p.id } })
-     }
+    const exists = await prisma.rolPermiso.findUnique({
+      where: { rolId_permisoId: { rolId: adminRol.id, permisoId: p.id } }
+    })
+    if (!exists) {
+      await prisma.rolPermiso.create({ data: { rolId: adminRol.id, permisoId: p.id } })
+    }
   }
 
   // 6. Asignar permisos base al rol TRABAJADOR
@@ -141,18 +141,18 @@ async function asegurarPermisosYAdmin() {
   // Limpiar permisos antiguos que no deban estar en TRABAJADOR
   // Obtenemos todos los permisos actuales del rol
   const permisosActualesRol = await prisma.rolPermiso.findMany({
-      where: { rolId: trabajadorRol.id },
-      include: { permiso: true }
+    where: { rolId: trabajadorRol.id },
+    include: { permiso: true }
   })
 
   // Identificar los que ya NO deben estar
-  for(const rp of permisosActualesRol) {
-      if (!permisosTrabajador.includes(rp.permiso.clave)) {
-          console.log(`Eliminando permiso ${rp.permiso.clave} del rol TRABAJADOR`)
-          await prisma.rolPermiso.delete({
-              where: { rolId_permisoId: { rolId: trabajadorRol.id, permisoId: rp.permisoId } }
-          })
-      }
+  for (const rp of permisosActualesRol) {
+    if (!permisosTrabajador.includes(rp.permiso.clave)) {
+      console.log(`Eliminando permiso ${rp.permiso.clave} del rol TRABAJADOR`)
+      await prisma.rolPermiso.delete({
+        where: { rolId_permisoId: { rolId: trabajadorRol.id, permisoId: rp.permisoId } }
+      })
+    }
   }
 
   const permisosBaseDb = await prisma.permiso.findMany({
@@ -160,70 +160,75 @@ async function asegurarPermisosYAdmin() {
   })
 
   for (const p of permisosBaseDb) {
-     const exists = await prisma.rolPermiso.findUnique({
-         where: { rolId_permisoId: { rolId: trabajadorRol.id, permisoId: p.id } }
-     })
-     if (!exists) {
-         await prisma.rolPermiso.create({ data: { rolId: trabajadorRol.id, permisoId: p.id } })
-     }
+    const exists = await prisma.rolPermiso.findUnique({
+      where: { rolId_permisoId: { rolId: trabajadorRol.id, permisoId: p.id } }
+    })
+    if (!exists) {
+      await prisma.rolPermiso.create({ data: { rolId: trabajadorRol.id, permisoId: p.id } })
+    }
   }
 
   // 7. Crear/Actualizar Usuario Admin Principal
   if (ADMIN_CORREO) {
-      const passwordHash = await bcrypt.hash(ADMIN_PASSWORD || 'admin123', 10)
-      
-      // Intentar buscar usuario existente
-      let usuario = await prisma.usuario.findUnique({ where: { correo: ADMIN_CORREO } })
-      
-      if (!usuario) {
-          usuario = await prisma.usuario.create({
-              data: { 
-                  nombre: 'Administrador Principal', 
-                  correo: ADMIN_CORREO, 
-                  passwordHash, 
-                  activo: true
-              }
-          })
-      } else {
-          // Si ya existe, nos aseguramos que esté activo
-          await prisma.usuario.update({
-              where: { id: usuario.id },
-              data: { activo: true }
-          })
-      }
-      
-      // Asignar Rol Admin
-      const yaRol = await prisma.usuarioRol.findUnique({ where: { usuarioId_rolId: { usuarioId: usuario.id, rolId: adminRol.id } } })
-      if (!yaRol) await prisma.usuarioRol.create({ data: { usuarioId: usuario.id, rolId: adminRol.id } })
+    const passwordHash = await bcrypt.hash(ADMIN_PASSWORD || 'admin123', 10)
 
-      // Asignar Negocio
-      if (!usuario.negocioId) {
-          const existente = await prisma.negocio.findFirst({ select: { id: true } })
-          const negocio = existente
-            ? existente
-            : await prisma.negocio.create({ data: { nombre: 'Negocio Principal' }, select: { id: true } })
-          await prisma.usuario.update({ where: { id: usuario.id }, data: { negocioId: negocio.id } })
-          
-          // Activar todos los módulos para este negocio
-          const modulos = await prisma.modulo.findMany()
-          for(const m of modulos) {
-              await prisma.negocioModulo.upsert({
-                  where: { negocioId_moduloId: { negocioId: negocio.id, moduloId: m.id } },
-                  update: { activo: true },
-                  create: { negocioId: negocio.id, moduloId: m.id, activo: true }
-              })
-          }
-      }
-      
-      // Asegurar que el usuario tenga acceso a todos los módulos (UsuarioModulo)
+    // Intentar buscar usuario existente
+    let usuario = await prisma.usuario.findUnique({ where: { correo: ADMIN_CORREO } })
+
+    if (!usuario) {
+      usuario = await prisma.usuario.create({
+        data: {
+          nombre: 'Administrador Principal',
+          correo: ADMIN_CORREO,
+          passwordHash,
+          activo: true,
+          adminPorDefecto: true
+        }
+      })
+    } else {
+      // Si ya existe, nos aseguramos que esté activo y actualizamos password por si acaso
+      await prisma.usuario.update({
+        where: { id: usuario.id },
+        data: {
+          activo: true,
+          passwordHash,
+          adminPorDefecto: true
+        }
+      })
+    }
+
+    // Asignar Rol Admin
+    const yaRol = await prisma.usuarioRol.findUnique({ where: { usuarioId_rolId: { usuarioId: usuario.id, rolId: adminRol.id } } })
+    if (!yaRol) await prisma.usuarioRol.create({ data: { usuarioId: usuario.id, rolId: adminRol.id } })
+
+    // Asignar Negocio
+    if (!usuario.negocioId) {
+      const existente = await prisma.negocio.findFirst({ select: { id: true } })
+      const negocio = existente
+        ? existente
+        : await prisma.negocio.create({ data: { nombre: 'Negocio Principal' }, select: { id: true } })
+      await prisma.usuario.update({ where: { id: usuario.id }, data: { negocioId: negocio.id } })
+
+      // Activar todos los módulos para este negocio
       const modulos = await prisma.modulo.findMany()
       for (const m of modulos) {
-          await prisma.usuarioModulo.upsert({
-              where: { usuarioId_moduloId: { usuarioId: usuario.id, moduloId: m.id } },
-              update: {},
-              create: { usuarioId: usuario.id, moduloId: m.id }
-          })
+        await prisma.negocioModulo.upsert({
+          where: { negocioId_moduloId: { negocioId: negocio.id, moduloId: m.id } },
+          update: { activo: true },
+          create: { negocioId: negocio.id, moduloId: m.id, activo: true }
+        })
       }
+    }
+
+    // Asegurar que el usuario tenga acceso a todos los módulos (UsuarioModulo)
+    const modulos = await prisma.modulo.findMany()
+    for (const m of modulos) {
+      await prisma.usuarioModulo.upsert({
+        where: { usuarioId_moduloId: { usuarioId: usuario.id, moduloId: m.id } },
+        update: {},
+        create: { usuarioId: usuario.id, moduloId: m.id }
+      })
+    }
   }
 }
 
