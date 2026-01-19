@@ -5,6 +5,18 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     width: 100%;
     max-width: 800px;
+    margin: 0 auto;
+    
+    // Add extra padding at the bottom to ensure buttons are not covered by tabs/footer
+    padding-bottom: 80px;
+
+    @media (max-width: 576px) {
+        padding: 16px;
+        // Increase bottom padding specifically for mobile devices
+        padding-bottom: 100px; 
+        border-radius: 0;
+        box-shadow: none;
+    }
 
     h2 {
         margin-top: 0;
@@ -31,17 +43,13 @@
     background: #fafbfc;
     border-radius: 8px;
     border: 1px solid #e9ecef;
-}
 
-.two-columns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-
-    @media (max-width: 768px) {
-        grid-template-columns: 1fr;
+    @media (max-width: 576px) {
+        padding: 12px; // Less padding on mobile
     }
 }
+
+// Removed .two-columns as we use ion-grid now
 
 .input-item {
     --background: #ffffff;
@@ -52,6 +60,7 @@
     border-radius: 8px;
     border: 1px solid #e5e7eb;
     --highlight-color-focused: var(--ion-color-tertiary);
+    width: 100%; // Ensure it fills the grid column
 
     ion-label {
         color: #4b5563 !important;
