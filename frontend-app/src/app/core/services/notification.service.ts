@@ -6,6 +6,7 @@ import { environment } from '../../../environments/environment';
 import { ProductosServices } from './producto.service';
 import { DeudaService } from './deuda.service';
 import { CajaService } from './caja.service';
+import { VentaServices } from './venta.service';
 import { Producto, Deuda, Caja } from '../models';
 
 export type NotificationType = 'urgent' | 'info' | 'success' | 'warning';
@@ -32,7 +33,8 @@ export class NotificationService {
   constructor(
     private productosService: ProductosServices,
     private deudaService: DeudaService,
-    private cajaService: CajaService
+    private cajaService: CajaService,
+    private ventaService: VentaServices
   ) {
     this.refreshNotifications();
 
@@ -40,6 +42,11 @@ export class NotificationService {
     interval(2 * 60 * 1000).subscribe(() => {
       this.refreshNotifications();
     });
+
+    // React to system changes immediately
+    this.cajaService.cajaCambio$.subscribe(() => this.refreshNotifications());
+    this.productosService.productoChanged$.subscribe(() => this.refreshNotifications());
+    this.ventaService.ventaRealizada$.subscribe(() => this.refreshNotifications());
   }
 
   get notifications$(): Observable<AppNotification[]> {

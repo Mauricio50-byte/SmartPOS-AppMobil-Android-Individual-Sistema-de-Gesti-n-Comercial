@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Subject, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Venta } from '../models';
 
@@ -9,6 +9,9 @@ import { Venta } from '../models';
 })
 export class VentaServices {
   apiUrl = environment.apiUrl + '/ventas';
+  
+  private _ventaRealizada = new Subject<void>();
+  public ventaRealizada$ = this._ventaRealizada.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -23,7 +26,9 @@ export class VentaServices {
 
   
   crearVenta(data: any): Observable<Venta> {
-    return this.http.post<Venta>(this.apiUrl, data);
+    return this.http.post<Venta>(this.apiUrl, data).pipe(
+      tap(() => this._ventaRealizada.next())
+    );
   }
 
 

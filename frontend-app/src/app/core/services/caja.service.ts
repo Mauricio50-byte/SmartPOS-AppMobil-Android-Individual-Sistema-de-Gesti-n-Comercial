@@ -2,22 +2,30 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { Caja, MovimientoCaja } from '../models/caja';
-import { Observable } from 'rxjs';
+import { Observable, Subject, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CajaService {
   private apiUrl = `${environment.apiUrl}/caja`;
+  private _cajaCambio = new Subject<void>();
+  
+  // Observable que emite cuando ocurre una acción de escritura (abrir/cerrar)
+  public cajaCambio$ = this._cajaCambio.asObservable();
 
   constructor(private http: HttpClient) { }
 
   abrirCaja(montoInicial: number, observaciones?: string): Observable<Caja> {
-    return this.http.post<Caja>(`${this.apiUrl}/abrir`, { montoInicial, observaciones });
+    return this.http.post<Caja>(`${this.apiUrl}/abrir`, { montoInicial, observaciones }).pipe(
+      tap(() => this._cajaCambio.next())
+    );
   }
 
   cerrarCaja(montoFinal: number, observaciones?: string): Observable<Caja> {
-    return this.http.post<Caja>(`${this.apiUrl}/cerrar`, { montoFinal, observaciones });
+    return this.http.post<Caja>(`${this.apiUrl}/cerrar`, { montoFinal, observaciones }).pipe(
+      tap(() => this._cajaCambio.next())
+    );
   }
 
   registrarMovimiento(tipo: 'INGRESO' | 'EGRESO', monto: number, descripcion: string): Observable<MovimientoCaja> {

@@ -48,7 +48,8 @@
               "core-js",
               "raf",
               "rgbcolor",
-              "file-saver"
+              "file-saver",
+              "html2canvas"
             ],
             "browser": "src/main.ts"
           },
@@ -62,8 +63,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "6kb",
-                  "maximumError": "8kb"
+                  "maximumWarning": "12kb",
+                  "maximumError": "20kb"
                 }
               ],
               "fileReplacements": [
