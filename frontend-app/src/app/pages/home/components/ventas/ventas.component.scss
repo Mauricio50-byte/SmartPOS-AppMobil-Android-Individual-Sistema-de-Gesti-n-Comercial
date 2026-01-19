@@ -249,18 +249,17 @@
 
 // === Mobile Bottom Bar ===
 .mobile-bottom-bar {
-    // position: fixed; // Changed to relative flow
-    // bottom: 0;
-    // left: 0;
-    // right: 0;
+    position: fixed;
+    bottom: calc(85px + env(safe-area-inset-bottom)); // Aumentado para evitar solapamiento (Navbar ~65-70px)
+    left: 0;
+    right: 0;
     width: 100%;
     background: var(--ion-color-primary);
     color: white;
     padding: 0;
-    z-index: 90;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
-    flex-shrink: 0; // Prevent shrinking in flex container
-    padding-bottom: var(--ion-safe-area-bottom, 0); // Respect bottom safe area
+    z-index: 9999; // Z-index muy alto para asegurar visibilidad
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+    flex-shrink: 0;
     
     @media (min-width: 992px) {
         display: none;

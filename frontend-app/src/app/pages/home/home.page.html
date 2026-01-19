@@ -84,7 +84,7 @@
     </ion-content>
   </ion-menu>
 
-  <ion-content id="home-content" [fullscreen]="true" class="dashboard">
+  <div class="ion-page" id="home-content">
     <ion-header class="topbar" [translucent]="false">
       <ion-toolbar style="--background: #134e4a; --color: white;">
         <!-- Dark teal/green hardcoded for safety against 'dark' attribute -->
@@ -180,7 +180,8 @@
       </ion-toolbar>
     </ion-header>
 
-    <div class="content-container">
+    <ion-content [fullscreen]="true" class="dashboard">
+      <div class="content-container">
       @if (currentView === 'dashboard') {
       <app-dashboard (navigate)="setView($event)"></app-dashboard>
       }
@@ -209,6 +210,7 @@
       <app-configuracion></app-configuracion>
       }
     </div>
+    </ion-content>
 
     <div class="mobile-tabbar" role="tablist" aria-label="Navegación inferior">
       <button class="item" [class.active]="currentView === 'dashboard'" (click)="setView('dashboard')" role="tab"
@@ -282,5 +284,5 @@
       </button>
       }
     </div>
-  </ion-content>
+  </div>
 </ion-split-pane>
