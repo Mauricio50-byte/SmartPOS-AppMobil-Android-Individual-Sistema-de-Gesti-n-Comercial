@@ -1,19 +1,55 @@
-<div class="payment-selector">
+<!-- === DESKTOP LAYOUT === -->
+<div class="payment-selector desktop-layout">
   <div class="payment-option" 
-       [class.selected]="selectedMethod === 'Efectivo'"
-       (click)="selectMethod('Efectivo')">
+       [class.selected]="selectedMethod === 'EFECTIVO'"
+       (click)="selectMethod('EFECTIVO')">
     <div class="icon-box">
       <ion-icon name="cash-outline"></ion-icon>
     </div>
     <span class="label">Efectivo</span>
+    <div class="check-mark" *ngIf="selectedMethod === 'EFECTIVO'">
+      <ion-icon name="checkmark-circle"></ion-icon>
+    </div>
   </div>
 
   <div class="payment-option" 
-       [class.selected]="selectedMethod === 'Transferencia'"
-       (click)="selectMethod('Transferencia')">
+       [class.selected]="selectedMethod === 'TRANSFERENCIA'"
+       (click)="selectMethod('TRANSFERENCIA')">
     <div class="icon-box">
-      <ion-icon name="card-outline"></ion-icon> <!-- Usando card para representar digital/banco -->
+      <ion-icon name="card-outline"></ion-icon>
     </div>
-    <span class="label">Transferencia</span> <!-- Mantenemos Tarjeta visualmente como en la imagen, pero internamente puede ser Transferencia si se prefiere, o cambiar el texto a Transferencia -->
+    <span class="label">Transferencia</span>
+    <div class="check-mark" *ngIf="selectedMethod === 'TRANSFERENCIA'">
+      <ion-icon name="checkmark-circle"></ion-icon>
+    </div>
+  </div>
+</div>
+
+<!-- === MOBILE LAYOUT === -->
+<div class="payment-selector mobile-layout">
+  <div class="scroll-container">
+    <div class="mobile-option" 
+         [class.selected]="selectedMethod === 'EFECTIVO'"
+         (click)="selectMethod('EFECTIVO')">
+      <div class="option-content">
+        <div class="icon-circle">
+          <ion-icon name="cash"></ion-icon>
+        </div>
+        <span class="label">Efectivo</span>
+      </div>
+      <div class="selection-indicator"></div>
+    </div>
+
+    <div class="mobile-option" 
+         [class.selected]="selectedMethod === 'TRANSFERENCIA'"
+         (click)="selectMethod('TRANSFERENCIA')">
+      <div class="option-content">
+        <div class="icon-circle">
+          <ion-icon name="card"></ion-icon>
+        </div>
+        <span class="label">Transferencia</span>
+      </div>
+      <div class="selection-indicator"></div>
+    </div>
   </div>
 </div>

@@ -1,13 +1,5 @@
-<div class="ticket-panel" [class.mobile-visible]="cartVisibleMobile">
-
-  <!-- Header del Carrito (Solo Móvil) -->
-  <div class="cart-mobile-header">
-    <h2>Carrito de Compra</h2>
-    <ion-button fill="clear" (click)="toggleCart()" mode="ios">
-      <ion-icon name="chevron-down-outline" slot="icon-only"></ion-icon>
-    </ion-button>
-  </div>
-
+<!-- === DESKTOP VIEW === -->
+<div class="ticket-panel desktop-view">
   <div class="ticket-content-scroll">
     <!-- Selector de Tipo de Venta -->
     <div class="sale-type-selector">
@@ -63,9 +55,6 @@
         <div class="empty-cart">
           <ion-icon name="cart-outline"></ion-icon>
           <p>Su carrito está vacío</p>
-          <ion-button fill="outline" size="small" (click)="toggleCart()" class="ion-hide-md-up" mode="ios">
-            Ir al Catálogo
-          </ion-button>
         </div>
       }
     </div>
@@ -93,5 +82,113 @@
       <ion-icon slot="start" [name]="tipoVenta === 'FIADO' ? 'time-outline' : 'checkmark-circle-outline'"></ion-icon>
       {{ tipoVenta === 'FIADO' ? 'Registrar Deuda' : 'Confirmar Venta' }}
     </ion-button>
+  </div>
+</div>
+
+<!-- === MOBILE VIEW === -->
+<div class="mobile-cart-overlay" [class.visible]="cartVisibleMobile">
+  <div class="mobile-cart-container">
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+      <div class="drag-handle"></div>
+      <div class="header-content">
+        <h2>Nueva Venta</h2>
+        <ion-button fill="clear" size="small" (click)="toggleCart()" color="medium">
+          <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Mobile Content -->
+    <div class="mobile-content">
+      <!-- Top Actions Card -->
+      <div class="mobile-card top-card">
+        <ion-segment [(ngModel)]="tipoVenta" (ionChange)="setTipoVenta($event.detail.value)" mode="ios" class="custom-segment">
+          <ion-segment-button value="CONTADO">
+            <ion-label>Contado</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="FIADO">
+            <ion-label>Fiado</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+
+        <div class="mobile-client-row">
+           <app-client-selector
+            [clientes]="clientes"
+            [clienteSeleccionado]="clienteSeleccionado"
+            [mostrarRegistroCliente]="mostrarRegistroCliente"
+            (clienteSeleccionadoChange)="onClienteSeleccionado($event)"
+            (nuevoClienteClick)="mostrarModalRegistroCliente()">
+          </app-client-selector>
+        </div>
+      </div>
+
+      @if (mostrarRegistroCliente) {
+        <div class="mobile-card registration-card">
+          <app-client-registration-form
+            [datosClienteGroup]="datosClienteGroup"
+            (cancelar)="cancelarRegistroCliente()"
+            (guardar)="registrarNuevoCliente($event)">
+          </app-client-registration-form>
+        </div>
+      }
+
+      <!-- Items List -->
+      <div class="mobile-items-section">
+        <div class="section-header">
+          <h3>Productos ({{ detalles.length }})</h3>
+          @if (detalles.length > 0) {
+            <span class="clear-btn" (click)="detalles.clear(); calculateTotal()">Limpiar todo</span>
+          }
+        </div>
+
+        @if (detalles.length === 0) {
+          <div class="mobile-empty-state">
+            <div class="icon-circle">
+              <ion-icon name="basket-outline"></ion-icon>
+            </div>
+            <p>Tu carrito está vacío</p>
+            <ion-button fill="outline" shape="round" size="small" (click)="toggleCart()">
+              Agregar Productos
+            </ion-button>
+          </div>
+        } @else {
+          <div class="mobile-cart-list">
+             @for (control of detalles.controls; track control; let i = $index) {
+              <app-cart-item
+                [item]="control.value"
+                (remove)="removeFromCart(i)"
+                (updateQuantity)="updateQuantity($event, i)">
+              </app-cart-item>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Mobile Footer -->
+    <div class="mobile-footer">
+      <div class="payment-method-scroll">
+        <app-payment-selector
+          [selectedMethod]="paymentMethodControl.value"
+          (selectedMethodChange)="setPaymentMethod($event)">
+        </app-payment-selector>
+      </div>
+
+      <div class="total-row">
+        <div class="total-info">
+          <span class="label">Total a pagar</span>
+          <span class="value">{{ totalControl.value | currency:'USD':'symbol':'1.0-0' }}</span>
+        </div>
+        <ion-button
+          class="mobile-pay-btn"
+          [color]="tipoVenta === 'FIADO' ? 'warning' : 'primary'"
+          (click)="pagar()"
+          [disabled]="detalles.length === 0">
+          {{ tipoVenta === 'FIADO' ? 'Fiado' : 'Cobrar' }}
+          <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
   </div>
 </div>
