@@ -13,6 +13,7 @@ import { UsersComponent } from './components/users/users.component';
 import { PermissionsModalComponent } from '../../shared/components/permissions-modal/permissions-modal.component';
 import { ClientSelectorComponent } from './components/ventas/components/client-selector/client-selector.component';
 import { ClientRegistrationFormComponent } from './components/ventas/components/client-registration-form/client-registration-form.component';
+import { SalesCartComponent } from './components/ventas/components/sales-cart/sales-cart.component';
 import { ModulosComponent } from './components/modulos/modulos.component';
 import { ProductosListaComponent } from './components/productos/modulos/productos-lista/productos-lista.component';
 import { ProductosFormComponent } from './components/productos/modulos/productos-form/productos-form.component';
@@ -50,6 +51,7 @@ import { ManualUsuarioComponent } from './components/configuracion/components/ma
     ProductosComponent,
     ClientSelectorComponent,
     ClientRegistrationFormComponent,
+    SalesCartComponent,
     ModulosComponent,
     CategoryDistributionComponent,
     TopCustomersComponent,

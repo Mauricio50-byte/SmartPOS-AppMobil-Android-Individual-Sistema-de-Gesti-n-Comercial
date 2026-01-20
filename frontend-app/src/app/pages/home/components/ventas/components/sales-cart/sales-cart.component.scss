@@ -1,0 +1,220 @@
+// === Ticket/Cart Panel ===
+.ticket-panel {
+    background: white;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    height: 100%;
+
+    // Mobile: Overlay Bottom Sheet style
+    @media (max-width: 991px) {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        transform: translateY(100%);
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+        padding-top: env(safe-area-inset-top); // Use env for modern browsers
+
+        &.mobile-visible {
+            transform: translateY(0);
+        }
+
+        // Add a nice rounded top for mobile look
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+        overflow: hidden;
+    }
+
+    // Desktop: Sidebar style
+    @media (min-width: 992px) {
+        width: 380px; // Slightly narrower to give more space to catalog
+        min-width: 350px;
+        max-width: 450px;
+        border-left: 1px solid #e0e0e0;
+        position: relative;
+        transform: none !important;
+        box-shadow: -2px 0 12px rgba(0,0,0,0.03);
+    }
+
+    @media (min-width: 1400px) {
+        width: 420px; // Wider on large screens
+    }
+
+    .cart-mobile-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        background: white;
+        border-bottom: 1px solid #f0f0f0;
+        position: relative;
+        
+        // Drag handle indicator
+        &::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 4px;
+            background-color: #e0e0e0;
+            border-radius: 2px;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--ion-color-dark);
+            letter-spacing: -0.5px;
+        }
+
+        @media (min-width: 992px) {
+            display: none;
+        }
+    }
+
+    .ticket-content-scroll {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        -webkit-overflow-scrolling: touch; // Smooth scrolling on iOS
+        background: #f8f9fa;
+    }
+
+    .sale-type-selector {
+        padding: 12px 16px;
+        background: white;
+        border-bottom: 1px solid #f0f0f0;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+
+        ion-segment {
+            --background: #f0f2f5;
+            height: 40px;
+            border-radius: 8px;
+            
+            ion-segment-button {
+                --indicator-color: white;
+                --indicator-box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+                min-height: 36px;
+                
+                ion-label {
+                    font-weight: 600;
+                    font-size: 13px;
+                    letter-spacing: 0.5px;
+                }
+            }
+        }
+    }
+
+    .client-section {
+        padding: 16px;
+        background: white;
+        margin-bottom: 8px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .cart-items-header {
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+        border-bottom: 1px solid #f0f0f0;
+        
+        span {
+            font-weight: 700;
+            color: var(--ion-color-dark);
+            font-size: 14px;
+        }
+    }
+
+    .cart-list {
+        flex: 1;
+        padding: 0;
+        min-height: 200px;
+        background: white;
+
+        .empty-cart {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--ion-color-medium);
+            padding: 40px 20px;
+            gap: 16px;
+
+            ion-icon {
+                font-size: 56px;
+                opacity: 0.2;
+                color: var(--ion-color-primary);
+            }
+
+            p {
+                margin: 0;
+                font-size: 16px;
+                font-weight: 500;
+                color: var(--ion-color-medium);
+            }
+        }
+    }
+
+    .ticket-footer {
+        padding: 16px;
+        background: white;
+        border-top: 1px solid #e0e0e0;
+        box-shadow: 0 -4px 16px rgba(0,0,0,0.04);
+        padding-bottom: calc(16px + env(safe-area-inset-bottom));
+
+        .subtotal {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 16px;
+
+            .label {
+                font-size: 15px;
+                font-weight: 500;
+                color: var(--ion-color-medium);
+            }
+
+            .amount {
+                font-size: 26px;
+                font-weight: 800;
+                color: var(--ion-color-dark);
+                letter-spacing: -0.5px;
+            }
+        }
+
+        .pay-button {
+            margin-top: 12px;
+            height: 54px;
+            font-weight: 700;
+            font-size: 17px;
+            --border-radius: 14px;
+            --box-shadow: 0 8px 16px rgba(var(--ion-color-primary-rgb), 0.25);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+
+            ion-icon {
+                font-size: 20px;
+                margin-right: 8px;
+            }
+        }
+    }
+}
+
+// Utility to hide elements on larger screens
+.ion-hide-md-up {
+    @media (min-width: 992px) {
+        display: none !important;
+    }
+}

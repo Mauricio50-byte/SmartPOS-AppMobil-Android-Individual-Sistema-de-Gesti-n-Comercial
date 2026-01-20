@@ -1,0 +1,97 @@
+<div class="ticket-panel" [class.mobile-visible]="cartVisibleMobile">
+
+  <!-- Header del Carrito (Solo Móvil) -->
+  <div class="cart-mobile-header">
+    <h2>Carrito de Compra</h2>
+    <ion-button fill="clear" (click)="toggleCart()" mode="ios">
+      <ion-icon name="chevron-down-outline" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+
+  <div class="ticket-content-scroll">
+    <!-- Selector de Tipo de Venta -->
+    <div class="sale-type-selector">
+      <ion-segment [(ngModel)]="tipoVenta" (ionChange)="setTipoVenta($event.detail.value)" mode="ios">
+        <ion-segment-button value="CONTADO">
+          <ion-label>Contado</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="FIADO">
+          <ion-label>Fiado</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <!-- Selector de Cliente -->
+    <div class="client-section">
+      <app-client-selector
+        [clientes]="clientes"
+        [clienteSeleccionado]="clienteSeleccionado"
+        [mostrarRegistroCliente]="mostrarRegistroCliente"
+        (clienteSeleccionadoChange)="onClienteSeleccionado($event)"
+        (nuevoClienteClick)="mostrarModalRegistroCliente()">
+      </app-client-selector>
+
+      @if (mostrarRegistroCliente) {
+        <app-client-registration-form
+          [datosClienteGroup]="datosClienteGroup"
+          (cancelar)="cancelarRegistroCliente()"
+          (guardar)="registrarNuevoCliente($event)">
+        </app-client-registration-form>
+      }
+    </div>
+
+    <!-- Lista de productos -->
+    <div class="cart-items-header">
+      <span>Items ({{ detalles.length }})</span>
+      @if (detalles.length > 0) {
+        <ion-button fill="clear" size="small" color="danger" (click)="detalles.clear(); calculateTotal()" mode="ios">
+          Limpiar
+        </ion-button>
+      }
+    </div>
+
+    <div class="cart-list">
+      @for (control of detalles.controls; track control; let i = $index) {
+        <app-cart-item
+          [item]="control.value"
+          (remove)="removeFromCart(i)"
+          (updateQuantity)="updateQuantity($event, i)">
+        </app-cart-item>
+      }
+
+      @if (detalles.length === 0) {
+        <div class="empty-cart">
+          <ion-icon name="cart-outline"></ion-icon>
+          <p>Su carrito está vacío</p>
+          <ion-button fill="outline" size="small" (click)="toggleCart()" class="ion-hide-md-up" mode="ios">
+            Ir al Catálogo
+          </ion-button>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Footer con total y pago -->
+  <div class="ticket-footer">
+    <div class="subtotal">
+      <span class="label">Total a Pagar</span>
+      <span class="amount">{{ totalControl.value | currency:'USD':'symbol':'1.0-0' }}</span>
+    </div>
+
+    <app-payment-selector
+      [selectedMethod]="paymentMethodControl.value"
+      (selectedMethodChange)="setPaymentMethod($event)">
+    </app-payment-selector>
+
+    <ion-button
+      expand="block"
+      [color]="tipoVenta === 'FIADO' ? 'warning' : 'primary'"
+      class="pay-button"
+      (click)="pagar()"
+      [disabled]="detalles.length === 0"
+      mode="ios">
+      <ion-icon slot="start" [name]="tipoVenta === 'FIADO' ? 'time-outline' : 'checkmark-circle-outline'"></ion-icon>
+      {{ tipoVenta === 'FIADO' ? 'Registrar Deuda' : 'Confirmar Venta' }}
+    </ion-button>
+  </div>
+</div>
