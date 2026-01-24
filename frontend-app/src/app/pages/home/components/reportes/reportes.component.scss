@@ -3,6 +3,75 @@
   margin: 0 auto;
   min-height: 100%;
   background-color: #f8fafc;
+  padding-bottom: 20px;
+}
+
+.header-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+  
+  @media (min-width: 640px) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.page-title {
+  font-size: 1.5rem; /* text-2xl */
+  font-weight: 700;
+  color: #1f2937; /* text-gray-800 */
+  margin: 0;
+}
+
+.buttons-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.custom-btn {
+  --border-radius: 8px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 0;
+  height: 36px;
+  
+  ion-icon {
+    font-size: 1.1rem;
+  }
+  
+  &.refresh-btn {
+    --border-color: #e5e7eb;
+    --color: #4b5563;
+    --background: white;
+    width: 36px; /* Square button for icon only */
+    --padding-start: 0;
+    --padding-end: 0;
+    
+    ion-icon {
+      margin: 0;
+    }
+  }
+
+  &.pdf-btn {
+    --background: #ef4444; /* red-500 */
+    --background-activated: #dc2626;
+    --background-hover: #dc2626;
+    --color: white;
+  }
+
+  &.excel-btn {
+    --background: #10b981; /* emerald-500 */
+    --background-activated: #059669;
+    --background-hover: #059669;
+    --color: white;
+  }
 }
 
 ion-card {

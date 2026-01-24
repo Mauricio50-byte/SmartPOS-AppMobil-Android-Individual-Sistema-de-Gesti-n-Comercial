@@ -160,10 +160,12 @@ ion-split-pane {
 
 .content-container {
   position: relative;
-  height: 100%;
+  min-height: 100%; // Changed from height: 100% to allow scrolling
+  display: flex; // Ensure proper stacking context
+  flex-direction: column;
 
   @media (max-width: 767px) {
-    padding-bottom: calc(150px + env(safe-area-inset-bottom)); // Padding extra generoso (Navbar + Carrito + Margen)
+    padding-bottom: calc(100px + env(safe-area-inset-bottom)); // Adjusted padding
   }
 }
 

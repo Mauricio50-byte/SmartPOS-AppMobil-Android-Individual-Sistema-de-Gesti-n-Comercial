@@ -1,21 +1,25 @@
 <div class="reportes-container ion-padding">
 
   <!-- Header Actions -->
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-    <h2 class="text-2xl font-bold text-gray-800 m-0">Reporte General</h2>
-    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-      <ion-button class="flex-1 sm:flex-none" fill="outline" (click)="refresh()" [disabled]="!dataLoaded">
-        <ion-icon slot="start" name="refresh-outline"></ion-icon>
-        <span class="hidden sm:inline">Actualizar</span>
-        <span class="inline sm:hidden">Refrescar</span>
+  <div class="header-actions">
+    <h2 class="page-title">Reporte General</h2>
+    
+    <div class="buttons-group">
+      <!-- Botón Actualizar -->
+      <ion-button class="custom-btn refresh-btn" fill="outline" size="small" (click)="refresh()" [disabled]="!dataLoaded">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
       </ion-button>
-      <ion-button class="flex-1 sm:flex-none" color="danger" (click)="exportPDF()" [disabled]="!dataLoaded">
+
+      <!-- Botón PDF -->
+      <ion-button class="custom-btn pdf-btn" size="small" (click)="exportPDF()" [disabled]="!dataLoaded">
         <ion-icon slot="start" name="document-text-outline"></ion-icon>
-        PDF
+        <span>PDF</span>
       </ion-button>
-      <ion-button class="flex-1 sm:flex-none" color="success" (click)="exportExcel()" [disabled]="!dataLoaded">
+
+      <!-- Botón Excel -->
+      <ion-button class="custom-btn excel-btn" size="small" (click)="exportExcel()" [disabled]="!dataLoaded">
         <ion-icon slot="start" name="grid-outline"></ion-icon>
-        Excel
+        <span>Excel</span>
       </ion-button>
     </div>
   </div>
@@ -94,7 +98,7 @@
           <ion-card-title class="text-lg">Distribución de Ventas</ion-card-title>
         </ion-card-header>
         <ion-card-content>
-          <div class="h-64 flex justify-center">
+          <div class="h-56 sm:h-64 flex justify-center">
             <canvas baseChart
               [data]="pieChartData"
               [options]="pieChartOptions"

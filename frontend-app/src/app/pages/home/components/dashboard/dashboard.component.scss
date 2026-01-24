@@ -160,9 +160,13 @@ $gap-lg: 20px;
 // Metrics Panel (Custom Grid)
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: 1fr; // Mobile first: stack vertically
+  gap: 12px;
   width: 100%;
+
+  @media (min-width: 480px) {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
 }
 
 .metric-card {
