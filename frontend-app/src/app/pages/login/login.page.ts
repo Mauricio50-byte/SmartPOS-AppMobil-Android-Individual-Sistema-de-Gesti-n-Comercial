@@ -27,6 +27,12 @@ export class LoginPage implements OnInit {
   capsLockOn = false;
 
   ngOnInit() {
+    // Si ya hay sesión activa, redirigir al home
+    if (this.auth.getToken()) {
+      this.router.navigate(['/home'], { replaceUrl: true });
+      return;
+    }
+
     this.form = this.fb.group({
       email: [this.auth.getRememberedEmail(), [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
