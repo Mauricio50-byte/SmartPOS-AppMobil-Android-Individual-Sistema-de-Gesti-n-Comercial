@@ -19,9 +19,13 @@ export class PushService {
       return;
     }
 
-    await this.registerNotifications();
-    await this.createChannels();
-    await this.addListeners();
+    try {
+      await this.addListeners();
+      await this.registerNotifications();
+      await this.createChannels();
+    } catch (e) {
+      console.error('Error initializing push notifications', e);
+    }
   }
 
   private async registerNotifications() {
@@ -33,10 +37,15 @@ export class PushService {
 
     if (permStatus.receive !== 'granted') {
       console.error('User denied permissions!');
+      // Don't throw error, just return to prevent crash
       return;
     }
 
-    await PushNotifications.register();
+    try {
+      await PushNotifications.register();
+    } catch (e) {
+      console.error('Failed to register for push', e);
+    }
   }
 
   private async createChannels() {

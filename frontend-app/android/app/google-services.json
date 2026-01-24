@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1077503019546",
+    "project_id": "smarpos-cbac1",
+    "storage_bucket": "smarpos-cbac1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1077503019546:android:c949168f9b6940984f1fa3",
+        "android_client_info": {
+          "package_name": "io.ionic.starter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCC_0viIMosI_x5v_1qW5lTgYxH5E-x5Sw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

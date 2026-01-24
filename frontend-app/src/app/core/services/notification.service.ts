@@ -9,6 +9,8 @@ import { CajaService } from './caja.service';
 import { VentaServices } from './venta.service';
 import { Producto, Deuda, Caja } from '../models';
 
+import { AuthService } from './auth.service';
+
 export type NotificationType = 'urgent' | 'info' | 'success' | 'warning';
 
 export interface AppNotification {
@@ -27,6 +29,7 @@ export interface AppNotification {
 })
 export class NotificationService {
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
   private notifications = new BehaviorSubject<AppNotification[]>([]);
   private apiUrl = `${environment.apiUrl}/notificaciones`;
 
@@ -36,17 +39,28 @@ export class NotificationService {
     private cajaService: CajaService,
     private ventaService: VentaServices
   ) {
-    this.refreshNotifications();
+    // Only start if authenticated
+    if (this.authService.getToken()) {
+      this.refreshNotifications();
+    }
 
     // Refresh every 2 minutes
     interval(2 * 60 * 1000).subscribe(() => {
-      this.refreshNotifications();
+      if (this.authService.getToken()) {
+        this.refreshNotifications();
+      }
     });
 
     // React to system changes immediately
-    this.cajaService.cajaCambio$.subscribe(() => this.refreshNotifications());
-    this.productosService.productoChanged$.subscribe(() => this.refreshNotifications());
-    this.ventaService.ventaRealizada$.subscribe(() => this.refreshNotifications());
+    this.cajaService.cajaCambio$.subscribe(() => {
+      if (this.authService.getToken()) this.refreshNotifications();
+    });
+    this.productosService.productoChanged$.subscribe(() => {
+      if (this.authService.getToken()) this.refreshNotifications();
+    });
+    this.ventaService.ventaRealizada$.subscribe(() => {
+      if (this.authService.getToken()) this.refreshNotifications();
+    });
   }
 
   get notifications$(): Observable<AppNotification[]> {

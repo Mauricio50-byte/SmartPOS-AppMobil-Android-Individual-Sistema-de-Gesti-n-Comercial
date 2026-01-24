@@ -13,18 +13,27 @@ export class AuthService implements OnDestroy {
   private http = inject(HttpClient);
   private perfilSubscription: Subscription | undefined;
 
-  // Token management - In-memory only for security on refresh/close
+  // Token management
   private token: string | null = null;
 
   constructor() {
-    // No persistence on refresh/close as requested
+    // Restaurar token si existe
+    const savedToken = localStorage.getItem(this.tokenKey);
+    if (savedToken) {
+      this.token = savedToken;
+      // Opcional: Intentar refrescar el perfil en segundo plano para validar el token
+      this.validarYRefrescarPerfil();
+    }
   }
 
   validarYRefrescarPerfil() {
     if (this.perfilSubscription) this.perfilSubscription.unsubscribe();
     this.perfilSubscription = this.fetchPerfil().subscribe({
       next: (p) => this.perfil$.next(p),
-      error: (err) => { if (err?.status === 401) this.logout(); }
+      error: (err) => { 
+        // Si el token es inválido (401), hacemos logout
+        if (err?.status === 401) this.logout(); 
+      }
     });
   }
 
@@ -69,10 +78,19 @@ export class AuthService implements OnDestroy {
 
   setToken(token: string): void {
     this.token = token;
+    localStorage.setItem(this.tokenKey, token);
   }
-  getToken(): string | null { return this.token; }
+
+  getToken(): string | null { 
+    if (!this.token) {
+      this.token = localStorage.getItem(this.tokenKey);
+    }
+    return this.token; 
+  }
+
   logout(): void {
     this.token = null;
+    localStorage.removeItem(this.tokenKey);
     this.perfil$.next(null);
   }
 }
