@@ -29,6 +29,7 @@ async function crearUsuarioConRoles({ nombre, correo, password, roles = [] }) {
 }
 
 async function ingresar({ correo, password }) {
+  console.log(`Intentando ingresar: ${correo}`);
   const c = (correo || '').trim().toLowerCase()
   // Incluir tanto los permisos del rol como los permisos directos del usuario
   const usuario = await prisma.usuario.findUnique({ 
@@ -47,17 +48,34 @@ async function ingresar({ correo, password }) {
       modulos: true
     } 
   })
-  if (!usuario || !usuario.activo) throw new Error('Credenciales inválidas')
+  
+  if (!usuario) {
+    console.log(`Usuario no encontrado: ${c}`);
+    throw new Error('Credenciales inválidas');
+  }
+
+  if (!usuario.activo) {
+    console.log(`Usuario inactivo: ${c}`);
+    throw new Error('Credenciales inválidas');
+  }
+
   const ok = await bcrypt.compare(password, usuario.passwordHash)
-  if (!ok) throw new Error('Credenciales inválidas')
+  if (!ok) {
+    console.log(`Password incorrecto para: ${c}`);
+    throw new Error('Credenciales inválidas');
+  }
+
   const roles = usuario.roles.map(ur => ur.rol.nombre)
-  // YA NO combinar permisos del rol. Solo permisos directos.
-  // El rol es solo un estado inicial.
-  // const permisosRoles = usuario.roles.flatMap(ur => ur.rol.permisos.map(rp => rp.permiso.clave))
+  
+  // Combinar permisos del rol con permisos directos
+  const permisosRoles = usuario.roles.flatMap(ur => ur.rol.permisos.map(rp => rp.permiso.clave))
   const permisosDirectos = usuario.permisos.map(up => up.permiso.clave)
-  const permisos = Array.from(new Set([...permisosDirectos]))
+  const permisos = Array.from(new Set([...permisosRoles, ...permisosDirectos]))
+  
   const negocioId = usuario.negocioId ?? null
   const adminPorDefecto = String(usuario.correo || '').trim().toLowerCase() === String(ADMIN_CORREO || '').trim().toLowerCase()
+  
+  console.log(`Login exitoso: ${c}. Roles: ${roles}. Admin por defecto: ${adminPorDefecto}`);
   let modulos = []
   if (negocioId) {
     const activos = await obtenerModulosActivosNegocio(negocioId)

@@ -82,10 +82,10 @@ async function registrarRutasAuth(app) {
     }
 
     const roles = usuario.roles.map(ur => ur.rol.nombre)
-    // YA NO usar permisos del rol
-    // const permisosRoles = usuario.roles.flatMap(ur => ur.rol.permisos.map(rp => rp.permiso.clave))
+    // Combinar permisos del rol con permisos directos
+    const permisosRoles = usuario.roles.flatMap(ur => ur.rol.permisos.map(rp => rp.permiso.clave))
     const permisosDirectos = usuario.permisos.map(up => up.permiso.clave)
-    const permisos = Array.from(new Set([...permisosDirectos]))
+    const permisos = Array.from(new Set([...permisosRoles, ...permisosDirectos]))
 
     const negocioId = usuario.negocioId ?? null
     const adminPorDefecto = String(usuario.correo || '').trim().toLowerCase() === String(ADMIN_CORREO || '').trim().toLowerCase()
