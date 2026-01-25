@@ -1,5 +1,6 @@
 const fastify = require('fastify')
 const cors = require('@fastify/cors')
+const compress = require('@fastify/compress')
 const jwtPlugin = require('@fastify/jwt')
 const fastifyStatic = require('@fastify/static')
 const fs = require('fs')
@@ -22,8 +23,28 @@ const { prisma } = require('./infraestructura/bd')
 async function iniciar() {
   const app = fastify({
     logger: true,
+    disableRequestLogging: true, // Desactivamos el log doble (incoming/completed) por defecto
     bodyLimit: 10485760 // 10MB limit for image uploads
   })
+
+  // Hook para loguear solo cuando la petición termina, incluyendo info de la petición
+  app.addHook('onResponse', (request, reply, done) => {
+    // Si quieres que sea específico para /deudas podrías filtrar aquí, 
+    // pero usualmente es mejor tener un solo log limpio para todo.
+    request.log.info({
+      req: {
+        method: request.method,
+        url: request.url,
+      },
+      res: {
+        statusCode: reply.statusCode
+      },
+      responseTime: reply.elapsedTime
+    }, 'request completed')
+    done()
+  })
+
+  await app.register(compress)
   await app.register(cors, { origin: true })
   if (JWT_SECRETO) await app.register(jwtPlugin, { secret: JWT_SECRETO })
 
@@ -96,6 +117,14 @@ async function iniciar() {
   })
 
   app.get('/salud', async () => ({ ok: true }))
+
+  // Endpoint para evitar que Render entre en suspensión (Free Tier)
+  app.get('/ping', async () => {
+    return {
+      status: 'pong',
+      timestamp: new Date().toISOString()
+    }
+  })
 
   await asegurarPermisosYAdmin()
 

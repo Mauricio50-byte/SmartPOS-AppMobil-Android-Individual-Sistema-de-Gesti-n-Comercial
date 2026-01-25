@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -40,6 +39,8 @@ model Caja {
   estado        String           @default("ABIERTA") // ABIERTA, CERRADA
   observaciones String?
   movimientos   MovimientoCaja[]
+
+  @@index([usuarioId, estado])
 }
 
 model MovimientoCaja {
@@ -58,6 +59,9 @@ model MovimientoCaja {
   ventaId     Int?
   gastoId     Int?
   abonoId     Int?
+
+  @@index([cajaId])
+  @@index([tipo])
 }
 
 model Modulo {
@@ -131,6 +135,9 @@ model Producto {
   detalleRestaurante ProductoRestaurante?
   detalleRopa        ProductoRopa?
   detalleServicio    ProductoServicio?
+
+  @@index([categoria])
+  @@index([activo])
 }
 
 model ProductoRopa {
@@ -235,6 +242,10 @@ model Venta {
   deuda          Deuda?
   cliente        Cliente?       @relation(fields: [clienteId], references: [id])
   usuario        Usuario        @relation(fields: [usuarioId], references: [id])
+
+  @@index([clienteId])
+  @@index([usuarioId])
+  @@index([fecha])
 }
 
 model Rol {
@@ -307,6 +318,9 @@ model Deuda {
   abonos           Abono[]
   cliente          Cliente   @relation(fields: [clienteId], references: [id])
   venta            Venta     @relation(fields: [ventaId], references: [id])
+
+  @@index([clienteId])
+  @@index([estado])
 }
 
 model Abono {

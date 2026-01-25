@@ -4,22 +4,28 @@ const { prisma } = require('../../infraestructura/bd')
  * Listar todas las deudas con filtros opcionales
  */
 async function listarDeudas(filtro = {}) {
+    // Nota: Se recomienda implementar paginación si el volumen de datos crece
     return prisma.deuda.findMany({
         where: filtro,
         include: {
-            cliente: true,
-            venta: {
-                include: {
-                    detalles: {
-                        include: { producto: true }
-                    }
+            cliente: {
+                select: {
+                    id: true,
+                    nombre: true,
+                    cedula: true
                 }
             },
-            abonos: {
-                orderBy: { fecha: 'desc' }
+            venta: {
+                select: {
+                    id: true,
+                    fecha: true,
+                    total: true,
+                    metodoPago: true
+                }
             }
         },
-        orderBy: { fechaCreacion: 'desc' }
+        orderBy: { fechaCreacion: 'desc' },
+        take: 50 // Limitamos a las últimas 50 para mejorar rendimiento inicial
     })
 }
 
@@ -34,14 +40,12 @@ async function obtenerDeudasPorCliente(clienteId) {
         },
         include: {
             venta: {
-                include: {
-                    detalles: {
-                        include: { producto: true }
-                    }
+                select: {
+                    id: true,
+                    fecha: true,
+                    total: true,
+                    saldoPendiente: true
                 }
-            },
-            abonos: {
-                orderBy: { fecha: 'desc' }
             }
         },
         orderBy: { fechaCreacion: 'desc' }

@@ -357,7 +357,22 @@ CREATE TABLE "Notificacion" (
 CREATE UNIQUE INDEX "Usuario_correo_key" ON "Usuario"("correo");
 
 -- CreateIndex
+CREATE INDEX "Caja_usuarioId_estado_idx" ON "Caja"("usuarioId", "estado");
+
+-- CreateIndex
+CREATE INDEX "MovimientoCaja_cajaId_idx" ON "MovimientoCaja"("cajaId");
+
+-- CreateIndex
+CREATE INDEX "MovimientoCaja_tipo_idx" ON "MovimientoCaja"("tipo");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Producto_sku_key" ON "Producto"("sku");
+
+-- CreateIndex
+CREATE INDEX "Producto_categoria_idx" ON "Producto"("categoria");
+
+-- CreateIndex
+CREATE INDEX "Producto_activo_idx" ON "Producto"("activo");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ProductoRopa_productoId_key" ON "ProductoRopa"("productoId");
@@ -384,6 +399,15 @@ CREATE UNIQUE INDEX "Cliente_correo_key" ON "Cliente"("correo");
 CREATE UNIQUE INDEX "Cliente_cedula_key" ON "Cliente"("cedula");
 
 -- CreateIndex
+CREATE INDEX "Venta_clienteId_idx" ON "Venta"("clienteId");
+
+-- CreateIndex
+CREATE INDEX "Venta_usuarioId_idx" ON "Venta"("usuarioId");
+
+-- CreateIndex
+CREATE INDEX "Venta_fecha_idx" ON "Venta"("fecha");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Rol_nombre_key" ON "Rol"("nombre");
 
 -- CreateIndex
@@ -391,6 +415,12 @@ CREATE UNIQUE INDEX "Permiso_clave_key" ON "Permiso"("clave");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Deuda_ventaId_key" ON "Deuda"("ventaId");
+
+-- CreateIndex
+CREATE INDEX "Deuda_clienteId_idx" ON "Deuda"("clienteId");
+
+-- CreateIndex
+CREATE INDEX "Deuda_estado_idx" ON "Deuda"("estado");
 
 -- AddForeignKey
 ALTER TABLE "Usuario" ADD CONSTRAINT "Usuario_negocioId_fkey" FOREIGN KEY ("negocioId") REFERENCES "Negocio"("id") ON DELETE SET NULL ON UPDATE CASCADE;
