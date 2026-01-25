@@ -1,11 +1,18 @@
-const PUERTO = process.env.PUERTO || process.env.PORT || 3000
-const JWT_SECRETO = process.env.JWT_SECRETO
-const DATABASE_URL = process.env.DATABASE_URL
-const ADMIN_CORREO = process.env.ADMIN_CORREO
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD
-const SUPABASE_URL = process.env.SUPABASE_URL
-const SUPABASE_KEY = process.env.SUPABASE_KEY
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+const getEnv = (name, defaultValue = undefined) => {
+  const value = process.env[name];
+  if (!value) return defaultValue;
+  // Eliminar comillas dobles o simples al inicio y final si existen
+  return value.replace(/^["']|["']$/g, '');
+}
+
+const PUERTO = getEnv('PUERTO', getEnv('PORT', 3000))
+const JWT_SECRETO = getEnv('JWT_SECRETO')
+const DATABASE_URL = getEnv('DATABASE_URL')
+const ADMIN_CORREO = getEnv('ADMIN_CORREO')
+const ADMIN_PASSWORD = getEnv('ADMIN_PASSWORD')
+const SUPABASE_URL = getEnv('SUPABASE_URL')
+const SUPABASE_KEY = getEnv('SUPABASE_KEY')
+const SUPABASE_SERVICE_ROLE_KEY = getEnv('SUPABASE_SERVICE_ROLE_KEY')
 
 // Validación básica para asegurar que las variables críticas existan
 const requiredEnv = [

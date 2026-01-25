@@ -170,7 +170,9 @@ async function asegurarPermisosYAdmin() {
 
   // 7. Crear/Actualizar Usuario Admin Principal
   if (ADMIN_CORREO) {
-    const passwordHash = await bcrypt.hash(ADMIN_PASSWORD || 'admin123', 10)
+    const pass = ADMIN_PASSWORD || 'admin123';
+    console.log(`Configurando administrador principal: ${ADMIN_CORREO}`);
+    const passwordHash = await bcrypt.hash(pass, 10)
 
     // Intentar buscar usuario existente
     let usuario = await prisma.usuario.findUnique({ where: { correo: ADMIN_CORREO } })
