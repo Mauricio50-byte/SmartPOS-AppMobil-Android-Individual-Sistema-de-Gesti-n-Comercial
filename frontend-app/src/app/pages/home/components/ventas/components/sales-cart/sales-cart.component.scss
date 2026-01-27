@@ -95,27 +95,28 @@
     }
 
     .change-calculation {
-        margin-bottom: 16px;
-        padding: 12px;
+        margin-bottom: 8px; // Reducido aún más
+        padding: 6px 10px; // Reducido aún más
         background: #f8f9fa;
-        border-radius: 12px;
+        border-radius: 10px;
         border: 1px solid #e9ecef;
 
         .monto-recibido-item {
             --background: transparent;
             --padding-start: 0;
-            margin-bottom: 8px;
+            margin-bottom: 2px; 
+            min-height: 32px; 
             
             ion-label {
-                font-size: 14px;
+                font-size: 11px; 
                 color: var(--ion-color-medium);
                 font-weight: 600;
             }
 
             ion-input {
-                font-size: 20px;
+                font-size: 14px; 
                 font-weight: 700;
-                --padding-top: 8px;
+                --padding-top: 2px;
             }
         }
 
@@ -123,30 +124,30 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-top: 8px;
+            padding-top: 2px; 
             border-top: 1px dashed #ced4da;
 
             .label {
-                font-size: 14px;
+                font-size: 12px; 
                 font-weight: 600;
                 color: var(--ion-color-success);
             }
 
             .amount {
-                font-size: 20px;
+                font-size: 14px; 
                 font-weight: 800;
                 color: var(--ion-color-success);
             }
         }
     }
 
-        .pay-button {
-            margin-top: 16px;
-            height: 52px;
-            font-weight: 600;
-            font-size: 18px;
-            --border-radius: 12px;
-        }
+    .pay-button {
+        margin-top: 8px; 
+        height: 38px; // Reducido de 44px
+        font-weight: 600;
+        font-size: 14px; // Reducido de 16px
+        --border-radius: 10px;
+    }
     }
 }
 
@@ -355,40 +356,40 @@
 }
 
 .change-calculation-mobile {
-    margin-bottom: 16px;
-    padding: 12px;
+    margin-bottom: 8px; // Reducido aún más
+    padding: 6px 10px; // Reducido aún más
     background: #f8f9fa;
-    border-radius: 16px;
+    border-radius: 12px;
     
     .monto-recibido-item {
         --background: transparent;
         --padding-start: 0;
-        --min-height: 44px;
+        --min-height: 32px; // Reducido de 36px
         
         ion-label {
-            font-size: 12px;
+            font-size: 10px; // Reducido de 11px
             font-weight: 600;
             color: var(--ion-color-medium);
         }
 
         ion-input {
-            font-size: 18px;
+            font-size: 14px; // Reducido de 16px
             font-weight: 700;
         }
     }
 
     .change-info {
-        margin-top: 8px;
-        padding-top: 8px;
+        margin-top: 2px; 
+        padding-top: 2px; 
         border-top: 1px dashed #e0e0e0;
         text-align: right;
         
         span {
-            font-size: 14px;
+            font-size: 12px; // Reducido de 13px
             color: var(--ion-color-success);
             
             strong {
-                font-size: 18px;
+                font-size: 14px; // Reducido de 16px
                 margin-left: 4px;
             }
         }
@@ -399,22 +400,22 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: 8px; // Reducido de 12px
 
     .total-info {
         display: flex;
         flex-direction: column;
         
         .label {
-            font-size: 12px;
+            font-size: 9px; // Reducido de 10px
             text-transform: uppercase;
             color: var(--ion-color-medium);
             font-weight: 600;
-            margin-bottom: 4px;
+            margin-bottom: 0px; 
         }
 
         .value {
-            font-size: 24px;
+            font-size: 18px; // Reducido de 20px
             font-weight: 800;
             color: var(--ion-color-dark);
             line-height: 1;
@@ -424,10 +425,10 @@
     .mobile-pay-btn {
         margin: 0;
         flex: 1;
-        height: 56px;
-        font-size: 18px;
+        height: 42px; // Reducido de 48px
+        font-size: 14px; // Reducido de 16px
         font-weight: 700;
-        --border-radius: 16px;
-        --box-shadow: 0 8px 20px rgba(var(--ion-color-primary-rgb), 0.3);
+        --border-radius: 10px; // Reducido de 12px
+        --box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.15);
     }
 }
