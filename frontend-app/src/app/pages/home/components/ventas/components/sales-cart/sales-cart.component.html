@@ -67,6 +67,20 @@
       <span class="amount">{{ totalControl.value | currency:'USD':'symbol':'1.0-0' }}</span>
     </div>
 
+    <!-- Cálculo de Cambio -->
+    <div class="change-calculation" [formGroup]="ventaForm" *ngIf="paymentMethodControl.value === 'EFECTIVO' && tipoVenta === 'CONTADO'">
+      <div class="input-row">
+        <ion-item lines="none" class="monto-recibido-item">
+          <ion-label position="stacked">Monto Recibido</ion-label>
+          <ion-input type="number" formControlName="montoRecibido" placeholder="0" [clearInput]="true"></ion-input>
+        </ion-item>
+      </div>
+      <div class="change-row" *ngIf="cambio > 0">
+        <span class="label">Su Cambio:</span>
+        <span class="amount">{{ cambio | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
+    </div>
+
     <app-payment-selector
       [selectedMethod]="paymentMethodControl.value"
       (selectedMethodChange)="setPaymentMethod($event)">
@@ -173,6 +187,17 @@
           [selectedMethod]="paymentMethodControl.value"
           (selectedMethodChange)="setPaymentMethod($event)">
         </app-payment-selector>
+      </div>
+
+      <!-- Cálculo de Cambio Mobile -->
+      <div class="change-calculation-mobile" [formGroup]="ventaForm" *ngIf="paymentMethodControl.value === 'EFECTIVO' && tipoVenta === 'CONTADO'">
+        <ion-item lines="none" class="monto-recibido-item">
+          <ion-label position="stacked">Monto Recibido</ion-label>
+          <ion-input type="number" formControlName="montoRecibido" placeholder="0" [clearInput]="true"></ion-input>
+        </ion-item>
+        <div class="change-info" *ngIf="cambio > 0">
+          <span>Cambio: <strong>{{ cambio | currency:'USD':'symbol':'1.0-0' }}</strong></span>
+        </div>
       </div>
 
       <div class="total-row">

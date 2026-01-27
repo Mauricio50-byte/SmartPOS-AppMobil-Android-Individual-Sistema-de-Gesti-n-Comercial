@@ -111,38 +111,46 @@ async function crearDeuda(datos) {
  * Registrar un abono a una deuda
  */
 async function registrarAbono(datos) {
-    const { deudaId, monto, metodoPago = 'EFECTIVO', usuarioId, nota } = datos
+    let { deudaId, monto, montoRecibido = 0, metodoPago = 'EFECTIVO', usuarioId, nota } = datos
+    monto = Number(monto)
+    montoRecibido = Number(montoRecibido)
+
+    console.log(`[Abono] Registrando abono: DeudaId=${deudaId}, Monto=${monto}, Recibido=${montoRecibido}, Usuario=${usuarioId}`);
 
     return prisma.$transaction(async (tx) => {
-        // Obtener la deuda
-        const deuda = await tx.deuda.findUnique({ where: { id: deudaId } })
+        // Obtener la deuda actualizada
+        const deuda = await tx.deuda.findUnique({ where: { id: Number(deudaId) } })
         if (!deuda) throw new Error('Deuda no encontrada')
         if (deuda.estado === 'PAGADO') throw new Error('Esta deuda ya está pagada')
 
-        // Validar que el monto no sea mayor al saldo pendiente
-        if (monto > deuda.saldoPendiente) {
+        console.log(`[Abono] Estado actual deuda: Saldo=${deuda.saldoPendiente}, Total=${deuda.montoTotal}`);
+
+        // Validar que el monto no sea mayor al saldo pendiente (con margen para errores de redondeo)
+        if (monto > (deuda.saldoPendiente + 0.01)) {
             throw new Error(`El monto del abono ($${monto}) no puede ser mayor al saldo pendiente ($${deuda.saldoPendiente})`)
         }
 
         // Crear el abono
         const abono = await tx.abono.create({
             data: {
-                deudaId,
+                deudaId: Number(deudaId),
                 clienteId: deuda.clienteId,
                 monto,
                 metodoPago,
-                usuarioId,
+                usuarioId: usuarioId ? Number(usuarioId) : null,
                 nota
             }
         })
 
         // Calcular nuevo saldo
-        const nuevoSaldo = deuda.saldoPendiente - monto
-        const nuevoEstado = nuevoSaldo === 0 ? 'PAGADO' : deuda.estado
+        const nuevoSaldo = Math.max(0, deuda.saldoPendiente - monto)
+        const nuevoEstado = nuevoSaldo <= 0.01 ? 'PAGADO' : deuda.estado
+
+        console.log(`[Abono] Nuevo estado: Saldo=${nuevoSaldo}, Estado=${nuevoEstado}`);
 
         // Actualizar la deuda
         await tx.deuda.update({
-            where: { id: deudaId },
+            where: { id: deuda.id },
             data: {
                 saldoPendiente: nuevoSaldo,
                 estado: nuevoEstado
@@ -165,40 +173,49 @@ async function registrarAbono(datos) {
             })
 
             if (cajaAbierta) {
+                // Registrar el INGRESO del abono
                 await tx.movimientoCaja.create({
                     data: {
                         cajaId: cajaAbierta.id,
                         usuarioId: Number(usuarioId),
                         tipo: 'ABONO_VENTA',
-                        metodoPago: metodoPago, // EFECTIVO, TRANSFERENCIA, etc.
+                        metodoPago: metodoPago,
                         monto: monto,
                         descripcion: `Abono a deuda de venta #${deuda.ventaId} ${nota ? '- ' + nota : ''}`,
                         abonoId: abono.id,
                         fecha: new Date()
                     }
                 })
+
+                // Si hubo un monto recibido mayor al del abono, y el método es EFECTIVO, registramos el EGRESO del cambio
+                if (metodoPago === 'EFECTIVO' && montoRecibido > monto) {
+                    const cambio = montoRecibido - monto;
+                    await tx.movimientoCaja.create({
+                        data: {
+                            cajaId: cajaAbierta.id,
+                            usuarioId: Number(usuarioId),
+                            tipo: 'EGRESO',
+                            metodoPago: 'EFECTIVO',
+                            monto: cambio,
+                            descripcion: `Cambio/Vuelto de Abono a deuda #${deuda.id}`,
+                            abonoId: abono.id,
+                            fecha: new Date()
+                        }
+                    })
+                }
             }
         }
         // ------------------------
 
-        // Actualizar la venta si la deuda está pagada
-        if (nuevoEstado === 'PAGADO') {
+        // Actualizar la venta vinculada de forma consistente
+        const venta = await tx.venta.findUnique({ where: { id: deuda.ventaId } })
+        if (venta) {
             await tx.venta.update({
                 where: { id: deuda.ventaId },
                 data: {
-                    estadoPago: 'PAGADO',
-                    montoPagado: deuda.montoTotal,
-                    saldoPendiente: 0
-                }
-            })
-        } else {
-            // Actualizar monto pagado parcial
-            const venta = await tx.venta.findUnique({ where: { id: deuda.ventaId } })
-            await tx.venta.update({
-                where: { id: deuda.ventaId },
-                data: {
-                    montoPagado: (venta?.montoPagado || 0) + monto,
-                    saldoPendiente: nuevoSaldo
+                    estadoPago: nuevoEstado === 'PAGADO' ? 'PAGADO' : venta.estadoPago,
+                    montoPagado: { increment: monto },
+                    saldoPendiente: { decrement: monto }
                 }
             })
         }
@@ -206,7 +223,7 @@ async function registrarAbono(datos) {
         return {
             abono,
             deudaActualizada: await tx.deuda.findUnique({
-                where: { id: deudaId },
+                where: { id: deuda.id },
                 include: {
                     cliente: true,
                     abonos: {

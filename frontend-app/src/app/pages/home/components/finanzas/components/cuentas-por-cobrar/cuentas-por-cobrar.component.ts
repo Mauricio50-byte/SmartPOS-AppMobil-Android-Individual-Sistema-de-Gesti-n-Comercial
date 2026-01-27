@@ -81,7 +81,7 @@ export class CuentasPorCobrarComponent implements OnInit {
   }
 
   async registrarAbono(deuda: Deuda) {
-    // Verificar caja abierta antes de permitir el abono (asumiendo efectivo)
+    // Verificar caja abierta antes de permitir el abono
     const cajaAbierta = await this.verificarCajaAbierta();
     if (!cajaAbierta) {
       const alert = await this.alertController.create({
@@ -93,31 +93,73 @@ export class CuentasPorCobrarComponent implements OnInit {
       return;
     }
 
-    const alert = await this.alertController.create({
-      header: 'Registrar Abono',
-      subHeader: `Cliente: ${deuda.cliente?.nombre}`,
-      message: `Saldo pendiente: $${deuda.saldoPendiente}`,
-      inputs: [
+    // Primero preguntar por el método de pago para una mejor experiencia
+    const alertMethod = await this.alertController.create({
+      header: 'Seleccionar Método de Pago',
+      subHeader: `Abono para: ${deuda.cliente?.nombre}`,
+      message: '¿Cómo desea realizar el abono?',
+      buttons: [
         {
-          name: 'monto',
-          type: 'number',
-          placeholder: 'Monto a abonar',
-          min: 1,
-          max: deuda.saldoPendiente
+          text: 'Efectivo',
+          cssClass: 'btn-efectivo',
+          handler: () => {
+            this.mostrarFormularioAbono(deuda, 'EFECTIVO');
+          }
         },
         {
-          name: 'nota',
-          type: 'text',
-          placeholder: 'Nota (opcional)'
+          text: 'Transferencia',
+          cssClass: 'btn-transferencia',
+          handler: () => {
+            this.mostrarFormularioAbono(deuda, 'TRANSFERENCIA');
+          }
+        },
+        {
+          text: 'Cancelar',
+          role: 'cancel'
         }
-      ],
+      ]
+    });
+
+    await alertMethod.present();
+  }
+
+  async mostrarFormularioAbono(deuda: Deuda, metodo: string) {
+    const inputs: any[] = [
+      {
+        name: 'monto',
+        type: 'number',
+        placeholder: 'Monto a abonar',
+        min: 1,
+        max: deuda.saldoPendiente
+      }
+    ];
+
+    // Solo pedir monto recibido si es efectivo
+    if (metodo === 'EFECTIVO') {
+      inputs.push({
+        name: 'montoRecibido',
+        type: 'number',
+        placeholder: 'Monto Recibido (opcional para cambio)'
+      });
+    }
+
+    inputs.push({
+      name: 'nota',
+      type: 'text',
+      placeholder: 'Nota o referencia (opcional)'
+    });
+
+    const alert = await this.alertController.create({
+      header: `Registrar Abono (${metodo})`,
+      subHeader: `Saldo pendiente: $${deuda.saldoPendiente.toLocaleString()}`,
+      inputs: inputs,
       buttons: [
         {
           text: 'Cancelar',
           role: 'cancel'
         },
         {
-          text: 'Abonar',
+          text: 'Confirmar Abono',
           handler: (data) => {
             const monto = parseFloat(data.monto);
             if (!monto || monto <= 0) {
@@ -128,7 +170,16 @@ export class CuentasPorCobrarComponent implements OnInit {
               this.mostrarToast('El monto excede el saldo pendiente', 'warning');
               return false;
             }
-            this.procesarAbono(deuda.id, monto, data.nota);
+
+            const montoRecibido = parseFloat(data.montoRecibido);
+            
+            // Si es efectivo y hay vuelto, mostrarlo antes de procesar
+            if (metodo === 'EFECTIVO' && montoRecibido && montoRecibido > monto) {
+              const cambio = montoRecibido - monto;
+              this.mostrarAlertaCambio(cambio);
+            }
+
+            this.procesarAbono(deuda.id, monto, data.nota, metodo, montoRecibido);
             return true;
           }
         }
@@ -138,10 +189,22 @@ export class CuentasPorCobrarComponent implements OnInit {
     await alert.present();
   }
 
-  procesarAbono(deudaId: number, monto: number, nota: string) {
+  async mostrarAlertaCambio(cambio: number) {
+    const alert = await this.alertController.create({
+      header: 'Cambio a Entregar',
+      subHeader: 'Por favor entregue el vuelto al cliente:',
+      message: `$${cambio.toLocaleString()}`,
+      buttons: ['Entendido'],
+      cssClass: 'cambio-alert'
+    });
+    await alert.present();
+  }
+
+  procesarAbono(deudaId: number, monto: number, nota: string, metodoPago: string, montoRecibido?: number) {
     this.deudaService.registrarAbono(deudaId, {
       monto,
-      metodoPago: 'EFECTIVO', // Could be extended to select method
+      montoRecibido,
+      metodoPago,
       nota
     }).subscribe({
       next: () => {

@@ -43,6 +43,7 @@ export class DeudaService {
      */
     registrarAbono(deudaId: number, datos: {
         monto: number;
+        montoRecibido?: number;
         metodoPago: string;
         nota?: string;
     }): Observable<{ abono: Abono; deudaActualizada: Deuda }> {

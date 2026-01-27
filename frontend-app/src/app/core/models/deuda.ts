@@ -20,6 +20,7 @@ export interface Abono {
     deudaId: number;
     clienteId: number;
     monto: number;
+    montoRecibido?: number; // Nuevo
     metodoPago: string;
     fecha: string;
     usuarioId?: number | null;

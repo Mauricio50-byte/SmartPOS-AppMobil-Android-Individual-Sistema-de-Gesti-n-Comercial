@@ -48,6 +48,7 @@ async function crearVenta(payload) {
     metodoPago = 'EFECTIVO',
     estadoPago = 'PAGADO',
     montoPagado = 0,
+    montoRecibido = 0, // Nuevo campo
     registrarCliente = false,
     datosCliente = null
   } = payload
@@ -271,7 +272,9 @@ async function crearVenta(payload) {
 
       if (cajaAbierta) {
         const metodoPagoNorm = String(metodoPago).toUpperCase(); // Normalizar a mayúsculas (EFECTIVO, TRANSFERENCIA)
-        const mov = await tx.movimientoCaja.create({
+        
+        // Registrar el INGRESO de la venta (Monto que el cliente pagó efectivamente para la venta)
+        const movVenta = await tx.movimientoCaja.create({
           data: {
             cajaId: cajaAbierta.id,
             usuarioId: Number(usuarioId),
@@ -283,7 +286,25 @@ async function crearVenta(payload) {
             fecha: new Date()
           }
         })
-        console.log(`[Caja Integration] Movimiento creado:`, mov.id);
+        console.log(`[Caja Integration] Movimiento de venta creado:`, movVenta.id);
+
+        // Si hubo un monto recibido mayor al pagado, y el método es EFECTIVO, registramos el EGRESO del cambio
+        if (metodoPagoNorm === 'EFECTIVO' && Number(montoRecibido) > montoPagadoValidado) {
+          const cambio = Number(montoRecibido) - montoPagadoValidado;
+          const movCambio = await tx.movimientoCaja.create({
+            data: {
+              cajaId: cajaAbierta.id,
+              usuarioId: Number(usuarioId),
+              tipo: 'EGRESO',
+              metodoPago: 'EFECTIVO',
+              monto: cambio,
+              descripcion: `Cambio/Vuelto de Venta #${venta.id}`,
+              ventaId: venta.id,
+              fecha: new Date()
+            }
+          })
+          console.log(`[Caja Integration] Movimiento de cambio (EGRESO) creado:`, movCambio.id);
+        }
       } else {
         console.warn(`[Caja Integration] ADVERTENCIA: Se realizó una venta pero el usuario ${usuarioId} no tiene caja abierta.`);
       }

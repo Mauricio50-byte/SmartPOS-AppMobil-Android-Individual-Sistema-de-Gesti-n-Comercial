@@ -71,3 +71,45 @@ ion-modal.permissions-modal-large {
     --border-radius: 0;
   }
 }
+
+/* Estilos para la alerta de cambio/vuelto */
+.cambio-alert {
+  .alert-wrapper {
+    border-radius: 20px !important;
+    padding: 10px;
+  }
+
+  .alert-head {
+    padding-bottom: 8px;
+    ion-label {
+      color: var(--ion-color-dark);
+    }
+  }
+
+  .alert-sub-title {
+    font-size: 16px !important;
+    color: var(--ion-color-medium) !important;
+    margin-top: 10px;
+  }
+
+  .alert-message {
+    font-size: 48px !important;
+    font-weight: 800 !important;
+    color: #2dd36f !important; // Success green
+    text-align: center !important;
+    padding: 24px 10px !important;
+    border-top: 1px dashed #e0e0e0;
+    border-bottom: 1px dashed #e0e0e0;
+    margin: 15px 0 !important;
+  }
+
+  .alert-button-group {
+    padding-top: 10px;
+  }
+
+  .alert-button {
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    text-transform: uppercase;
+  }
+}

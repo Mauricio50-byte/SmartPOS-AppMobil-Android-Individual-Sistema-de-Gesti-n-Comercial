@@ -11,6 +11,7 @@ export interface Venta {
   metodoPago?: string;
   estadoPago?: string;
   montoPagado?: number;
+  montoRecibido?: number; // Nuevo
   saldoPendiente?: number;
   detalles: DetalleVenta[];
   cliente?: Cliente | null;

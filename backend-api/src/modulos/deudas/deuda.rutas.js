@@ -39,7 +39,7 @@ async function registrarRutasDeuda(app) {
     // Registrar un abono a una deuda
     app.post('/deudas/:id/abonos', { preHandler: [app.requiereModulo('finanzas'), app.requierePermiso('REGISTRAR_MOVIMIENTO')] }, async (req, res) => {
         const deudaId = Number(req.params.id)
-        const { monto, metodoPago, nota } = req.body
+        const { monto, montoRecibido, metodoPago, nota } = req.body
         const usuarioId = req.user?.id
 
         if (!monto || monto <= 0) {
@@ -51,6 +51,7 @@ async function registrarRutasDeuda(app) {
             const resultado = await registrarAbono({
                 deudaId,
                 monto: Number(monto),
+                montoRecibido: montoRecibido ? Number(montoRecibido) : 0,
                 metodoPago,
                 usuarioId,
                 nota

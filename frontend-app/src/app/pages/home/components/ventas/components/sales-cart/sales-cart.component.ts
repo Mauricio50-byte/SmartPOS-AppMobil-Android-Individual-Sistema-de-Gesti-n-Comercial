@@ -44,6 +44,7 @@ export class SalesCartComponent implements OnInit {
       metodoPago: ['EFECTIVO', Validators.required],
       estadoPago: ['PAGADO', Validators.required],
       montoPagado: [0],
+      montoRecibido: [0], // Nuevo
       registrarCliente: [false],
       datosCliente: this.fb.group({
         nombre: ['', Validators.required],
@@ -110,6 +111,15 @@ export class SalesCartComponent implements OnInit {
 
   get totalValue(): number {
     return this.totalControl.value || 0;
+  }
+
+  get montoRecibido(): number {
+    return this.ventaForm.get('montoRecibido')?.value || 0;
+  }
+
+  get cambio(): number {
+    const cambio = this.montoRecibido - this.totalValue;
+    return cambio > 0 ? cambio : 0;
   }
 
   get itemsCount(): number {
@@ -212,6 +222,14 @@ export class SalesCartComponent implements OnInit {
   cancelarRegistroCliente() {
     this.mostrarRegistroCliente = false;
     this.ventaForm.patchValue({ registrarCliente: false });
+    this.datosClienteGroup.reset({
+      nombre: '',
+      telefono: '',
+      cedula: '',
+      correo: '',
+      creditoMaximo: 0,
+      diasCredito: 30
+    });
     this.datosClienteGroup.disable();
   }
 
@@ -252,6 +270,17 @@ export class SalesCartComponent implements OnInit {
     this.clienteService.crearCliente(datos).subscribe({
       next: async (nuevoCliente) => {
         await loading.dismiss();
+        this.datosClienteGroup.reset({
+          nombre: '',
+          telefono: '',
+          cedula: '',
+          correo: '',
+          creditoMaximo: 0,
+          diasCredito: 30
+        });
+        this.mostrarRegistroCliente = false;
+        this.ventaForm.patchValue({ registrarCliente: false });
+        this.datosClienteGroup.disable();
         await this.mostrarAlerta('Cliente Registrado', 'El cliente ha sido registrado exitosamente.');
       },
       error: async (err) => {
@@ -414,6 +443,7 @@ export class SalesCartComponent implements OnInit {
         usuarioId: ventaData.usuarioId,
         metodoPago: ventaData.metodoPago,
         estadoPago: ventaData.estadoPago,
+        montoRecibido: Number(ventaData.montoRecibido || 0),
         items: ventaData.detalles.map((d: any) => ({
           productoId: d.productoId,
           cantidad: d.quantity
@@ -471,7 +501,14 @@ export class SalesCartComponent implements OnInit {
             clienteId: null,
             registrarCliente: false
           });
-          this.datosClienteGroup.reset();
+          this.datosClienteGroup.reset({
+            nombre: '',
+            telefono: '',
+            cedula: '',
+            correo: '',
+            creditoMaximo: 0,
+            diasCredito: 30
+          });
           this.datosClienteGroup.disable();
 
           if (loading) await loading.dismiss();
