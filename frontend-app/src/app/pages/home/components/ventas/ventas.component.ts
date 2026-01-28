@@ -97,11 +97,10 @@ export class VentasComponent implements OnInit {
   }
 
   private aplicarFiltroModulosEnProductos() {
-    if (!this.allowedTipos) {
-      this.productos = this.allProductos;
-    } else {
-      this.productos = (this.allProductos || []).filter(p => this.allowedTipos!.has(String(p.tipo || 'GENERAL').toUpperCase()));
-    }
+    // Se elimina el filtro estricto por módulos para que en Ventas aparezcan todos los productos
+    // independientemente de si el usuario tiene asignado el módulo de gestión específico.
+    this.productos = this.allProductos;
+
     const term = this.searchTerm;
     if (!term) {
       this.filteredProductos = this.productos;
