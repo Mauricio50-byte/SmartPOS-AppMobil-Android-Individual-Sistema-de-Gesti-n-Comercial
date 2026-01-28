@@ -113,3 +113,28 @@ ion-modal.permissions-modal-large {
     text-transform: uppercase;
   }
 }
+
+/* Estilos para el modal de transacciones (Caja) */
+ion-modal.transaction-modal {
+  --width: 90%;
+  --max-width: 380px;
+  --height: auto;
+  --min-height: 250px;
+  --max-height: 90%;
+  --border-radius: 14px;
+  --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  --backdrop-opacity: 0.5;
+  
+  // Center content vertically
+  align-items: center;
+  justify-content: center;
+}
+
+// Ensure the modal content doesn't stretch too much if empty
+ion-modal.transaction-modal .ion-page {
+  position: relative;
+  contain: content;
+  max-height: 100%;
+  overflow: auto;
+  display: block;
+}

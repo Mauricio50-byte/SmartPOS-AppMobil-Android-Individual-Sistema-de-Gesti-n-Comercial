@@ -5,6 +5,7 @@ import { AlertController, LoadingController, ModalController, ToastController } 
 import { CajaService } from 'src/app/core/services/caja.service';
 import { AuthService } from 'src/app/core/services/auth.service';
 import { Caja, MovimientoCaja } from 'src/app/core/models/caja';
+import { TransactionModalComponent } from './components/transaction-modal/transaction-modal.component';
 
 @Component({
   selector: 'app-caja',
@@ -23,6 +24,7 @@ export class CajaComponent implements OnInit {
     private cajaService: CajaService,
     private authService: AuthService,
     private alertController: AlertController,
+    private modalController: ModalController,
     private loadingController: LoadingController,
     private toastController: ToastController
   ) { }
@@ -80,41 +82,26 @@ export class CajaComponent implements OnInit {
       return;
     }
 
-    const alert = await this.alertController.create({
-      header: 'Abrir Caja',
-      inputs: [
-        {
-          name: 'montoInicial',
-          type: 'number',
-          placeholder: 'Monto Inicial',
-          min: 0
-        },
-        {
-          name: 'observaciones',
-          type: 'text',
-          placeholder: 'Observaciones (opcional)'
-        }
-      ],
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Abrir',
-          handler: (data) => {
-            if (!data.montoInicial && data.montoInicial !== 0) {
-              this.mostrarToast('El monto inicial es requerido', 'warning');
-              return false;
-            }
-            this.ejecutarAbrirCaja(Number(data.montoInicial), data.observaciones);
-            return true;
-          }
-        }
-      ]
+    const modal = await this.modalController.create({
+      component: TransactionModalComponent,
+      cssClass: 'transaction-modal',
+      componentProps: {
+        title: 'Abrir Caja',
+        amountLabel: 'Monto Inicial',
+        descriptionLabel: 'Observaciones',
+        confirmText: 'Abrir',
+        cancelText: 'Cancelar',
+        descriptionRequired: false
+      }
     });
 
-    await alert.present();
+    await modal.present();
+
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm' && data) {
+      this.ejecutarAbrirCaja(Number(data.monto), data.descripcion || '');
+    }
   }
 
   async ejecutarAbrirCaja(montoInicial: number, observaciones: string) {
@@ -144,43 +131,27 @@ export class CajaComponent implements OnInit {
     // Calcular montos esperados para mostrar en el alert? Sería ideal, pero por ahora simple.
     const saldoSistema = this.caja.resumen?.saldoActual || 0;
 
-    const alert = await this.alertController.create({
-      header: 'Cerrar Caja',
-      message: `El saldo esperado por el sistema es: $${saldoSistema.toLocaleString()}`,
-      inputs: [
-        {
-          name: 'montoFinal',
-          type: 'number',
-          placeholder: 'Monto Real en Caja',
-          min: 0
-        },
-        {
-          name: 'observaciones',
-          type: 'text',
-          placeholder: 'Observaciones'
-        }
-      ],
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Cerrar Caja',
-          cssClass: 'alert-button-confirm',
-          handler: (data) => {
-             if (!data.montoFinal && data.montoFinal !== 0) {
-              this.mostrarToast('El monto final es requerido', 'warning');
-              return false;
-            }
-            this.ejecutarCerrarCaja(Number(data.montoFinal), data.observaciones);
-            return true;
-          }
-        }
-      ]
+    const modal = await this.modalController.create({
+      component: TransactionModalComponent,
+      cssClass: 'transaction-modal',
+      componentProps: {
+        title: 'Cerrar Caja',
+        message: `El saldo esperado por el sistema es: $${saldoSistema.toLocaleString()}`,
+        amountLabel: 'Monto Real en Caja',
+        descriptionLabel: 'Observaciones',
+        confirmText: 'Cerrar Caja',
+        cancelText: 'Cancelar',
+        descriptionRequired: false
+      }
     });
 
-    await alert.present();
+    await modal.present();
+
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm' && data) {
+      this.ejecutarCerrarCaja(Number(data.monto), data.descripcion || '');
+    }
   }
 
   async ejecutarCerrarCaja(montoFinal: number, observaciones: string) {
@@ -208,45 +179,25 @@ export class CajaComponent implements OnInit {
       return;
     }
 
-    const alert = await this.alertController.create({
-      header: `Registrar ${tipo}`,
-      inputs: [
-        {
-          name: 'monto',
-          type: 'number',
-          placeholder: 'Monto',
-          min: 0
-        },
-        {
-          name: 'descripcion',
-          type: 'text',
-          placeholder: 'Descripción / Motivo'
-        }
-      ],
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Registrar',
-          handler: (data) => {
-             if (!data.monto) {
-              this.mostrarToast('El monto es requerido', 'warning');
-              return false;
-            }
-             if (!data.descripcion) {
-              this.mostrarToast('La descripción es requerida', 'warning');
-              return false;
-            }
-            this.ejecutarMovimiento(tipo, Number(data.monto), data.descripcion);
-            return true;
-          }
-        }
-      ]
+    const modal = await this.modalController.create({
+      component: TransactionModalComponent,
+      cssClass: 'transaction-modal',
+      componentProps: {
+        title: `Registrar ${tipo}`,
+        amountLabel: 'Monto',
+        descriptionLabel: 'Observaciones',
+        confirmText: 'Registrar',
+        cancelText: 'Cancelar'
+      }
     });
 
-    await alert.present();
+    await modal.present();
+
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm' && data) {
+      this.ejecutarMovimiento(tipo, Number(data.monto), data.descripcion);
+    }
   }
 
   async ejecutarMovimiento(tipo: 'INGRESO' | 'EGRESO', monto: number, descripcion: string) {

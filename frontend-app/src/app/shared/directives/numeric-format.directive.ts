@@ -21,8 +21,20 @@ export class NumericFormatDirective implements OnInit {
 
   @HostListener('ionInput', ['$event'])
   onIonInput(event: any) {
-    const value = event.target.value;
+    // Si el evento viene de ionInput, value suele estar en event.target.value
+    // pero a veces es event.detail.value dependiendo de la versión/componente
+    const value = event.detail?.value !== undefined ? event.detail.value : event.target.value;
     this.formatValue(value);
+  }
+
+  @HostListener('ionChange', ['$event'])
+  onIonChange(event: any) {
+    // Escuchar ionChange también por si acaso
+    const value = event.detail?.value !== undefined ? event.detail.value : event.target.value;
+    // Solo formatear si no es nulo y tiene longitud, para evitar bucles infinitos si se dispara al setear valor
+    if (value) {
+      this.formatValue(value);
+    }
   }
 
   @HostListener('input', ['$event'])
@@ -54,17 +66,22 @@ export class NumericFormatDirective implements OnInit {
   private updateValues(displayValue: string, rawValue: number | null) {
     // Actualizar el valor visual en el elemento
     // Si es un ion-input, accedemos al valor a través de la propiedad value
-    if (this.el.nativeElement.value !== undefined) {
+    if (this.el.nativeElement) {
+      // Para ion-input, necesitamos setear la propiedad value
+      // A veces nativeElement es el host wrapper, y el input real está dentro o es accesible via propiedad
       this.el.nativeElement.value = displayValue;
     }
 
     // Actualizar el valor en el FormControl de Angular si existe
     if (this.control && this.control.control) {
-      this.control.control.setValue(rawValue, {
-        emitEvent: false,
-        emitModelToViewChange: false,
-        emitViewToModelChange: false
-      });
+      // Importante: emitEvent: false para no disparar un nuevo ciclo de cambios
+      if (this.control.control.value !== rawValue) {
+         this.control.control.setValue(rawValue, {
+          emitEvent: false,
+          emitModelToViewChange: false,
+          emitViewToModelChange: false
+        });
+      }
     }
   }
 }

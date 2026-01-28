@@ -7,6 +7,7 @@ import { addIcons } from 'ionicons';
 import { searchOutline, filterOutline, addOutline, cashOutline, trashOutline } from 'ionicons/icons';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NumericFormatDirective } from 'src/app/shared/directives/numeric-format.directive';
+import { TransactionModalComponent } from '../../../caja/components/transaction-modal/transaction-modal.component';
 
 @Component({
   selector: 'app-cuentas-por-pagar',
@@ -27,6 +28,7 @@ export class CuentasPorPagarComponent implements OnInit {
   constructor(
     private gastoService: GastoService,
     private alertController: AlertController,
+    private modalController: ModalController,
     private toastController: ToastController,
     private fb: FormBuilder
   ) {
@@ -110,49 +112,38 @@ export class CuentasPorPagarComponent implements OnInit {
   }
 
   async registrarPago(gasto: Gasto) {
-    const alert = await this.alertController.create({
-      header: 'Registrar Pago',
-      subHeader: `Proveedor: ${gasto.proveedor}`,
-      message: `Saldo pendiente: $${gasto.saldoPendiente}`,
-      inputs: [
-        {
-          name: 'monto',
-          type: 'number',
-          placeholder: 'Monto a pagar',
-          min: 1,
-          max: gasto.saldoPendiente
-        },
-        {
-          name: 'nota',
-          type: 'text',
-          placeholder: 'Nota (opcional)'
-        }
-      ],
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Pagar',
-          handler: (data) => {
-            const monto = parseFloat(data.monto);
-            if (!monto || monto <= 0) {
-              this.mostrarToast('Monto inválido', 'warning');
-              return false;
-            }
-            if (monto > gasto.saldoPendiente) {
-              this.mostrarToast('El monto excede el saldo pendiente', 'warning');
-              return false;
-            }
-            this.procesarPago(gasto.id, monto, data.nota);
-            return true;
-          }
-        }
-      ]
+    const modal = await this.modalController.create({
+      component: TransactionModalComponent,
+      cssClass: 'transaction-modal',
+      componentProps: {
+        title: 'Registrar Pago',
+        message: `Saldo pendiente: $${gasto.saldoPendiente}`,
+        amountLabel: 'Monto a pagar',
+        descriptionLabel: 'Observaciones',
+        confirmText: 'Pagar',
+        cancelText: 'Cancelar',
+        descriptionRequired: false,
+        initialAmount: null,
+        initialDescription: ''
+      }
     });
 
-    await alert.present();
+    await modal.present();
+
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm' && data) {
+      const monto = Number(data.monto);
+      if (!monto || monto <= 0) {
+        this.mostrarToast('Monto inválido', 'warning');
+        return;
+      }
+      if (monto > gasto.saldoPendiente) {
+        this.mostrarToast('El monto excede el saldo pendiente', 'warning');
+        return;
+      }
+      this.procesarPago(gasto.id, monto, data.descripcion);
+    }
   }
 
   procesarPago(gastoId: number, monto: number, nota: string) {

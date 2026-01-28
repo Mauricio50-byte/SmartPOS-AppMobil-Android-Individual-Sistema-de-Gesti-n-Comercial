@@ -35,6 +35,7 @@ import { FormularioRestauranteComponent } from './components/productos/modulos/f
 import { CuentasPorPagarComponent } from './components/finanzas/components/cuentas-por-pagar/cuentas-por-pagar.component';
 import { CuentasPorCobrarComponent } from './components/finanzas/components/cuentas-por-cobrar/cuentas-por-cobrar.component';
 import { CajaComponent } from './components/caja/caja.component';
+import { TransactionModalComponent } from './components/caja/components/transaction-modal/transaction-modal.component';
 import { ClientEditModalComponent } from './components/clientes/components/client-edit-modal/client-edit-modal.component';
 
 @NgModule({
@@ -77,6 +78,7 @@ import { ClientEditModalComponent } from './components/clientes/components/clien
     CuentasPorPagarComponent,
     CuentasPorCobrarComponent,
     CajaComponent,
+    TransactionModalComponent,
     ClientEditModalComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

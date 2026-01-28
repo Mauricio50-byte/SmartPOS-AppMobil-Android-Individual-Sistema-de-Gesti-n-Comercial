@@ -7,6 +7,7 @@ import { Deuda } from 'src/app/core/models/deuda'; // Adjust path if needed
 import { addIcons } from 'ionicons';
 import { searchOutline, filterOutline, cashOutline, alertCircleOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { FormsModule } from '@angular/forms';
+import { TransactionModalComponent } from '../../../caja/components/transaction-modal/transaction-modal.component';
 
 @Component({
   selector: 'app-cuentas-por-cobrar',
@@ -25,6 +26,7 @@ export class CuentasPorCobrarComponent implements OnInit {
     private deudaService: DeudaService,
     private cajaService: CajaService,
     private alertController: AlertController,
+    private modalController: ModalController,
     private toastController: ToastController,
     private loadingController: LoadingController
   ) {
@@ -123,69 +125,53 @@ export class CuentasPorCobrarComponent implements OnInit {
   }
 
   async mostrarFormularioAbono(deuda: Deuda, metodo: string) {
-    const inputs: any[] = [
-      {
-        name: 'monto',
-        type: 'number',
-        placeholder: 'Monto a abonar',
-        min: 1,
-        max: deuda.saldoPendiente
+    const showCashFields = metodo === 'EFECTIVO';
+    
+    const modal = await this.modalController.create({
+      component: TransactionModalComponent,
+      cssClass: 'transaction-modal',
+      componentProps: {
+        title: `Registrar Abono (${metodo})`,
+        message: `Saldo pendiente: $${deuda.saldoPendiente.toLocaleString()}`,
+        amountLabel: 'Monto a abonar',
+        descriptionLabel: 'Observaciones',
+        confirmText: 'Confirmar Abono',
+        cancelText: 'Cancelar',
+        descriptionRequired: false,
+        initialAmount: null,
+        initialDescription: '',
+        showCashPaymentFields: showCashFields,
+        amountReceivedLabel: 'Monto Recibido (Cálculo de cambio)'
       }
-    ];
+    });
 
-    // Solo pedir monto recibido si es efectivo
-    if (metodo === 'EFECTIVO') {
-      inputs.push({
-        name: 'montoRecibido',
-        type: 'number',
-        placeholder: 'Monto Recibido (opcional para cambio)'
-      });
+    await modal.present();
+
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm' && data) {
+      const monto = Number(data.monto);
+      if (!monto || monto <= 0) {
+        this.mostrarToast('Monto inválido', 'warning');
+        return;
+      }
+      if (monto > deuda.saldoPendiente) {
+        this.mostrarToast('El monto excede el saldo pendiente', 'warning');
+        return;
+      }
+
+      const montoRecibido = showCashFields ? Number(data.montoRecibido) : undefined;
+      
+      // Procesar abono (la alerta de cambio ya se mostró visualmente en el modal,
+      // pero si queremos mantener la alerta nativa adicional al confirmar, la dejamos)
+      if (showCashFields && montoRecibido && montoRecibido > monto) {
+        // Opcional: Mostrar alerta final de cambio para confirmar que el cajero entregó el dinero
+        const cambio = montoRecibido - monto;
+        await this.mostrarAlertaCambio(cambio);
+      }
+
+      this.procesarAbono(deuda.id, monto, data.descripcion, metodo, montoRecibido);
     }
-
-    inputs.push({
-      name: 'nota',
-      type: 'text',
-      placeholder: 'Nota o referencia (opcional)'
-    });
-
-    const alert = await this.alertController.create({
-      header: `Registrar Abono (${metodo})`,
-      subHeader: `Saldo pendiente: $${deuda.saldoPendiente.toLocaleString()}`,
-      inputs: inputs,
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Confirmar Abono',
-          handler: (data) => {
-            const monto = parseFloat(data.monto);
-            if (!monto || monto <= 0) {
-              this.mostrarToast('Monto inválido', 'warning');
-              return false;
-            }
-            if (monto > deuda.saldoPendiente) {
-              this.mostrarToast('El monto excede el saldo pendiente', 'warning');
-              return false;
-            }
-
-            const montoRecibido = parseFloat(data.montoRecibido);
-            
-            // Si es efectivo y hay vuelto, mostrarlo antes de procesar
-            if (metodo === 'EFECTIVO' && montoRecibido && montoRecibido > monto) {
-              const cambio = montoRecibido - monto;
-              this.mostrarAlertaCambio(cambio);
-            }
-
-            this.procesarAbono(deuda.id, monto, data.nota, metodo, montoRecibido);
-            return true;
-          }
-        }
-      ]
-    });
-
-    await alert.present();
   }
 
   async mostrarAlertaCambio(cambio: number) {

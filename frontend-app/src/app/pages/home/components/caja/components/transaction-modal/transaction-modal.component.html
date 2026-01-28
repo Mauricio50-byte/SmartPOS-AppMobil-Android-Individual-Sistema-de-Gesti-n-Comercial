@@ -1,0 +1,73 @@
+<div class="modal-wrapper">
+  <div class="modal-header">
+    <h2>{{ title }}</h2>
+  </div>
+  
+  <div class="modal-body">
+    <p *ngIf="message" class="message-text">{{ message }}</p>
+
+    <form [formGroup]="form" (ngSubmit)="confirm()">
+      
+      <div class="form-group">
+        <ion-item lines="full" class="input-item">
+          <!-- type="text" es importante para permitir los puntos -->
+          <!-- inputmode="numeric" muestra el teclado numérico en móviles -->
+          <ion-input
+            type="text"
+            inputmode="numeric"
+            formControlName="monto"
+            [placeholder]="amountLabel"
+            appNumericFormat
+            class="amount-input"
+          ></ion-input>
+        </ion-item>
+        <div class="error-text" *ngIf="form.get('monto')?.touched && form.get('monto')?.invalid">
+          Monto requerido
+        </div>
+      </div>
+
+      <!-- Campo de Monto Recibido (Solo visible si showCashPaymentFields es true) -->
+      <div class="form-group" *ngIf="showCashPaymentFields">
+        <ion-item lines="full" class="input-item">
+          <ion-input
+            type="text"
+            inputmode="numeric"
+            formControlName="montoRecibido"
+            [placeholder]="amountReceivedLabel"
+            appNumericFormat
+            class="amount-input secondary-amount"
+          ></ion-input>
+        </ion-item>
+        
+        <!-- Mostrar cambio calculado en tiempo real -->
+        <div class="change-display" *ngIf="cambio > 0">
+          <span class="label">Cambio/Vuelto:</span>
+          <span class="value">{{ cambio | currency:'USD':'symbol':'1.0-0' }}</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <ion-item lines="full" class="input-item">
+          <ion-input
+            type="text"
+            formControlName="descripcion"
+            [placeholder]="descriptionLabel"
+          ></ion-input>
+        </ion-item>
+        <div class="error-text" *ngIf="descriptionRequired && form.get('descripcion')?.touched && form.get('descripcion')?.invalid">
+          Requerido
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <ion-button fill="clear" color="primary" (click)="cancel()">
+          {{ cancelText | uppercase }}
+        </ion-button>
+        <ion-button fill="clear" color="primary" type="submit">
+          {{ confirmText | uppercase }}
+        </ion-button>
+      </div>
+
+    </form>
+  </div>
+</div>
