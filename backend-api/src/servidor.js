@@ -46,7 +46,12 @@ async function iniciar() {
 
   await app.register(compress)
   await app.register(cors, { origin: true })
-  if (JWT_SECRETO) await app.register(jwtPlugin, { secret: JWT_SECRETO })
+  if (JWT_SECRETO) await app.register(jwtPlugin, { 
+    secret: JWT_SECRETO,
+    sign: {
+      expiresIn: '30d' // Duración de la sesión: 30 días
+    }
+  })
 
   const frontendPath = path.join(__dirname, '../../frontend-app/www');
   if (fs.existsSync(frontendPath)) {

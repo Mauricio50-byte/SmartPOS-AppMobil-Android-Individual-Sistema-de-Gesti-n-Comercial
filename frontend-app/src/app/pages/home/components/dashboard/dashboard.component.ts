@@ -176,25 +176,80 @@ export class DashboardComponent implements OnInit {
   }
 
   private processSalesChart(ventas: any[]) {
-    // Group by month (last 12 months) or day depending on filter
-    // For simplicity, let's do monthly sales for the current year
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    const salesByMonth = new Array(12).fill(0);
+    let labels: string[] = [];
+    let data: number[] = [];
+    const now = new Date();
 
-    ventas.forEach(v => {
-      const date = new Date(v.fecha);
-      const month = date.getMonth();
-      const year = date.getFullYear();
-      if (year === new Date().getFullYear()) {
-        salesByMonth[month] += Number(v.total) || 0;
-      }
-    });
+    if (this.timeFilter === 'week') {
+      
+      const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+      labels = days;
+      data = new Array(7).fill(0);
+
+      // Obtener el inicio de la semana actual (Lunes)
+      const currentDay = now.getDay(); // 0 = Dom, 1 = Lun...
+      const diff = now.getDate() - currentDay + (currentDay === 0 ? -6 : 1); // Ajustar para que Lunes sea el primer día
+      const monday = new Date(now.setDate(diff));
+      monday.setHours(0, 0, 0, 0);
+
+      // Calcular el final de la semana (Domingo)
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+
+      ventas.forEach(v => {
+        const vDate = new Date(v.fecha);
+        if (vDate >= monday && vDate <= sunday) {
+          // Obtener índice (0 = Lun, 6 = Dom)
+          let dayIndex = vDate.getDay() - 1;
+          if (dayIndex === -1) dayIndex = 6; // Domingo
+          data[dayIndex] += Number(v.total) || 0;
+        }
+      });
+
+    } else if (this.timeFilter === 'month') {
+      // Muestra meses del año actual
+      labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      data = new Array(12).fill(0);
+
+      // Restauramos 'now' porque fue modificado en el bloque anterior
+      const today = new Date(); 
+
+      ventas.forEach(v => {
+        const vDate = new Date(v.fecha);
+        if (vDate.getFullYear() === today.getFullYear()) {
+          data[vDate.getMonth()] += Number(v.total) || 0;
+        }
+      });
+
+    } else if (this.timeFilter === 'year') {
+      // Filtrar por Años (Desde 2026 en adelante)
+      // Mostraremos 2026, 2027, 2028, 2029, 2030 (5 años hacia adelante desde 2026)
+      // O si estamos en 2026, mostrar 2026 y futuros?
+      // El usuario dijo "tiene que ser del 2026 en adelante".
+      // Asumiremos un rango fijo o dinámico partiendo de 2026.
+      
+      const startYear = 2026;
+      const yearsToShow = 5;
+      const futureYears = Array.from({length: yearsToShow}, (_, i) => startYear + i);
+      
+      labels = futureYears.map(y => y.toString());
+      data = new Array(yearsToShow).fill(0);
+
+      ventas.forEach(v => {
+        const vYear = new Date(v.fecha).getFullYear();
+        const index = futureYears.indexOf(vYear);
+        if (index !== -1) {
+          data[index] += Number(v.total) || 0;
+        }
+      });
+    }
 
     this.ventasChartData = {
-      labels: months,
+      labels: labels,
       datasets: [
         {
-          data: salesByMonth,
+          data: data,
           label: 'Ventas',
           backgroundColor: '#3880ff',
           borderRadius: 4,

@@ -159,7 +159,12 @@ export class ProductosListaComponent implements OnChanges, OnInit {
 
     // 1. Filtro por Módulo
     if (this.selectedModule !== 'TODOS') {
-      temp = temp.filter(p => p.tipo === this.selectedModule);
+      if (this.selectedModule === 'GENERAL') {
+        // Filtrar productos que sean de tipo GENERAL o que no tengan un tipo específico asignado
+        temp = temp.filter(p => p.tipo === 'GENERAL' || !p.tipo);
+      } else {
+        temp = temp.filter(p => p.tipo === this.selectedModule);
+      }
     }
 
     // 2. Filtro por Buscador
