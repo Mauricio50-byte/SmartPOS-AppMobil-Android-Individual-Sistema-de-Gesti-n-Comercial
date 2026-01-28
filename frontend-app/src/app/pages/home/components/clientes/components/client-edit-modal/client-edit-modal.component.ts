@@ -3,13 +3,14 @@ import { Component, Input, OnInit } from '@angular/core';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Cliente } from 'src/app/core/models/cliente';
+import { NumericFormatDirective } from 'src/app/shared/directives/numeric-format.directive';
 
 @Component({
   selector: 'app-client-edit-modal',
   templateUrl: './client-edit-modal.component.html',
   styleUrls: ['./client-edit-modal.component.scss'],
   standalone: true,
-  imports: [IonicModule, ReactiveFormsModule]
+  imports: [IonicModule, ReactiveFormsModule, NumericFormatDirective]
 })
 export class ClientEditModalComponent implements OnInit {
   @Input() cliente!: Cliente;

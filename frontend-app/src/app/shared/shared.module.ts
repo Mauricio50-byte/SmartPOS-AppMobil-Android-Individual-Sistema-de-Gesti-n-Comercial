@@ -7,6 +7,7 @@ import { ProductCardComponent } from './components/product-card/product-card.com
 import { CartItemComponent } from './components/cart-item/cart-item.component';
 import { PaymentSelectorComponent } from './components/payment-selector/payment-selector.component';
 import { PermissionsModalComponent } from './components/permissions-modal/permissions-modal.component';
+import { NumericFormatDirective } from './directives/numeric-format.directive';
 
 @NgModule({
     declarations: [
@@ -18,13 +19,15 @@ import { PermissionsModalComponent } from './components/permissions-modal/permis
     imports: [
         CommonModule,
         IonicModule,
-        FormsModule
+        FormsModule,
+        NumericFormatDirective
     ],
     exports: [
         ProductCardComponent,
         CartItemComponent,
         PaymentSelectorComponent,
         PermissionsModalComponent,
+        NumericFormatDirective,
         CommonModule,
         IonicModule,
         FormsModule

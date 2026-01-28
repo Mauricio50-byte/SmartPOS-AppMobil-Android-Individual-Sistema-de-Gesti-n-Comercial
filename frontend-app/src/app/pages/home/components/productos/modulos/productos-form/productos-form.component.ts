@@ -13,6 +13,7 @@ import { FormularioServiciosComponent } from '../formulario-servicios/formulario
 import { FormularioFarmaciaComponent } from '../formulario-farmacia/formulario-farmacia.component';
 import { FormularioPapeleriaComponent } from '../formulario-papeleria/formulario-papeleria.component';
 import { FormularioRestauranteComponent } from '../formulario-restaurante/formulario-restaurante.component';
+import { NumericFormatDirective } from 'src/app/shared/directives/numeric-format.directive';
 
 @Component({
   standalone: true,
@@ -27,7 +28,8 @@ import { FormularioRestauranteComponent } from '../formulario-restaurante/formul
     FormularioServiciosComponent,
     FormularioFarmaciaComponent,
     FormularioPapeleriaComponent,
-    FormularioRestauranteComponent
+    FormularioRestauranteComponent,
+    NumericFormatDirective
   ]
 })
 export class ProductosFormComponent implements OnChanges {

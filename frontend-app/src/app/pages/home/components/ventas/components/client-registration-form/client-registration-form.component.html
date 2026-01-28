@@ -61,7 +61,7 @@
         <ion-item class="custom-item" lines="none">
           <ion-icon name="wallet-outline" slot="start" color="primary"></ion-icon>
           <ion-label position="stacked">Cupo Máximo ($)</ion-label>
-          <ion-input formControlName="creditoMaximo" type="number" placeholder="0"></ion-input>
+          <ion-input formControlName="creditoMaximo" type="text" inputmode="numeric" placeholder="0" appNumericFormat></ion-input>
         </ion-item>
       </ion-col>
 
@@ -69,7 +69,7 @@
         <ion-item class="custom-item" lines="none">
           <ion-icon name="calendar-outline" slot="start" color="primary"></ion-icon>
           <ion-label position="stacked">Días de Crédito</ion-label>
-          <ion-input formControlName="diasCredito" type="number" placeholder="30"></ion-input>
+          <ion-input formControlName="diasCredito" type="text" inputmode="numeric" placeholder="30" appNumericFormat></ion-input>
         </ion-item>
       </ion-col>
     </ion-row>

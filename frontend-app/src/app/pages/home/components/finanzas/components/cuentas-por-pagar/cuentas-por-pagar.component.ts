@@ -6,13 +6,14 @@ import { Gasto } from 'src/app/core/models/gasto';
 import { addIcons } from 'ionicons';
 import { searchOutline, filterOutline, addOutline, cashOutline, trashOutline } from 'ionicons/icons';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { NumericFormatDirective } from 'src/app/shared/directives/numeric-format.directive';
 
 @Component({
   selector: 'app-cuentas-por-pagar',
   templateUrl: './cuentas-por-pagar.component.html',
   styleUrls: ['./cuentas-por-pagar.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, ReactiveFormsModule]
+  imports: [CommonModule, IonicModule, FormsModule, ReactiveFormsModule, NumericFormatDirective]
 })
 export class CuentasPorPagarComponent implements OnInit {
   gastos: Gasto[] = [];
