@@ -10,8 +10,7 @@ import { Caja, MovimientoCaja } from 'src/app/core/models/caja';
   selector: 'app-caja',
   templateUrl: './caja.component.html',
   styleUrls: ['./caja.component.scss'],
-  standalone: true,
-  imports: [CommonModule, IonicModule]
+  standalone: false
 })
 export class CajaComponent implements OnInit {
   caja: Caja | null = null;

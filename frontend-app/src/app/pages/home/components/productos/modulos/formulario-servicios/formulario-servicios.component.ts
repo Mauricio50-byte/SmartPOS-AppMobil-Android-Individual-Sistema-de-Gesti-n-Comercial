@@ -5,11 +5,10 @@ import { IonicModule } from '@ionic/angular';
 import { NumericFormatDirective } from 'src/app/shared/directives/numeric-format.directive';
 
 @Component({
-  standalone: true,
   selector: 'app-formulario-servicios',
   templateUrl: './formulario-servicios.component.html',
   styleUrls: ['./formulario-servicios.component.scss'],
-  imports: [IonicModule, ReactiveFormsModule, NumericFormatDirective]
+  standalone: false
 })
 export class FormularioServiciosComponent {
   @Input() parentForm!: FormGroup;

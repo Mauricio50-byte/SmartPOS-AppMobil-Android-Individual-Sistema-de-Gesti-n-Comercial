@@ -16,21 +16,10 @@ import { FormularioRestauranteComponent } from '../formulario-restaurante/formul
 import { NumericFormatDirective } from 'src/app/shared/directives/numeric-format.directive';
 
 @Component({
-  standalone: true,
   selector: 'app-productos-form',
   templateUrl: './productos-form.component.html',
   styleUrls: ['./productos-form.component.scss'],
-  imports: [
-    IonicModule,
-    ReactiveFormsModule,
-    FormularioRopaComponent,
-    FormularioAlimentosComponent,
-    FormularioServiciosComponent,
-    FormularioFarmaciaComponent,
-    FormularioPapeleriaComponent,
-    FormularioRestauranteComponent,
-    NumericFormatDirective
-  ]
+  standalone: false
 })
 export class ProductosFormComponent implements OnChanges {
   @Input() product: Producto | null = null;

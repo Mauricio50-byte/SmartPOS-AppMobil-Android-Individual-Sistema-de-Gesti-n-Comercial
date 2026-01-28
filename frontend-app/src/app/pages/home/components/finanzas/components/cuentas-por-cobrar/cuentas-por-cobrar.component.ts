@@ -12,8 +12,7 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-cuentas-por-cobrar',
   templateUrl: './cuentas-por-cobrar.component.html',
   styleUrls: ['./cuentas-por-cobrar.component.scss'],
-  standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule]
+  standalone: false
 })
 export class CuentasPorCobrarComponent implements OnInit {
   deudas: Deuda[] = [];

@@ -3,7 +3,7 @@ import { NgControl } from '@angular/forms';
 
 @Directive({
   selector: '[appNumericFormat]',
-  standalone: true
+  standalone: false
 })
 export class NumericFormatDirective implements OnInit {
 

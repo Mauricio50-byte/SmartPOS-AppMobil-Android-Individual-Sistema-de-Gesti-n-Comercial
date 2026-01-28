@@ -14,13 +14,13 @@ import { NumericFormatDirective } from './directives/numeric-format.directive';
         ProductCardComponent,
         CartItemComponent,
         PaymentSelectorComponent,
-        PermissionsModalComponent
+        PermissionsModalComponent,
+        NumericFormatDirective
     ],
     imports: [
         CommonModule,
         IonicModule,
-        FormsModule,
-        NumericFormatDirective
+        FormsModule
     ],
     exports: [
         ProductCardComponent,

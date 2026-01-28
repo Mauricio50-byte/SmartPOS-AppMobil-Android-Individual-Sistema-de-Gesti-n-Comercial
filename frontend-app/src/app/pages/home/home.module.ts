@@ -26,6 +26,16 @@ import { TopCustomersComponent } from './components/dashboard/components/top-cus
 import { PaymentDistributionComponent } from './components/dashboard/components/payment-distribution/payment-distribution.component';
 import { ConfiguracionComponent } from './components/configuracion/configuracion.component';
 import { ManualUsuarioComponent } from './components/configuracion/components/manual-usuario/manual-usuario.component';
+import { FormularioRopaComponent } from './components/productos/modulos/formulario-ropa/formulario-ropa.component';
+import { FormularioAlimentosComponent } from './components/productos/modulos/formulario-alimentos/formulario-alimentos.component';
+import { FormularioServiciosComponent } from './components/productos/modulos/formulario-servicios/formulario-servicios.component';
+import { FormularioFarmaciaComponent } from './components/productos/modulos/formulario-farmacia/formulario-farmacia.component';
+import { FormularioPapeleriaComponent } from './components/productos/modulos/formulario-papeleria/formulario-papeleria.component';
+import { FormularioRestauranteComponent } from './components/productos/modulos/formulario-restaurante/formulario-restaurante.component';
+import { CuentasPorPagarComponent } from './components/finanzas/components/cuentas-por-pagar/cuentas-por-pagar.component';
+import { CuentasPorCobrarComponent } from './components/finanzas/components/cuentas-por-cobrar/cuentas-por-cobrar.component';
+import { CajaComponent } from './components/caja/caja.component';
+import { ClientEditModalComponent } from './components/clientes/components/client-edit-modal/client-edit-modal.component';
 
 @NgModule({
   imports: [
@@ -37,10 +47,6 @@ import { ManualUsuarioComponent } from './components/configuracion/components/ma
     ReactiveFormsModule,
     CurrencyPipe,
     BaseChartDirective,
-    ProductosListaComponent,
-    ProductosFormComponent,
-    FinanzasComponent,
-    ClientesComponent,
     ReportesModule
   ],
   declarations: [
@@ -57,7 +63,21 @@ import { ManualUsuarioComponent } from './components/configuracion/components/ma
     TopCustomersComponent,
     PaymentDistributionComponent,
     ConfiguracionComponent,
-    ManualUsuarioComponent
+    ManualUsuarioComponent,
+    ProductosListaComponent,
+    ProductosFormComponent,
+    FinanzasComponent,
+    ClientesComponent,
+    FormularioRopaComponent,
+    FormularioAlimentosComponent,
+    FormularioServiciosComponent,
+    FormularioFarmaciaComponent,
+    FormularioPapeleriaComponent,
+    FormularioRestauranteComponent,
+    CuentasPorPagarComponent,
+    CuentasPorCobrarComponent,
+    CajaComponent,
+    ClientEditModalComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

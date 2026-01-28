@@ -11,12 +11,10 @@ import { createOutline, powerOutline, documentTextOutline, closeOutline, personO
 type FiltroEstado = 'TODOS' | 'CON_DEUDA' | 'SIN_DEUDA' | 'CON_FIADOS' | 'SIN_FIADOS';
 
 @Component({
+  standalone: false,
   selector: 'app-clientes',
   templateUrl: './clientes.component.html',
-  styleUrls: ['./clientes.component.scss'],
-  imports : [CommonModule, IonicModule],
-  standalone: true,
-  
+  styleUrls: ['./clientes.component.scss']
 })
 export class ClientesComponent implements OnInit {
   clientes: Cliente[] = [];

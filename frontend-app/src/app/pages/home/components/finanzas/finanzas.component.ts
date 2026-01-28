@@ -11,8 +11,7 @@ import { walletOutline, cashOutline, cardOutline, fileTrayFullOutline } from 'io
   selector: 'app-finanzas',
   templateUrl: './finanzas.component.html',
   styleUrls: ['./finanzas.component.scss'],
-  standalone: true,
-  imports: [IonicModule, CuentasPorCobrarComponent, CuentasPorPagarComponent, CajaComponent]
+  standalone: false
 })
 export class FinanzasComponent {
   segment: 'caja' | 'por-cobrar' | 'por-pagar' = 'caja';

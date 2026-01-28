@@ -6,11 +6,10 @@ import { Cliente } from 'src/app/core/models/cliente';
 import { NumericFormatDirective } from 'src/app/shared/directives/numeric-format.directive';
 
 @Component({
+  standalone: false,
   selector: 'app-client-edit-modal',
   templateUrl: './client-edit-modal.component.html',
-  styleUrls: ['./client-edit-modal.component.scss'],
-  standalone: true,
-  imports: [IonicModule, ReactiveFormsModule, NumericFormatDirective]
+  styleUrls: ['./client-edit-modal.component.scss']
 })
 export class ClientEditModalComponent implements OnInit {
   @Input() cliente!: Cliente;

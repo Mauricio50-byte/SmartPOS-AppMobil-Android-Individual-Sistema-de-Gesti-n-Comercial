@@ -12,8 +12,7 @@ import { NumericFormatDirective } from 'src/app/shared/directives/numeric-format
   selector: 'app-cuentas-por-pagar',
   templateUrl: './cuentas-por-pagar.component.html',
   styleUrls: ['./cuentas-por-pagar.component.scss'],
-  standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule, ReactiveFormsModule, NumericFormatDirective]
+  standalone: false
 })
 export class CuentasPorPagarComponent implements OnInit {
   gastos: Gasto[] = [];

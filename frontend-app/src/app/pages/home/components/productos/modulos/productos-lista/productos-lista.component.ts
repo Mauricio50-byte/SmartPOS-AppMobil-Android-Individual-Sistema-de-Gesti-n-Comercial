@@ -15,11 +15,10 @@ interface Column {
 }
 
 @Component({
-  standalone: true,
   selector: 'app-productos-lista',
   templateUrl: './productos-lista.component.html',
   styleUrls: ['./productos-lista.component.scss'],
-  imports: [CommonModule, IonicModule, FormsModule]
+  standalone: false
 })
 export class ProductosListaComponent implements OnChanges, OnInit {
   @Input() products: Producto[] = [];

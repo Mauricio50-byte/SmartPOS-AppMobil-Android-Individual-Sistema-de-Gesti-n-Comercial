@@ -4,11 +4,10 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 
 @Component({
-  standalone: true,
   selector: 'app-formulario-ropa',
   templateUrl: './formulario-ropa.component.html',
   styleUrls: ['./formulario-ropa.component.scss'],
-  imports: [IonicModule, ReactiveFormsModule]
+  standalone: false
 })
 export class FormularioRopaComponent {
   @Input() parentForm!: FormGroup;
