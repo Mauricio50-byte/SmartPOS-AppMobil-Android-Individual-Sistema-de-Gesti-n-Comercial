@@ -1,12 +1,13 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators, AbstractControl } from '@angular/forms';
-import { AlertController, LoadingController, ToastController } from '@ionic/angular';
+import { LoadingController } from '@ionic/angular';
 import { VentaServices } from 'src/app/core/services/venta.service';
 import { ClientesServices } from 'src/app/core/services/cliente.service';
 import { CajaService } from 'src/app/core/services/caja.service';
 import { AuthService } from 'src/app/core/services/auth.service';
 import { Cliente } from 'src/app/core/models/cliente';
 import { Producto } from 'src/app/core/models/producto';
+import { AlertService } from 'src/app/shared/services/alert.service';
 
 @Component({
   selector: 'app-sales-cart',
@@ -32,9 +33,8 @@ export class SalesCartComponent implements OnInit {
     private clienteService: ClientesServices,
     private cajaService: CajaService,
     private authService: AuthService,
-    private alertController: AlertController,
     private loadingController: LoadingController,
-    private toastController: ToastController
+    private alertService: AlertService
   ) {
     this.ventaForm = this.fb.group({
       fecha: [new Date().toISOString(), Validators.required],
@@ -234,31 +234,22 @@ export class SalesCartComponent implements OnInit {
   }
 
   async mostrarModalRegistroCliente() {
-    const alert = await this.alertController.create({
-      header: '¿Registrar Cliente?',
-      message: '¿El cliente desea registrarse para acumular puntos y tener acceso a crédito?',
-      buttons: [
-        {
-          text: 'No',
-          role: 'cancel',
-          handler: () => {
-            this.mostrarRegistroCliente = false;
-            this.ventaForm.patchValue({ registrarCliente: false });
-            this.datosClienteGroup.disable();
-          }
-        },
-        {
-          text: 'Sí, registrar',
-          handler: () => {
-            this.mostrarRegistroCliente = true;
-            this.ventaForm.patchValue({ registrarCliente: true });
-            this.datosClienteGroup.enable();
-          }
-        }
-      ]
-    });
+    const confirmed = await this.alertService.confirm(
+      '¿Registrar Cliente?',
+      '¿El cliente desea registrarse para acumular puntos y tener acceso a crédito?',
+      'Sí, registrar',
+      'No'
+    );
 
-    await alert.present();
+    if (confirmed) {
+      this.mostrarRegistroCliente = true;
+      this.ventaForm.patchValue({ registrarCliente: true });
+      this.datosClienteGroup.enable();
+    } else {
+      this.mostrarRegistroCliente = false;
+      this.ventaForm.patchValue({ registrarCliente: false });
+      this.datosClienteGroup.disable();
+    }
   }
 
   async registrarNuevoCliente(datos: any) {
@@ -383,24 +374,15 @@ export class SalesCartComponent implements OnInit {
       return;
     }
 
-    const confirmAlert = await this.alertController.create({
-      header: 'Confirmar Venta',
-      subHeader: this.tipoVenta === 'FIADO' ? 'Venta a Crédito' : 'Venta de Contado',
-      message: `¿Confirma procesar la venta por valor de $${this.totalControl.value.toLocaleString()}?`,
-      buttons: [
-        { 
-          text: 'Cancelar', 
-          role: 'cancel'
-        },
-        {
-          text: 'Procesar Venta',
-          handler: () => {
-            this.procesarVentaReal();
-          }
-        }
-      ]
-    });
-    await confirmAlert.present();
+    const confirmed = await this.alertService.confirm(
+      'Confirmar Venta',
+      `¿Confirma procesar la venta por valor de $${this.totalControl.value.toLocaleString()}?`,
+      'Procesar Venta'
+    );
+
+    if (confirmed) {
+      this.procesarVentaReal();
+    }
   }
 
   async verificarCajaAbierta(): Promise<boolean> {
@@ -513,17 +495,14 @@ export class SalesCartComponent implements OnInit {
 
           if (loading) await loading.dismiss();
 
-          let mensaje = `Venta registrada correctamente.\nTotal: $${venta.total.toLocaleString()}\nMetodo: ${venta.metodoPago}`;
+          let mensaje = `Total: $${venta.total.toLocaleString()}\nMetodo: ${venta.metodoPago}`;
           if (venta.estadoPago === 'FIADO') mensaje += `\n\n⚠️ Venta FIADA registrada`;
 
-          const successAlert = await this.alertController.create({
-            header: '¡Venta Exitosa!',
-            subHeader: venta.estadoPago === 'FIADO' ? 'Registrada en Cuentas por Cobrar' : 'Pago Registrado',
-            message: mensaje,
-            buttons: ['Aceptar'],
-            cssClass: 'success-alert'
-          });
-          await successAlert.present();
+          await this.alertService.alert(
+            '¡Venta Exitosa!',
+            mensaje,
+            'success'
+          );
 
           if (payload.registrarCliente) {
             this.loadClientes();
@@ -555,23 +534,22 @@ export class SalesCartComponent implements OnInit {
   }
 
   async mostrarAlerta(header: string, message: string) {
-    const alert = await this.alertController.create({
-      header,
-      message,
-      buttons: ['OK']
-    });
-    await alert.present();
+    // Map header to icon roughly
+    let icon: any = 'info';
+    if (header.toLowerCase().includes('error') || header.toLowerCase().includes('crítico')) icon = 'error';
+    if (header.toLowerCase().includes('atención') || header.toLowerCase().includes('advertencia') || header.toLowerCase().includes('caja cerrada')) icon = 'warning';
+    if (header.toLowerCase().includes('éxito') || header.toLowerCase().includes('correctamente')) icon = 'success';
+
+    await this.alertService.alert(header, message, icon);
   }
 
   async mostrarToast(message: string, color: 'success' | 'danger' | 'warning' = 'danger', duration: number = 2000) {
-    const toast = await this.toastController.create({
-      message,
-      duration,
-      position: 'bottom',
-      color,
-      cssClass: 'custom-toast'
-    });
-    await toast.present();
+    let icon: any = 'info';
+    if (color === 'success') icon = 'success';
+    if (color === 'danger') icon = 'error';
+    if (color === 'warning') icon = 'warning';
+
+    this.alertService.toast(message, icon, duration);
   }
 
   toggleCart() {

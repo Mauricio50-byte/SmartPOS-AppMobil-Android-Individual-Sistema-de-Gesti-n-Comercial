@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, AlertController, ToastController, ModalController, LoadingController } from '@ionic/angular';
+import { IonicModule, ModalController, LoadingController } from '@ionic/angular';
 import { DeudaService } from 'src/app/core/services/deuda.service';
 import { CajaService } from 'src/app/core/services/caja.service';
 import { Deuda } from 'src/app/core/models/deuda'; // Adjust path if needed
@@ -8,6 +8,7 @@ import { addIcons } from 'ionicons';
 import { searchOutline, filterOutline, cashOutline, alertCircleOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { FormsModule } from '@angular/forms';
 import { TransactionModalComponent } from '../../../caja/components/transaction-modal/transaction-modal.component';
+import { AlertService } from 'src/app/shared/services/alert.service';
 
 @Component({
   selector: 'app-cuentas-por-cobrar',
@@ -25,10 +26,9 @@ export class CuentasPorCobrarComponent implements OnInit {
   constructor(
     private deudaService: DeudaService,
     private cajaService: CajaService,
-    private alertController: AlertController,
     private modalController: ModalController,
-    private toastController: ToastController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private alertService: AlertService
   ) {
     addIcons({ searchOutline, filterOutline, cashOutline, alertCircleOutline, checkmarkCircleOutline });
   }
@@ -40,18 +40,18 @@ export class CuentasPorCobrarComponent implements OnInit {
   cargarDeudas() {
     this.loading = true;
     this.deudaService.listarDeudas({ estado: this.filterEstado === 'TODOS' ? undefined : this.filterEstado })
-      .subscribe({
-        next: (data) => {
-          this.deudas = data;
-          this.filterDeudas();
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error(err);
-          this.mostrarToast('Error al cargar deudas', 'danger');
-          this.loading = false;
-        }
-      });
+    .subscribe({
+      next: (data) => {
+        this.deudas = data;
+        this.filterDeudas();
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.mostrarToast('Error al cargar deudas', 'danger');
+        this.loading = false;
+      }
+    });
   }
 
   onSearchInput(event: any) {
@@ -85,43 +85,35 @@ export class CuentasPorCobrarComponent implements OnInit {
     // Verificar caja abierta antes de permitir el abono
     const cajaAbierta = await this.verificarCajaAbierta();
     if (!cajaAbierta) {
-      const alert = await this.alertController.create({
-        header: 'Caja Cerrada',
-        message: 'No se pueden registrar abonos porque no hay una caja abierta. Por favor abra la caja en la sección de Caja Diaria.',
-        buttons: ['OK']
-      });
-      await alert.present();
+      await this.alertService.alert(
+        'Caja Cerrada',
+        'No se pueden registrar abonos porque no hay una caja abierta. Por favor abra la caja en la sección de Caja Diaria.',
+        'warning'
+      );
       return;
     }
 
     // Primero preguntar por el método de pago para una mejor experiencia
-    const alertMethod = await this.alertController.create({
-      header: 'Seleccionar Método de Pago',
-      subHeader: `Abono para: ${deuda.cliente?.nombre}`,
-      message: '¿Cómo desea realizar el abono?',
-      buttons: [
-        {
-          text: 'Efectivo',
-          cssClass: 'btn-efectivo',
-          handler: () => {
-            this.mostrarFormularioAbono(deuda, 'EFECTIVO');
-          }
-        },
-        {
-          text: 'Transferencia',
-          cssClass: 'btn-transferencia',
-          handler: () => {
-            this.mostrarFormularioAbono(deuda, 'TRANSFERENCIA');
-          }
-        },
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        }
-      ]
+    const { value: metodo } = await this.alertService.fire({
+      title: 'Seleccionar Método de Pago',
+      text: `Abono para: ${deuda.cliente?.nombre}`,
+      input: 'select',
+      inputOptions: {
+        'EFECTIVO': 'Efectivo',
+        'TRANSFERENCIA': 'Transferencia'
+      },
+      inputPlaceholder: 'Seleccione un método',
+      showCancelButton: true,
+      confirmButtonText: 'Continuar',
+      cancelButtonText: 'Cancelar',
+      inputValidator: (value) => {
+        return !value && 'Debe seleccionar un método'
+      }
     });
 
-    await alertMethod.present();
+    if (metodo) {
+      this.mostrarFormularioAbono(deuda, metodo);
+    }
   }
 
   async mostrarFormularioAbono(deuda: Deuda, metodo: string) {
@@ -175,14 +167,11 @@ export class CuentasPorCobrarComponent implements OnInit {
   }
 
   async mostrarAlertaCambio(cambio: number) {
-    const alert = await this.alertController.create({
-      header: 'Cambio a Entregar',
-      subHeader: 'Por favor entregue el vuelto al cliente:',
-      message: `$${cambio.toLocaleString()}`,
-      buttons: ['Entendido'],
-      cssClass: 'cambio-alert'
-    });
-    await alert.present();
+    await this.alertService.alert(
+      'Cambio a Entregar',
+      `Por favor entregue el vuelto al cliente: $${cambio.toLocaleString()}`,
+      'info'
+    );
   }
 
   procesarAbono(deudaId: number, monto: number, nota: string, metodoPago: string, montoRecibido?: number) {
@@ -230,12 +219,10 @@ export class CuentasPorCobrarComponent implements OnInit {
   }
 
   async mostrarToast(mensaje: string, color: string) {
-    const toast = await this.toastController.create({
-      message: mensaje,
-      duration: 2000,
-      color: color,
-      position: 'bottom'
-    });
-    toast.present();
+    let icon: any = 'info';
+    if (color === 'success') icon = 'success';
+    if (color === 'danger') icon = 'error';
+    if (color === 'warning') icon = 'warning';
+    this.alertService.toast(mensaje, icon);
   }
 }

@@ -138,3 +138,81 @@ ion-modal.transaction-modal .ion-page {
   overflow: auto;
   display: block;
 }
+
+/* SweetAlert2 Custom Styles */
+.swal2-container {
+  z-index: 30000 !important; /* Above Ionic Modals */
+}
+
+/* Colored Toast Style */
+.colored-toast.swal2-icon-success {
+  background-color: #2dd36f !important; /* Ionic Success Color */
+  color: white !important;
+  .swal2-title {
+    color: white !important;
+  }
+  .swal2-icon {
+    border-color: white !important;
+    color: white !important;
+  }
+  .swal2-timer-progress-bar {
+    background-color: rgba(255,255,255,0.5) !important;
+  }
+}
+
+.colored-toast.swal2-icon-error {
+  background-color: #eb445a !important; /* Ionic Danger Color */
+  color: white !important;
+  .swal2-title {
+    color: white !important;
+  }
+  .swal2-icon {
+    border-color: white !important;
+    color: white !important;
+  }
+  .swal2-timer-progress-bar {
+    background-color: rgba(255,255,255,0.5) !important;
+  }
+}
+
+.colored-toast.swal2-icon-warning {
+  background-color: #ffc409 !important; /* Ionic Warning Color */
+  color: white !important;
+  .swal2-title {
+    color: white !important;
+  }
+  .swal2-icon {
+    border-color: white !important;
+    color: white !important;
+  }
+  .swal2-timer-progress-bar {
+    background-color: rgba(255,255,255,0.5) !important;
+  }
+}
+
+.colored-toast.swal2-icon-info {
+  background-color: #3880ff !important; /* Ionic Primary/Info Color */
+  color: white !important;
+  .swal2-title {
+    color: white !important;
+  }
+  .swal2-icon {
+    border-color: white !important;
+    color: white !important;
+  }
+  .swal2-timer-progress-bar {
+    background-color: rgba(255,255,255,0.5) !important;
+  }
+}
+
+/* Make toast text slightly larger */
+.swal2-toast {
+  font-family: var(--ion-font-family, inherit);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+  font-size: 14px !important;
+}
+
+.swal2-popup {
+  font-family: var(--ion-font-family, inherit);
+  border-radius: 15px !important;
+}

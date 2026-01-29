@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ProductosServices } from 'src/app/core/services/producto.service';
 import { Producto } from 'src/app/core/models/producto';
-import { AlertController, ToastController, LoadingController } from '@ionic/angular';
+import { LoadingController } from '@ionic/angular';
 import { ModuloService } from 'src/app/core/services/modulo.service';
+import { AlertService } from 'src/app/shared/services/alert.service';
 
 @Component({
   standalone: false,
@@ -20,9 +21,8 @@ export class ProductosComponent implements OnInit {
   constructor(
     private productoService: ProductosServices,
     private moduloService: ModuloService,
-    private alertController: AlertController,
-    private toastController: ToastController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private alertService: AlertService
   ) {}
 
   ngOnInit() {
@@ -57,7 +57,7 @@ export class ProductosComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error loading products', err);
-        this.mostrarToast('Error al cargar productos');
+        this.alertService.error('Error al cargar productos');
         this.isLoading = false;
       }
     });
@@ -73,35 +73,26 @@ export class ProductosComponent implements OnInit {
   }
 
   async deleteConfirm(product: Producto) {
-    const alert = await this.alertController.create({
-      header: 'Confirmar Eliminación',
-      message: `¿Estás seguro de eliminar el producto <strong>${product.nombre}</strong>?`,
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Eliminar',
-          role: 'destructive',
-          handler: () => {
-            this.deleteProduct(product.id);
-          }
-        }
-      ]
-    });
-    await alert.present();
+    const confirmed = await this.alertService.confirm(
+      'Confirmar Eliminación',
+      `¿Estás seguro de eliminar el producto <strong>${product.nombre}</strong>?`,
+      'Eliminar'
+    );
+
+    if (confirmed) {
+      this.deleteProduct(product.id);
+    }
   }
 
   deleteProduct(id: number) {
     this.productoService.eliminarProductos(id).subscribe({
       next: () => {
-        this.mostrarToast('Producto eliminado');
+        this.alertService.success('Producto eliminado');
         this.loadProducts();
       },
       error: (err) => {
         console.error(err);
-        this.mostrarToast('Error al eliminar producto');
+        this.alertService.error('Error al eliminar producto');
       }
     });
   }
@@ -114,7 +105,7 @@ export class ProductosComponent implements OnInit {
       this.productoService.actualizarProductos(productData, this.selectedProduct.id).subscribe({
         next: async () => {
           await loading.dismiss();
-          this.mostrarToast('Producto actualizado correctamente');
+          this.alertService.success('Producto actualizado correctamente');
           this.selectedProduct = null;
           this.segment = 'info';
           this.loadProducts();
@@ -122,21 +113,21 @@ export class ProductosComponent implements OnInit {
         error: async (err) => {
           await loading.dismiss();
           console.error(err);
-          this.mostrarToast('Error al actualizar producto');
+          this.alertService.error('Error al actualizar producto');
         }
       });
     } else {
       this.productoService.crearProductos(productData).subscribe({
         next: async () => {
           await loading.dismiss();
-          this.mostrarToast('Producto creado correctamente');
+          this.alertService.success('Producto creado correctamente');
           this.segment = 'info';
           this.loadProducts();
         },
         error: async (err) => {
           await loading.dismiss();
           console.error(err);
-          this.mostrarToast('Error al crear producto');
+          this.alertService.error('Error al crear producto');
         }
       });
     }
@@ -145,14 +136,5 @@ export class ProductosComponent implements OnInit {
   onCancel() {
     this.selectedProduct = null;
     this.segment = 'info';
-  }
-
-  async mostrarToast(message: string) {
-    const toast = await this.toastController.create({
-      message: message,
-      duration: 2000,
-      position: 'bottom'
-    });
-    toast.present();
   }
 }

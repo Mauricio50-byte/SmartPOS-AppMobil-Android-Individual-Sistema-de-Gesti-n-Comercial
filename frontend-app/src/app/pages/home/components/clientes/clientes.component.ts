@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AlertController, ToastController, ModalController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { ClientesServices, EstadoCuenta } from 'src/app/core/services/cliente.service';
 import { Cliente } from 'src/app/core/models/cliente';
 import { CommonModule } from '@angular/common';
@@ -7,6 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { ClientEditModalComponent } from './components/client-edit-modal/client-edit-modal.component';
 import { addIcons } from 'ionicons';
 import { createOutline, powerOutline, documentTextOutline, closeOutline, personOutline, searchOutline, filterOutline } from 'ionicons/icons';
+import { AlertService } from 'src/app/shared/services/alert.service';
 
 type FiltroEstado = 'TODOS' | 'CON_DEUDA' | 'SIN_DEUDA' | 'CON_FIADOS' | 'SIN_FIADOS';
 
@@ -29,9 +30,8 @@ export class ClientesComponent implements OnInit {
 
   constructor(
     private clientesService: ClientesServices,
-    private alertController: AlertController,
-    private toastController: ToastController,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private alertService: AlertService
   ) {
     addIcons({ createOutline, powerOutline, documentTextOutline, closeOutline, personOutline, searchOutline, filterOutline });
   }
@@ -55,8 +55,7 @@ export class ClientesComponent implements OnInit {
       },
       error: async () => {
         this.loading = false;
-        const t = await this.toastController.create({ message: 'Error al cargar clientes', color: 'danger', duration: 2000 });
-        t.present();
+        this.alertService.error('Error al cargar clientes');
       }
     });
   }
@@ -110,8 +109,7 @@ export class ClientesComponent implements OnInit {
       },
       error: async () => {
         this.loadingEstado = false;
-        const a = await this.alertController.create({ header: 'Error', message: 'No se pudo obtener el estado de cuenta', buttons: ['OK'] });
-        a.present();
+        this.alertService.alert('Error', 'No se pudo obtener el estado de cuenta', 'error');
       }
     });
   }
@@ -135,22 +133,12 @@ export class ClientesComponent implements OnInit {
           this.clientes = this.clientes.map(c => c.id === actualizado.id ? actualizado : c);
           this.aplicarFiltros();
           
-          const toast = await this.toastController.create({
-            message: 'Cliente actualizado correctamente',
-            color: 'success',
-            duration: 2000
-          });
-          toast.present();
+          this.alertService.success('Cliente actualizado correctamente');
         },
         error: async (err) => {
           this.loading = false;
           console.error(err);
-          const alert = await this.alertController.create({
-            header: 'Error',
-            message: 'No se pudo actualizar el cliente',
-            buttons: ['OK']
-          });
-          alert.present();
+          this.alertService.error('No se pudo actualizar el cliente');
         }
       });
     }
@@ -160,40 +148,28 @@ export class ClientesComponent implements OnInit {
     const nuevoEstado = !cliente.activo;
     const accion = nuevoEstado ? 'activar' : 'desactivar';
 
-    const alert = await this.alertController.create({
-      header: `Confirmar ${accion}`,
-      message: `¿Está seguro de que desea ${accion} al cliente ${cliente.nombre}?`,
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Sí, confirmar',
-          handler: () => {
-            this.loading = true;
-            this.clientesService.actualizarCliente({ activo: nuevoEstado }, cliente.id).subscribe({
-              next: async (actualizado) => {
-                this.loading = false;
-                this.clientes = this.clientes.map(c => c.id === actualizado.id ? actualizado : c);
-                this.aplicarFiltros();
-                
-                const toast = await this.toastController.create({
-                  message: `Cliente ${nuevoEstado ? 'activado' : 'desactivado'} correctamente`,
-                  color: 'success',
-                  duration: 2000
-                });
-                toast.present();
-              },
-              error: async () => {
-                this.loading = false;
-                const t = await this.toastController.create({ message: 'Error al cambiar estado', color: 'danger', duration: 2000 });
-                t.present();
-              }
-            });
-          }
-        }
-      ]
-    });
+    const confirmed = await this.alertService.confirm(
+      `Confirmar ${accion}`,
+      `¿Está seguro de que desea ${accion} al cliente ${cliente.nombre}?`,
+      'Sí, confirmar',
+      'Cancelar'
+    );
 
-    await alert.present();
+    if (confirmed) {
+      this.loading = true;
+      this.clientesService.actualizarCliente({ activo: nuevoEstado }, cliente.id).subscribe({
+        next: async (actualizado) => {
+          this.loading = false;
+          this.clientes = this.clientes.map(c => c.id === actualizado.id ? actualizado : c);
+          this.aplicarFiltros();
+          this.alertService.success(`Cliente ${nuevoEstado ? 'activado' : 'desactivado'} correctamente`);
+        },
+        error: async () => {
+          this.loading = false;
+          this.alertService.error('Error al cambiar estado');
+        }
+      });
+    }
   }
 
   cerrarDetalle() {

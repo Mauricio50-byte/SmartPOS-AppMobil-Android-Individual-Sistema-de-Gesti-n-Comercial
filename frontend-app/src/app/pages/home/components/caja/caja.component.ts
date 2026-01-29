@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
+import { LoadingController, ModalController } from '@ionic/angular';
 import { CajaService } from 'src/app/core/services/caja.service';
 import { AuthService } from 'src/app/core/services/auth.service';
 import { Caja, MovimientoCaja } from 'src/app/core/models/caja';
 import { TransactionModalComponent } from './components/transaction-modal/transaction-modal.component';
+import { AlertService } from 'src/app/shared/services/alert.service';
 
 @Component({
   selector: 'app-caja',
@@ -15,7 +16,6 @@ import { TransactionModalComponent } from './components/transaction-modal/transa
 })
 export class CajaComponent implements OnInit {
   caja: Caja | null = null;
-  //hola moundo
   loading = false;
   movimientos: MovimientoCaja[] = [];
   saldoTransferencia = 0;
@@ -23,10 +23,9 @@ export class CajaComponent implements OnInit {
   constructor(
     private cajaService: CajaService,
     private authService: AuthService,
-    private alertController: AlertController,
     private modalController: ModalController,
     private loadingController: LoadingController,
-    private toastController: ToastController
+    private alertService: AlertService
   ) { }
 
   ngOnInit() {
@@ -220,12 +219,10 @@ export class CajaComponent implements OnInit {
   }
 
   async mostrarToast(mensaje: string, color: string) {
-    const toast = await this.toastController.create({
-      message: mensaje,
-      duration: 2000,
-      color: color,
-      position: 'bottom'
-    });
-    toast.present();
+    let icon: any = 'info';
+    if (color === 'success') icon = 'success';
+    if (color === 'danger') icon = 'error';
+    if (color === 'warning') icon = 'warning';
+    this.alertService.toast(mensaje, icon);
   }
 }

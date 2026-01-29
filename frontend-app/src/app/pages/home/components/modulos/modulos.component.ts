@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Modulo, ModuloService } from 'src/app/core/services/modulo.service';
-import { AlertController, ToastController } from '@ionic/angular';
+import { AlertService } from 'src/app/shared/services/alert.service';
 
 @Component({
   standalone: false,
@@ -16,8 +16,7 @@ export class ModulosComponent implements OnInit {
 
   constructor(
     private moduloService: ModuloService,
-    private toastController: ToastController,
-    private alertController: AlertController
+    private alertService: AlertService
   ) {}
 
   ngOnInit() {
@@ -65,12 +64,10 @@ export class ModulosComponent implements OnInit {
   }
 
   async mostrarToast(mensaje: string, color: string) {
-    const toast = await this.toastController.create({
-      message: mensaje,
-      duration: 2000,
-      color: color,
-      position: 'bottom'
-    });
-    toast.present();
+    let icon: any = 'info';
+    if (color === 'success') icon = 'success';
+    if (color === 'danger') icon = 'error';
+    if (color === 'warning') icon = 'warning';
+    this.alertService.toast(mensaje, icon);
   }
 }

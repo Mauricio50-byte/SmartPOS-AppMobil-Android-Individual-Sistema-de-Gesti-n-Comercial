@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { AlertController, ModalController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { Usuario } from '../../../../core/models';
 import { UsuarioService } from '../../../../core/services/usuario.service';
 import { PermissionsModalComponent } from '../../../../shared/components/permissions-modal/permissions-modal.component';
 import { switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { AlertService } from '../../../../shared/services/alert.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-users',
@@ -24,7 +26,7 @@ export class UsersComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private usuarioService: UsuarioService,
-    private alertController: AlertController,
+    private alertService: AlertService,
     private modalController: ModalController
   ) {
     this.formgroup = this.fb.group({
@@ -67,7 +69,7 @@ export class UsersComponent implements OnInit {
       },
       error: (error: any) => {
         console.warn('No se pudieron cargar usuarios desde el backend:', error);
-        this.mostrarAlerta('Error de Carga', 'No se pudieron cargar los usuarios. Verifique que el servidor esté activo y usted tenga permisos.' + (error.message || ''));
+        this.alertService.error('No se pudieron cargar los usuarios. ' + (error.message || ''));
         this.usuarios = [];
         this.isLoading = false;
       }
@@ -84,6 +86,7 @@ export class UsersComponent implements OnInit {
         const formData = this.formgroup.value;
         const nuevoUsuario = {
           ...formData,
+          ...formData,
           password: formData.passwordHash // Send raw password as 'password'
         };
         delete nuevoUsuario.passwordHash; // Remove the field name used in form
@@ -94,27 +97,20 @@ export class UsersComponent implements OnInit {
             this.getUsuarios();
             this.cerrarFormulario();
             
-            const alert = await this.alertController.create({
-              header: 'Usuario Creado',
-              message: 'El usuario ha sido registrado exitosamente. ¿Desea configurar sus permisos y módulos ahora?',
-              buttons: [
-                {
-                  text: 'Más tarde',
-                  role: 'cancel'
-                },
-                {
-                  text: 'Configurar Ahora',
-                  handler: () => {
-                    this.gestionarPermisos(usuario);
-                  }
-                }
-              ]
-            });
-            await alert.present();
+            const result = await this.alertService.confirm(
+              'Usuario Creado',
+              'El usuario ha sido registrado exitosamente. ¿Desea configurar sus permisos y módulos ahora?',
+              'Configurar Ahora',
+              'Más tarde'
+            );
+
+            if (result) {
+              this.gestionarPermisos(usuario);
+            }
           },
           error: (error: any) => {
             console.error('Error creando usuario', error);
-            this.mostrarAlerta('Error', 'No se pudo crear el usuario. ' + (error.error?.message || error.message || ''));
+            this.alertService.error('No se pudo crear el usuario. ' + (error.error?.message || error.message || ''));
           }
         });
       }
@@ -148,48 +144,45 @@ export class UsersComponent implements OnInit {
   }
 
   async cambiarContrasena(id: number, nueva: string) {
-    const alert = await this.alertController.create({
-      header: 'Cambiar Contraseña',
-      inputs: [
-        {
-          name: 'nuevaPassword',
-          type: 'password',
-          placeholder: 'Nueva contraseña',
-          attributes: {
-            minlength: 6
-          }
-        },
-        {
-          name: 'confirmarPassword',
-          type: 'password',
-          placeholder: 'Confirmar contraseña',
-          attributes: {
-            minlength: 6
-          }
+    // Note: The 'nueva' parameter is unused here because we get input from the alert, 
+    // but we keep the signature or just ignore it.
+    
+    const result = await this.alertService.fire({
+      title: 'Cambiar Contraseña',
+      html: `
+        <input id="swal-input1" class="swal2-input" type="password" placeholder="Nueva contraseña">
+        <input id="swal-input2" class="swal2-input" type="password" placeholder="Confirmar contraseña">
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Cambiar',
+      cancelButtonText: 'Cancelar',
+      preConfirm: () => {
+        const nuevaPwd = (document.getElementById('swal-input1') as HTMLInputElement).value;
+        const confirmarPwd = (document.getElementById('swal-input2') as HTMLInputElement).value;
+        
+        if (!nuevaPwd || !confirmarPwd) {
+          Swal.showValidationMessage('Por favor ingrese ambas contraseñas');
+          return false;
         }
-      ],
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Cambiar',
-          handler: (data: any) => {
-            if (data.nuevaPassword && data.nuevaPassword === data.confirmarPassword) {
-              this.usuarioService.cambiarPassword(id, data.nuevaPassword).subscribe(() => {
-                console.log('Contraseña cambiada exitosamente');
-                this.mostrarAlerta('Éxito', 'Contraseña cambiada correctamente');
-              });
-            } else {
-              this.mostrarAlerta('Error', 'Las contraseñas no coinciden');
-            }
-          }
+        if (nuevaPwd.length < 6) {
+          Swal.showValidationMessage('La contraseña debe tener al menos 6 caracteres');
+          return false;
         }
-      ]
+        if (nuevaPwd !== confirmarPwd) {
+          Swal.showValidationMessage('Las contraseñas no coinciden');
+          return false;
+        }
+        return { nuevaPassword: nuevaPwd };
+      }
     });
 
-    await alert.present();
+    if (result.isConfirmed && result.value) {
+      this.usuarioService.cambiarPassword(id, result.value.nuevaPassword).subscribe(() => {
+        console.log('Contraseña cambiada exitosamente');
+        this.alertService.success('Contraseña cambiada correctamente');
+      });
+    }
   }
 
   async gestionarPermisos(usuario: Usuario) {
@@ -205,45 +198,36 @@ export class UsersComponent implements OnInit {
 
     const { data } = await modal.onWillDismiss();
     if (data && data.updated) {
-      this.mostrarAlerta('Éxito', 'Permisos actualizados correctamente');
+      this.alertService.success('Permisos actualizados correctamente');
       this.getUsuarios(); // Reload users to show updated roles
     }
   }
 
   async eliminarUsuario(usuario: Usuario) {
     if (usuario.correo === 'admin@sistema-pos.local') {
-      this.mostrarAlerta('Acción no permitida', 'El usuario administrador principal no puede ser eliminado.');
+      this.alertService.warning('El usuario administrador principal no puede ser eliminado.', 'Acción no permitida');
       return;
     }
 
-    const alert = await this.alertController.create({
-      header: 'Confirmar eliminación',
-      message: `¿Está seguro que desea eliminar al usuario <strong>${usuario.nombre}</strong>? Esta acción no se puede deshacer.`,
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Eliminar',
-          role: 'destructive',
-          handler: () => {
-            this.usuarioService.deleteUsuario(usuario.id).subscribe({
-              next: () => {
-                this.mostrarAlerta('Éxito', 'Usuario eliminado correctamente');
-                this.getUsuarios();
-              },
-              error: (err) => {
-                console.error('Error eliminando usuario', err);
-                this.mostrarAlerta('Error', 'No se pudo eliminar el usuario. ' + (err.error?.message || err.message || ''));
-              }
-            });
-          }
-        }
-      ]
-    });
+    const confirmed = await this.alertService.confirm(
+      'Confirmar eliminación',
+      `¿Está seguro que desea eliminar al usuario ${usuario.nombre}? Esta acción no se puede deshacer.`,
+      'Eliminar',
+      'Cancelar'
+    );
 
-    await alert.present();
+    if (confirmed) {
+      this.usuarioService.deleteUsuario(usuario.id).subscribe({
+        next: () => {
+          this.alertService.success('Usuario eliminado correctamente');
+          this.getUsuarios();
+        },
+        error: (err) => {
+          console.error('Error eliminando usuario', err);
+          this.alertService.error('No se pudo eliminar el usuario. ' + (err.error?.message || err.message || ''));
+        }
+      });
+    }
   }
 
   toggleEstadoUsuario(usuario: Usuario) {
@@ -293,22 +277,12 @@ export class UsersComponent implements OnInit {
         console.log('Usuario actualizado correctamente (info y rol)');
         this.getUsuarios();
         this.cerrarFormulario();
-        this.mostrarAlerta('Éxito', 'Usuario actualizado correctamente');
+        this.alertService.success('Usuario actualizado correctamente');
       },
       error: (err) => {
         console.error('Error actualizando usuario', err);
-        this.mostrarAlerta('Error', 'No se pudo actualizar el usuario completamente.');
+        this.alertService.error('No se pudo actualizar el usuario completamente.');
       }
     });
-  }
-
-  async mostrarAlerta(titulo: string, mensaje: string) {
-    const alert = await this.alertController.create({
-      header: titulo,
-      message: mensaje,
-      buttons: ['OK']
-    });
-
-    await alert.present();
   }
 }

@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { ProductosServices } from 'src/app/core/services/producto.service';
 import { AuthService } from 'src/app/core/services/auth.service';
 import { Producto } from 'src/app/core/models/producto';
-import { ToastController } from '@ionic/angular';
+import { AlertService } from 'src/app/shared/services/alert.service';
 import { SalesCartComponent } from './components/sales-cart/sales-cart.component';
 
 @Component({
@@ -39,7 +39,7 @@ export class VentasComponent implements OnInit {
   constructor(
     private productoService: ProductosServices,
     private authService: AuthService,
-    private toastController: ToastController
+    private alertService: AlertService
   ) {}
 
   ngOnInit() {
@@ -130,13 +130,10 @@ export class VentasComponent implements OnInit {
   }
 
   async mostrarToast(message: string, color: 'success' | 'danger' | 'warning' = 'danger', duration: number = 2000) {
-    const toast = await this.toastController.create({
-      message,
-      duration,
-      position: 'bottom',
-      color,
-      cssClass: 'custom-toast'
-    });
-    await toast.present();
+    let icon: any = 'info';
+    if (color === 'success') icon = 'success';
+    if (color === 'danger') icon = 'error';
+    if (color === 'warning') icon = 'warning';
+    this.alertService.toast(message, icon, duration);
   }
 }

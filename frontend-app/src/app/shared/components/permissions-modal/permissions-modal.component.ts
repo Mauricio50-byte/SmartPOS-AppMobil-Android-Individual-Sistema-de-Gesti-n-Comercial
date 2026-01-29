@@ -1,11 +1,12 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { ModalController, AlertController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { RolService } from '../../../core/services/rol.service';
 import { UsuarioService } from '../../../core/services/usuario.service';
 import { Modulo, ModuloService } from '../../../core/services/modulo.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Rol, Usuario, Permiso } from '../../../core/models';
 import { forkJoin, of } from 'rxjs';
+import { AlertService } from '../../../shared/services/alert.service';
 
 @Component({
   selector: 'app-permissions-modal',
@@ -41,7 +42,7 @@ export class PermissionsModalComponent implements OnInit {
 
   constructor(
     private modalController: ModalController,
-    private alertController: AlertController,
+    private alertService: AlertService,
     private rolService: RolService,
     private usuarioService: UsuarioService,
     private moduloService: ModuloService,
@@ -108,7 +109,7 @@ export class PermissionsModalComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading user details', error);
-        void this.presentError('No se pudieron cargar los datos del usuario.');
+        this.alertService.error('No se pudieron cargar los datos del usuario.');
         // Fallback to input data if fetch fails, though likely incomplete
         this.selectedRoles = this.usuario.roles ? [...this.usuario.roles] : [];
         this.directPermissions = this.usuario.permisosDirectos ? [...this.usuario.permisosDirectos] : [];
@@ -130,7 +131,7 @@ export class PermissionsModalComponent implements OnInit {
       error: (error) => {
         console.error('Error loading roles', error);
         this.rolesLoadError = true;
-        void this.presentError('No se pudieron cargar los roles.');
+        this.alertService.error('No se pudieron cargar los roles.');
         this.loading = false;
       }
     });
@@ -217,7 +218,7 @@ export class PermissionsModalComponent implements OnInit {
         this.modulosSistema = [];
         this.modulosNegocio = [];
         this.modulesLoadError = true;
-        void this.presentError('No se pudieron cargar los módulos.');
+        this.alertService.error('No se pudieron cargar los módulos.');
       }
     });
   }
@@ -297,18 +298,16 @@ export class PermissionsModalComponent implements OnInit {
     const isRemovingAdmin = this.usuario.roles?.includes('ADMIN') && !this.selectedRoles.includes('ADMIN');
     
     if (isRemovingAdmin) {
-      const alert = await this.alertController.create({
-        header: 'Confirmación Crítica',
-        message: 'Estás a punto de quitar el rol de ADMINISTRADOR a este usuario. ¿Estás seguro? Esta acción restringirá severamente su acceso.',
-        buttons: [
-          { text: 'Cancelar', role: 'cancel' },
-          { 
-            text: 'Sí, quitar rol', 
-            handler: () => this.executeSave() 
-          }
-        ]
-      });
-      await alert.present();
+      const confirmed = await this.alertService.confirm(
+        'Confirmación Crítica',
+        'Estás a punto de quitar el rol de ADMINISTRADOR a este usuario. ¿Estás seguro? Esta acción restringirá severamente su acceso.',
+        'Sí, quitar rol',
+        'Cancelar'
+      );
+      
+      if (confirmed) {
+        this.executeSave();
+      }
     } else {
       this.executeSave();
     }
@@ -347,39 +346,30 @@ export class PermissionsModalComponent implements OnInit {
                   },
                   error: (err) => {
                     console.error('Error saving modules', err);
-                    void this.presentError('No se pudieron guardar los módulos.');
+                    this.alertService.error('No se pudieron guardar los módulos.');
                     this.loading = false;
                   }
                 })
               },
               error: (err) => {
                 console.error('Error enabling modules', err);
-                void this.presentError('No se pudieron activar los módulos del negocio.');
+                this.alertService.error('No se pudieron activar los módulos del negocio.');
                 this.loading = false;
               }
             })
           },
           error: (err) => {
              console.error('Error saving permissions', err);
-             void this.presentError('No se pudieron guardar los permisos.');
+             this.alertService.error('No se pudieron guardar los permisos.');
              this.loading = false;
           }
         });
       },
       error: (error) => {
         console.error('Error assigning roles', error);
-        void this.presentError('No se pudieron guardar los roles.');
+        this.alertService.error('No se pudieron guardar los roles.');
         this.loading = false;
       }
     });
-  }
-
-  private async presentError(message: string) {
-    const alert = await this.alertController.create({
-      header: 'Error',
-      message,
-      buttons: ['OK']
-    });
-    await alert.present();
   }
 }

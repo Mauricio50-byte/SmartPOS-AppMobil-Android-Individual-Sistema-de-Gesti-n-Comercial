@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, AlertController, ToastController, ModalController } from '@ionic/angular';
+import { IonicModule, ModalController } from '@ionic/angular';
 import { GastoService } from 'src/app/core/services/gasto.service';
 import { Gasto } from 'src/app/core/models/gasto';
 import { addIcons } from 'ionicons';
@@ -8,6 +8,7 @@ import { searchOutline, filterOutline, addOutline, cashOutline, trashOutline } f
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NumericFormatDirective } from 'src/app/shared/directives/numeric-format.directive';
 import { TransactionModalComponent } from '../../../caja/components/transaction-modal/transaction-modal.component';
+import { AlertService } from 'src/app/shared/services/alert.service';
 
 @Component({
   selector: 'app-cuentas-por-pagar',
@@ -27,10 +28,9 @@ export class CuentasPorPagarComponent implements OnInit {
 
   constructor(
     private gastoService: GastoService,
-    private alertController: AlertController,
     private modalController: ModalController,
-    private toastController: ToastController,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private alertService: AlertService
   ) {
     addIcons({ searchOutline, filterOutline, addOutline, cashOutline, trashOutline });
     this.gastoForm = this.fb.group({
@@ -164,12 +164,10 @@ export class CuentasPorPagarComponent implements OnInit {
   }
 
   async mostrarToast(mensaje: string, color: string) {
-    const toast = await this.toastController.create({
-      message: mensaje,
-      duration: 2000,
-      color: color,
-      position: 'bottom'
-    });
-    toast.present();
+    let icon: any = 'info';
+    if (color === 'success') icon = 'success';
+    if (color === 'danger') icon = 'error';
+    if (color === 'warning') icon = 'warning';
+    this.alertService.toast(mensaje, icon);
   }
 }
