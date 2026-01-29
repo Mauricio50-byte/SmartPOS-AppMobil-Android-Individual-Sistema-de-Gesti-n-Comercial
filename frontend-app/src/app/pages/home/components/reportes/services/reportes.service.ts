@@ -116,13 +116,14 @@ export class ReportesService {
 
       // Growth calculation:
       // If we had sales before: (Current - Previous) / Previous
-      // If we had NO sales before and HAVE sales now: 100% growth
-      // If we had sales before and HAVE NONE now: -100% growth
       let growth = 0;
       if (stats.prevRevenue > 0) {
         growth = ((stats.revenue - stats.prevRevenue) / stats.prevRevenue) * 100;
-      } else if (stats.revenue > 0) {
-        growth = 100; // From zero to something is 100% growth for dashboard purposes
+      } else {
+        // If no previous revenue, we can't calculate growth percentage mathematically (division by zero).
+        // Showing 100% or 0% can be misleading. We'll set it to 0 to avoid confusion, 
+        // effectively treating it as "no comparable growth data".
+        growth = 0;
       }
 
       const share = totalRevenue > 0 ? (stats.revenue / totalRevenue) * 100 : 0;

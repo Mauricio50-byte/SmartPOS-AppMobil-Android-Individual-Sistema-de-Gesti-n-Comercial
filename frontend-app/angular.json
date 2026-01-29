@@ -50,7 +50,8 @@
               "rgbcolor",
               "file-saver",
               "html2canvas",
-              "@stencil/core"
+              "@stencil/core",
+              "sweetalert2"
             ],
             "browser": "src/main.ts"
           },
