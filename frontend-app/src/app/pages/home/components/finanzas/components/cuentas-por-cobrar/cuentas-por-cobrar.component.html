@@ -32,7 +32,25 @@
       </tr>
     </thead>
     <tbody>
-      @for (deuda of filteredDeudas; track deuda) {
+      @if (loading) {
+        @for (i of skeletonRows; track i) {
+          <tr class="skeleton-row">
+            <td>
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <ion-skeleton-text animated style="width: 70%; height: 16px; border-radius: 4px;"></ion-skeleton-text>
+                <ion-skeleton-text animated style="width: 40%; height: 12px; border-radius: 4px;"></ion-skeleton-text>
+              </div>
+            </td>
+            <td><ion-skeleton-text animated style="width: 80%; height: 16px; border-radius: 4px;"></ion-skeleton-text></td>
+            <td><ion-skeleton-text animated style="width: 80%; height: 16px; border-radius: 4px;"></ion-skeleton-text></td>
+            <td><ion-skeleton-text animated style="width: 60%; height: 16px; border-radius: 4px;"></ion-skeleton-text></td>
+            <td><ion-skeleton-text animated style="width: 60%; height: 16px; border-radius: 4px;"></ion-skeleton-text></td>
+            <td><ion-skeleton-text animated style="width: 50%; height: 20px; border-radius: 10px;"></ion-skeleton-text></td>
+            <td><ion-skeleton-text animated style="width: 80px; height: 30px; border-radius: 8px;"></ion-skeleton-text></td>
+          </tr>
+        }
+      } @else {
+        @for (deuda of filteredDeudas; track deuda) {
         <tr>
           <td data-label="Cliente">
             <div class="client-info">
@@ -62,9 +80,14 @@
       @if (filteredDeudas.length === 0) {
         <tr>
           <td colspan="7" class="empty-state">
-            No se encontraron deudas con los filtros seleccionados.
+            <div class="empty-content">
+              <ion-icon name="file-tray-outline"></ion-icon>
+              <h3>No se encontraron deudas</h3>
+              <p>Intenta ajustar los filtros de búsqueda</p>
+            </div>
           </td>
         </tr>
+      }
       }
     </tbody>
   </table>

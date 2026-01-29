@@ -73,35 +73,54 @@
       </tr>
     </thead>
     <tbody>
-      @for (gasto of filteredGastos; track gasto) {
-        <tr>
-          <td data-label="Proveedor"><strong>{{ gasto.proveedor }}</strong></td>
-          <td data-label="Concepto">{{ gasto.concepto }}</td>
-          <td data-label="Fecha Registro">{{ gasto.fechaRegistro | date:'shortDate' }}</td>
-          <td data-label="Vencimiento">{{ gasto.fechaVencimiento ? (gasto.fechaVencimiento | date:'shortDate') : '-' }}</td>
-          <td data-label="Monto">{{ gasto.montoTotal | currency:'USD' }}</td>
-          <td data-label="Saldo" class="amount-pending">{{ gasto.saldoPendiente | currency:'USD' }}</td>
-          <td data-label="Estado">
-            <ion-badge [color]="gasto.estado === 'PAGADO' ? 'success' : (gasto.estado === 'VENCIDO' ? 'danger' : 'warning')">
-              {{ gasto.estado }}
-            </ion-badge>
-          </td>
-          <td data-label="Acciones">
-            @if (gasto.estado !== 'PAGADO') {
-              <ion-button size="small" (click)="registrarPago(gasto)">
-                <ion-icon slot="start" name="cash-outline"></ion-icon>
-                Pagar
-              </ion-button>
-            }
-          </td>
-        </tr>
-      }
-      @if (filteredGastos.length === 0) {
-        <tr>
-          <td colspan="8" class="empty-state">
-            No se encontraron gastos con los filtros seleccionados.
-          </td>
-        </tr>
+      @if (loading) {
+        @for (i of skeletonRows; track i) {
+          <tr class="skeleton-row">
+            <td><ion-skeleton-text animated style="width: 70%; height: 16px; border-radius: 4px;"></ion-skeleton-text></td>
+            <td><ion-skeleton-text animated style="width: 80%; height: 16px; border-radius: 4px;"></ion-skeleton-text></td>
+            <td><ion-skeleton-text animated style="width: 80%; height: 16px; border-radius: 4px;"></ion-skeleton-text></td>
+            <td><ion-skeleton-text animated style="width: 80%; height: 16px; border-radius: 4px;"></ion-skeleton-text></td>
+            <td><ion-skeleton-text animated style="width: 60%; height: 16px; border-radius: 4px;"></ion-skeleton-text></td>
+            <td><ion-skeleton-text animated style="width: 60%; height: 16px; border-radius: 4px;"></ion-skeleton-text></td>
+            <td><ion-skeleton-text animated style="width: 50%; height: 20px; border-radius: 10px;"></ion-skeleton-text></td>
+            <td><ion-skeleton-text animated style="width: 80px; height: 30px; border-radius: 8px;"></ion-skeleton-text></td>
+          </tr>
+        }
+      } @else {
+        @for (gasto of filteredGastos; track gasto) {
+          <tr>
+            <td data-label="Proveedor"><strong>{{ gasto.proveedor }}</strong></td>
+            <td data-label="Concepto">{{ gasto.concepto }}</td>
+            <td data-label="Fecha Registro">{{ gasto.fechaRegistro | date:'shortDate' }}</td>
+            <td data-label="Vencimiento">{{ gasto.fechaVencimiento ? (gasto.fechaVencimiento | date:'shortDate') : '-' }}</td>
+            <td data-label="Monto">{{ gasto.montoTotal | currency:'USD' }}</td>
+            <td data-label="Saldo" class="amount-pending">{{ gasto.saldoPendiente | currency:'USD' }}</td>
+            <td data-label="Estado">
+              <ion-badge [color]="gasto.estado === 'PAGADO' ? 'success' : (gasto.estado === 'VENCIDO' ? 'danger' : 'warning')">
+                {{ gasto.estado }}
+              </ion-badge>
+            </td>
+            <td data-label="Acciones">
+              @if (gasto.estado !== 'PAGADO') {
+                <ion-button size="small" (click)="registrarPago(gasto)">
+                  <ion-icon slot="start" name="cash-outline"></ion-icon>
+                  Pagar
+                </ion-button>
+              }
+            </td>
+          </tr>
+        }
+        @if (filteredGastos.length === 0) {
+          <tr>
+            <td colspan="8" class="empty-state">
+              <div class="empty-content">
+                <ion-icon name="file-tray-outline"></ion-icon>
+                <h3>No se encontraron gastos</h3>
+                <p>Intenta ajustar los filtros de búsqueda</p>
+              </div>
+            </td>
+          </tr>
+        }
       }
     </tbody>
   </table>

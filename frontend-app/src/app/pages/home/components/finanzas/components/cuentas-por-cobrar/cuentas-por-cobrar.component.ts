@@ -5,7 +5,7 @@ import { DeudaService } from 'src/app/core/services/deuda.service';
 import { CajaService } from 'src/app/core/services/caja.service';
 import { Deuda } from 'src/app/core/models/deuda'; // Adjust path if needed
 import { addIcons } from 'ionicons';
-import { searchOutline, filterOutline, cashOutline, alertCircleOutline, checkmarkCircleOutline } from 'ionicons/icons';
+import { searchOutline, filterOutline, cashOutline, alertCircleOutline, checkmarkCircleOutline, fileTrayOutline } from 'ionicons/icons';
 import { FormsModule } from '@angular/forms';
 import { TransactionModalComponent } from '../../../caja/components/transaction-modal/transaction-modal.component';
 import { AlertService } from 'src/app/shared/services/alert.service';
@@ -22,6 +22,7 @@ export class CuentasPorCobrarComponent implements OnInit {
   searchTerm: string = '';
   filterEstado: string = 'PENDIENTE';
   loading: boolean = false;
+  skeletonRows = [1, 2, 3, 4, 5];
 
   constructor(
     private deudaService: DeudaService,
@@ -30,7 +31,7 @@ export class CuentasPorCobrarComponent implements OnInit {
     private loadingController: LoadingController,
     private alertService: AlertService
   ) {
-    addIcons({ searchOutline, filterOutline, cashOutline, alertCircleOutline, checkmarkCircleOutline });
+    addIcons({ searchOutline, filterOutline, cashOutline, alertCircleOutline, checkmarkCircleOutline, fileTrayOutline });
   }
 
   ngOnInit() {
@@ -183,7 +184,27 @@ export class CuentasPorCobrarComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.mostrarToast('Abono registrado exitosamente', 'success');
-        this.cargarDeudas();
+        
+        // Actualizar localmente inmediatamente para mejorar la UX
+        const deudaIndex = this.deudas.findIndex(d => d.id === deudaId);
+        if (deudaIndex !== -1) {
+            const deuda = this.deudas[deudaIndex];
+            deuda.saldoPendiente -= monto;
+            
+            // Asumimos que si el saldo es 0, el backend lo marcará como pagado
+            if (deuda.saldoPendiente <= 0.01) {
+                deuda.saldoPendiente = 0;
+                deuda.estado = 'PAGADO';
+            }
+
+            // Si estamos filtrando por pendientes y ya se pagó, lo quitamos de la lista
+            if (deuda.estado === 'PAGADO' && (this.filterEstado === 'PENDIENTE' || this.filterEstado === 'VENCIDO')) {
+                this.deudas.splice(deudaIndex, 1);
+            }
+            
+            // Actualizar la vista filtrada
+            this.filterDeudas();
+        }
       },
       error: (err) => {
         console.error(err);

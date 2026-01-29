@@ -4,7 +4,7 @@ import { IonicModule, ModalController } from '@ionic/angular';
 import { GastoService } from 'src/app/core/services/gasto.service';
 import { Gasto } from 'src/app/core/models/gasto';
 import { addIcons } from 'ionicons';
-import { searchOutline, filterOutline, addOutline, cashOutline, trashOutline } from 'ionicons/icons';
+import { searchOutline, filterOutline, addOutline, cashOutline, trashOutline, fileTrayOutline } from 'ionicons/icons';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NumericFormatDirective } from 'src/app/shared/directives/numeric-format.directive';
 import { TransactionModalComponent } from '../../../caja/components/transaction-modal/transaction-modal.component';
@@ -23,6 +23,7 @@ export class CuentasPorPagarComponent implements OnInit {
   filterEstado: string = 'PENDIENTE';
   loading: boolean = false;
   showForm: boolean = false;
+  skeletonRows = [1, 2, 3, 4, 5];
   
   gastoForm: FormGroup;
 
@@ -32,7 +33,7 @@ export class CuentasPorPagarComponent implements OnInit {
     private fb: FormBuilder,
     private alertService: AlertService
   ) {
-    addIcons({ searchOutline, filterOutline, addOutline, cashOutline, trashOutline });
+    addIcons({ searchOutline, filterOutline, addOutline, cashOutline, trashOutline, fileTrayOutline });
     this.gastoForm = this.fb.group({
       proveedor: ['', Validators.required],
       concepto: ['', Validators.required],
@@ -154,7 +155,24 @@ export class CuentasPorPagarComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.mostrarToast('Pago registrado exitosamente', 'success');
-        this.cargarGastos();
+        
+        // Optimistic / Immediate update
+        const gastoIndex = this.gastos.findIndex(g => g.id === gastoId);
+        if (gastoIndex !== -1) {
+            const gasto = this.gastos[gastoIndex];
+            gasto.saldoPendiente -= monto;
+            
+            if (gasto.saldoPendiente <= 0.01) {
+                gasto.saldoPendiente = 0;
+                gasto.estado = 'PAGADO';
+            }
+
+            if (gasto.estado === 'PAGADO' && (this.filterEstado === 'PENDIENTE' || this.filterEstado === 'VENCIDO')) {
+                this.gastos.splice(gastoIndex, 1);
+            }
+
+            this.filterGastos();
+        }
       },
       error: (err) => {
         console.error(err);
