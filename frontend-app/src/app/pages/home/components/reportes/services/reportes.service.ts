@@ -6,6 +6,9 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 export interface ReportMetric {
   name: string;
@@ -165,14 +168,57 @@ export class ReportesService {
       headStyles: { fillColor: [22, 163, 74] } // green-600
     });
 
-    doc.save(`${title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.pdf`);
+    const fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.pdf`;
+
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const base64PDF = doc.output('datauristring').split(',')[1];
+        this.saveAndShareFile(fileName, base64PDF);
+      } catch (e) {
+        console.error('Error exportando PDF nativo', e);
+      }
+    } else {
+      doc.save(fileName);
+    }
   }
 
   exportToExcel(data: ReportMetric[], fileName: string = 'reporte') {
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] };
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    this.saveAsExcelFile(excelBuffer, fileName);
+    
+    const fullFileName = `${fileName}_export_${new Date().getTime()}.xlsx`;
+
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const excelBase64 = XLSX.write(workbook, { bookType: 'xlsx', type: 'base64' });
+        this.saveAndShareFile(fullFileName, excelBase64);
+      } catch (e) {
+        console.error('Error exportando Excel nativo', e);
+      }
+    } else {
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      this.saveAsExcelFile(excelBuffer, fileName);
+    }
+  }
+
+  private async saveAndShareFile(fileName: string, base64Data: string) {
+    try {
+      const savedFile = await Filesystem.writeFile({
+        path: fileName,
+        data: base64Data,
+        directory: Directory.Cache
+      });
+
+      await Share.share({
+        title: 'Compartir Reporte',
+        text: 'Adjunto encontrarás el reporte generado.',
+        url: savedFile.uri,
+        dialogTitle: 'Compartir Reporte'
+      });
+    } catch (error) {
+      console.error('Error al guardar/compartir archivo:', error);
+      // Fallback or alert logic could be added here
+    }
   }
 
   private saveAsExcelFile(buffer: any, fileName: string): void {
