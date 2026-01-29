@@ -36,14 +36,14 @@
 .clients-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
+  gap: 12px; // Reduced gap
 }
 
 .client-card {
   background: white;
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  border-radius: 12px; // Slightly smaller radius
+  padding: 12px; // Reduced padding
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
@@ -51,29 +51,29 @@
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.06);
   }
 
   .card-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-    padding-bottom: 16px;
+    gap: 10px; // Reduced gap
+    margin-bottom: 12px; // Reduced margin
+    padding-bottom: 12px; // Reduced padding
     border-bottom: 1px dashed #e2e8f0;
 
     .avatar-circle {
-      width: 48px;
-      height: 48px;
+      width: 40px; // Smaller avatar
+      height: 40px; // Smaller avatar
       background: var(--ion-color-primary);
       color: white;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
+      font-size: 1.1rem; // Smaller font
       font-weight: 700;
-      box-shadow: 0 4px 10px rgba(var(--ion-color-primary-rgb), 0.3);
+      box-shadow: 0 3px 8px rgba(var(--ion-color-primary-rgb), 0.3);
     }
 
     .client-info {
@@ -81,18 +81,18 @@
 
       h3 {
         margin: 0;
-        font-size: 1.1rem;
+        font-size: 1rem; // Smaller font
         font-weight: 600;
         color: var(--ion-color-dark);
-        line-height: 1.3;
+        line-height: 1.2;
       }
 
       .phone {
-        margin: 4px 0 0;
+        margin: 2px 0 0;
         display: flex;
         align-items: center;
         gap: 4px;
-        font-size: 0.85rem;
+        font-size: 0.8rem; // Smaller font
         color: #64748b;
       }
     }
@@ -102,8 +102,8 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-bottom: 16px;
+    gap: 10px; // Reduced gap
+    margin-bottom: 12px; // Reduced margin
 
     .debt-info {
       display: flex;
@@ -111,21 +111,21 @@
       align-items: center;
       text-align: center;
       background: #fff1f2;
-      padding: 12px;
-      border-radius: 12px;
+      padding: 8px; // Reduced padding
+      border-radius: 8px; // Smaller radius
       border: 1px solid #fecdd3;
 
       .label {
-        font-size: 0.8rem;
+        font-size: 0.7rem; // Smaller font
         text-transform: uppercase;
         letter-spacing: 0.5px;
         color: #9f1239;
         font-weight: 600;
-        margin-bottom: 4px;
+        margin-bottom: 2px;
       }
 
       .amount {
-        font-size: 1.5rem;
+        font-size: 1.25rem; // Reduced font size
         font-weight: 700;
         color: #be123c;
       }
@@ -137,9 +137,9 @@
       .badge {
         background: #f1f5f9;
         color: #475569;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.8rem;
+        padding: 2px 8px; // Smaller padding
+        border-radius: 12px;
+        font-size: 0.75rem; // Smaller font
         font-weight: 600;
       }
     }
@@ -147,14 +147,20 @@
 
   .card-footer {
     display: flex;
-    gap: 12px;
+    gap: 8px; // Reduced gap
     
     .action-btn {
       flex: 1;
       margin: 0;
       font-weight: 600;
-      height: 44px;
-      --border-radius: 12px;
+      height: 36px; // Reduced height
+      min-height: 36px;
+      --border-radius: 8px; // Smaller radius
+      font-size: 0.85rem; // Smaller font
+      
+      ion-icon {
+        font-size: 1.1rem; // Smaller icon
+      }
     }
   }
 }

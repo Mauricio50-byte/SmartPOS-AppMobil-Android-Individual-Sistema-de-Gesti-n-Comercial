@@ -51,9 +51,9 @@
         </ion-item>
       </ion-col>
       <ion-col size="6">
-        <ion-item class="input-item">
-          <ion-label position="stacked">Deuda Actual ($)</ion-label>
-          <ion-input type="text" inputmode="numeric" formControlName="saldoDeuda" appNumericFormat></ion-input>
+        <ion-item class="input-item readonly-item">
+          <ion-label position="stacked">Deuda Actual <ion-icon name="lock-closed-outline" style="font-size: 12px; vertical-align: middle;"></ion-icon></ion-label>
+          <ion-input type="text" inputmode="numeric" formControlName="saldoDeuda" appNumericFormat readonly="true"></ion-input>
         </ion-item>
       </ion-col>
     </ion-row>

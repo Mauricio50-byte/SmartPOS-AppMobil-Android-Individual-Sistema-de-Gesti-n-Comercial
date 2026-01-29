@@ -4,6 +4,8 @@ import { IonicModule, ModalController } from '@ionic/angular';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Cliente } from 'src/app/core/models/cliente';
 import { NumericFormatDirective } from 'src/app/shared/directives/numeric-format.directive';
+import { addIcons } from 'ionicons';
+import { closeOutline, lockClosedOutline } from 'ionicons/icons';
 
 @Component({
   standalone: false,
@@ -18,7 +20,9 @@ export class ClientEditModalComponent implements OnInit {
   constructor(
     private modalController: ModalController,
     private fb: FormBuilder
-  ) { }
+  ) {
+    addIcons({ closeOutline, lockClosedOutline });
+  }
 
   ngOnInit() {
     this.editForm = this.fb.group({
@@ -27,7 +31,7 @@ export class ClientEditModalComponent implements OnInit {
       cedula: [this.cliente.cedula],
       correo: [this.cliente.correo],
       creditoMaximo: [this.cliente.creditoMaximo || 0],
-      saldoDeuda: [this.cliente.saldoDeuda || 0] // Allow editing balance
+      saldoDeuda: [{ value: this.cliente.saldoDeuda || 0, disabled: true }] // Read only
     });
   }
 
@@ -37,7 +41,7 @@ export class ClientEditModalComponent implements OnInit {
 
   guardar() {
     if (this.editForm.valid) {
-      this.modalController.dismiss(this.editForm.value, 'confirm');
+      this.modalController.dismiss(this.editForm.getRawValue(), 'confirm');
     }
   }
 }

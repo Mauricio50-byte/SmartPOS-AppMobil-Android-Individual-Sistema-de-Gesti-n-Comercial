@@ -20,3 +20,19 @@ ion-item {
   border-radius: 8px;
   margin-top: 10px;
 }
+
+.readonly-item {
+  background-color: #f3f4f6; // Fondo gris muy suave
+  border-radius: 8px;
+  --padding-start: 10px;
+  
+  ion-input {
+    --color: var(--ion-color-dark); // Texto oscuro legible
+    font-weight: 600;
+    opacity: 1; // Asegurar opacidad total
+  }
+
+  ion-label {
+    color: var(--ion-color-medium-shade);
+  }
+}
