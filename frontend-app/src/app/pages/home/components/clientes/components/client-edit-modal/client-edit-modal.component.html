@@ -43,20 +43,35 @@
       Información Financiera
     </div>
 
-    <ion-row>
-      <ion-col size="6">
-        <ion-item class="input-item">
-          <ion-label position="stacked">Cupo Máximo ($)</ion-label>
-          <ion-input type="text" inputmode="numeric" formControlName="creditoMaximo" appNumericFormat></ion-input>
-        </ion-item>
-      </ion-col>
-      <ion-col size="6">
-        <ion-item class="input-item readonly-item">
-          <ion-label position="stacked">Deuda Actual <ion-icon name="lock-closed-outline" style="font-size: 12px; vertical-align: middle;"></ion-icon></ion-label>
-          <ion-input type="text" inputmode="numeric" formControlName="saldoDeuda" appNumericFormat readonly="true"></ion-input>
-        </ion-item>
-      </ion-col>
-    </ion-row>
+    <div class="financial-grid">
+      <div class="financial-card">
+        <div class="card-header">
+          <span class="card-label">Cupo Máximo</span>
+          <ion-icon name="wallet-outline" class="card-icon"></ion-icon>
+        </div>
+        <div class="card-value">
+          <span class="currency">$</span>
+          <ion-input type="text" inputmode="numeric" formControlName="creditoMaximo" appNumericFormat placeholder="0"></ion-input>
+        </div>
+      </div>
+      
+      <div class="financial-card" [class.readonly]="editForm.get('saldoDeuda')?.disabled">
+        <div class="card-header">
+          <span class="card-label">Deuda Actual</span>
+          <ion-icon name="cash-outline" class="card-icon"></ion-icon>
+        </div>
+        <div class="card-value">
+          <span class="currency">$</span>
+          <ion-input type="text" inputmode="numeric" formControlName="saldoDeuda" appNumericFormat placeholder="0"></ion-input>
+          
+          @if (editForm.get('saldoDeuda')?.disabled) {
+            <ion-button fill="clear" class="unlock-btn" (click)="intentarEditarDeuda()">
+              <ion-icon slot="icon-only" name="lock-closed-outline"></ion-icon>
+            </ion-button>
+          }
+        </div>
+      </div>
+    </div>
 
     <div class="form-actions ion-margin-top">
       <ion-button expand="block" type="submit" [disabled]="editForm.invalid">

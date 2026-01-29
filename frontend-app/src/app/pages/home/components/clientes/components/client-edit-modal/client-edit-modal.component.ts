@@ -5,7 +5,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Cliente } from 'src/app/core/models/cliente';
 import { NumericFormatDirective } from 'src/app/shared/directives/numeric-format.directive';
 import { addIcons } from 'ionicons';
-import { closeOutline, lockClosedOutline } from 'ionicons/icons';
+import { closeOutline, lockClosedOutline, createOutline, helpCircleOutline } from 'ionicons/icons';
+import { AlertService } from 'src/app/shared/services/alert.service';
 
 @Component({
   standalone: false,
@@ -19,9 +20,10 @@ export class ClientEditModalComponent implements OnInit {
 
   constructor(
     private modalController: ModalController,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private alertService: AlertService
   ) {
-    addIcons({ closeOutline, lockClosedOutline });
+    addIcons({ closeOutline, lockClosedOutline, createOutline, helpCircleOutline });
   }
 
   ngOnInit() {
@@ -31,8 +33,25 @@ export class ClientEditModalComponent implements OnInit {
       cedula: [this.cliente.cedula],
       correo: [this.cliente.correo],
       creditoMaximo: [this.cliente.creditoMaximo || 0],
-      saldoDeuda: [{ value: this.cliente.saldoDeuda || 0, disabled: true }] // Read only
+      saldoDeuda: [{ value: this.cliente.saldoDeuda || 0, disabled: true }] // Read only by default
     });
+  }
+
+  async intentarEditarDeuda() {
+    const deudaActual = this.cliente.saldoDeuda || 0;
+
+    // Advertencia de seguridad
+    const confirmed = await this.alertService.confirm(
+      '¿Habilitar edición de deuda?',
+      'Este campo es crítico para el sistema financiero. Solo debe editarse si el cliente tiene una deuda antigua NO registrada por facturas en el sistema.\n\n¿Desea continuar?',
+      'Sí, habilitar',
+      'Cancelar'
+    );
+
+    if (confirmed) {
+      this.editForm.get('saldoDeuda')?.enable();
+      this.alertService.toast('Edición de deuda habilitada. Tenga precaución.', 'warning');
+    }
   }
 
   cancelar() {
