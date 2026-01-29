@@ -302,10 +302,10 @@ export class SalesCartComponent implements OnInit {
             await this.mostrarAlerta(
               'Crédito Insuficiente',
               `El cliente no tiene crédito suficiente.\n\n` +
-              `Crédito máximo: $${validacion.creditoMaximo.toLocaleString()}\n` +
-              `Deuda actual: $${validacion.saldoDeuda.toLocaleString()}\n` +
-              `Crédito disponible: $${validacion.creditoDisponible.toLocaleString()}\n` +
-              `Monto solicitado: $${validacion.montoSolicitado.toLocaleString()}`
+              `Crédito máximo: $${validacion.creditoMaximo.toLocaleString('es-CO', { maximumFractionDigits: 0 })}\n` +
+              `Deuda actual: $${validacion.saldoDeuda.toLocaleString('es-CO', { maximumFractionDigits: 0 })}\n` +
+              `Crédito disponible: $${validacion.creditoDisponible.toLocaleString('es-CO', { maximumFractionDigits: 0 })}\n` +
+              `Monto solicitado: $${validacion.montoSolicitado.toLocaleString('es-CO', { maximumFractionDigits: 0 })}`
             );
             resolve(false);
           } else {
@@ -376,7 +376,7 @@ export class SalesCartComponent implements OnInit {
 
     const confirmed = await this.alertService.confirm(
       'Confirmar Venta',
-      `¿Confirma procesar la venta por valor de $${this.totalControl.value.toLocaleString()}?`,
+      `¿Confirma procesar la venta por valor de $${this.totalControl.value.toLocaleString('es-CO', { maximumFractionDigits: 0 })}?`,
       'Procesar Venta'
     );
 
@@ -409,10 +409,30 @@ export class SalesCartComponent implements OnInit {
     });
   }
 
+  async mostrarAlertaCambio(cambio: number) {
+    // Usamos es-CO para asegurar puntos de miles (ej: 5.000) y 0 decimales
+    const cambioFormateado = cambio.toLocaleString('es-CO', { maximumFractionDigits: 0 });
+    await this.alertService.alert(
+      'Cambio a Entregar',
+      `Por favor entregue el vuelto al cliente: $${cambioFormateado}`,
+      'info'
+    );
+  }
+
   async procesarVentaReal() {
     let loading: HTMLIonLoadingElement | undefined;
     
     try {
+      // Verificar si hay cambio que entregar antes de procesar
+      const ventaData = this.ventaForm.value;
+      const montoRecibido = Number(ventaData.montoRecibido || 0);
+      const total = Number(ventaData.total || 0);
+      
+      if (ventaData.metodoPago === 'EFECTIVO' && montoRecibido > total) {
+        const cambio = montoRecibido - total;
+        await this.mostrarAlertaCambio(cambio);
+      }
+
       loading = await this.loadingController.create({
         message: 'Procesando venta...'
       });
@@ -420,7 +440,6 @@ export class SalesCartComponent implements OnInit {
 
       this.ventaForm.patchValue({ fecha: new Date().toISOString() });
 
-      const ventaData = this.ventaForm.value;
       const payload: any = {
         usuarioId: ventaData.usuarioId,
         metodoPago: ventaData.metodoPago,
@@ -481,7 +500,8 @@ export class SalesCartComponent implements OnInit {
           this.ventaForm.patchValue({
             estadoPago: 'PAGADO',
             clienteId: null,
-            registrarCliente: false
+            registrarCliente: false,
+            montoRecibido: 0 // Limpiar monto recibido
           });
           this.datosClienteGroup.reset({
             nombre: '',
@@ -495,7 +515,7 @@ export class SalesCartComponent implements OnInit {
 
           if (loading) await loading.dismiss();
 
-          let mensaje = `Total: $${venta.total.toLocaleString()}\nMetodo: ${venta.metodoPago}`;
+          let mensaje = `Total: $${venta.total.toLocaleString('es-CO', { maximumFractionDigits: 0 })}\nMetodo: ${venta.metodoPago}`;
           if (venta.estadoPago === 'FIADO') mensaje += `\n\n⚠️ Venta FIADA registrada`;
 
           await this.alertService.alert(

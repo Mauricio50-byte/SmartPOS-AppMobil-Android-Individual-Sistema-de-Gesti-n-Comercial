@@ -210,9 +210,9 @@ $gap-lg: 20px;
     color: #111827;
     line-height: 1.2;
     margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow: visible;
+    word-break: break-word;
   }
 
   .metric-label {

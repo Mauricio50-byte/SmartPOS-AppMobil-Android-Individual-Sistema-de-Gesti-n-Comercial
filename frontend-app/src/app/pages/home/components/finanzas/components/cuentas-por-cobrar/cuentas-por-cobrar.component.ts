@@ -125,7 +125,7 @@ export class CuentasPorCobrarComponent implements OnInit {
       cssClass: 'transaction-modal',
       componentProps: {
         title: `Registrar Abono (${metodo})`,
-        message: `Saldo pendiente: $${deuda.saldoPendiente.toLocaleString()}`,
+        message: `Saldo pendiente: $${deuda.saldoPendiente.toLocaleString('es-CO', { maximumFractionDigits: 0 })}`,
         amountLabel: 'Monto a abonar',
         descriptionLabel: 'Observaciones',
         confirmText: 'Confirmar Abono',
@@ -168,9 +168,10 @@ export class CuentasPorCobrarComponent implements OnInit {
   }
 
   async mostrarAlertaCambio(cambio: number) {
+    const cambioFormateado = cambio.toLocaleString('es-CO', { maximumFractionDigits: 0 });
     await this.alertService.alert(
       'Cambio a Entregar',
-      `Por favor entregue el vuelto al cliente: $${cambio.toLocaleString()}`,
+      `Por favor entregue el vuelto al cliente: $${cambioFormateado}`,
       'info'
     );
   }
