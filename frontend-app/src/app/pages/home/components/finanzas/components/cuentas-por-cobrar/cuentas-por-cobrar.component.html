@@ -1,94 +1,136 @@
-<div class="toolbar">
-  <div class="search-wrapper">
-    <ion-icon name="search-outline" class="search-icon"></ion-icon>
-    <input 
-      type="text" 
-      placeholder="Buscar cliente..." 
-      (input)="onSearchInput($event)"
-      class="custom-search-input">
+<div class="cuentas-container">
+  <div class="header-section">
+    <h1>Cuentas por Cobrar</h1>
+    <p class="subtitle">Gestiona las deudas de tus clientes</p>
   </div>
 
-  <div class="filter-wrapper">
-    <ion-select [value]="filterEstado" (ionChange)="onFilterChange($event)" interface="popover" mode="ios">
-      <ion-select-option value="PENDIENTE">Pendientes</ion-select-option>
-      <ion-select-option value="VENCIDO">Vencidos</ion-select-option>
-      <ion-select-option value="PAGADO">Pagados</ion-select-option>
-      <ion-select-option value="TODOS">Todos</ion-select-option>
-    </ion-select>
+  <div class="toolbar">
+    <ion-searchbar 
+      class="search-bar" 
+      mode="ios" 
+      placeholder="Buscar por cliente..." 
+      (ionInput)="onSearchInput($event)"
+      [debounce]="250">
+    </ion-searchbar>
   </div>
-</div>
 
-<div class="table-container">
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Cliente</th>
-        <th>Fecha</th>
-        <th>Vencimiento</th>
-        <th>Monto Total</th>
-        <th>Saldo</th>
-        <th>Estado</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      @if (loading) {
-        @for (i of skeletonRows; track i) {
-          <tr class="skeleton-row">
-            <td>
-              <div style="display: flex; flex-direction: column; gap: 5px;">
-                <ion-skeleton-text animated style="width: 70%; height: 16px; border-radius: 4px;"></ion-skeleton-text>
-                <ion-skeleton-text animated style="width: 40%; height: 12px; border-radius: 4px;"></ion-skeleton-text>
+  <div class="content-area">
+    @if (loading) {
+      <div class="loading-state">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p>Cargando deudas...</p>
+      </div>
+    } @else {
+      @if (filteredClientes.length > 0) {
+        <div class="clients-grid">
+          @for (cliente of filteredClientes; track cliente.clienteId) {
+            <div class="client-card">
+              <div class="card-header">
+                <div class="avatar-circle">
+                  {{ cliente.nombre.charAt(0).toUpperCase() }}
+                </div>
+                <div class="client-info">
+                  <h3>{{ cliente.nombre }}</h3>
+                  <p class="phone" *ngIf="cliente.telefono">
+                    <ion-icon name="call-outline"></ion-icon> {{ cliente.telefono }}
+                  </p>
+                </div>
               </div>
-            </td>
-            <td><ion-skeleton-text animated style="width: 80%; height: 16px; border-radius: 4px;"></ion-skeleton-text></td>
-            <td><ion-skeleton-text animated style="width: 80%; height: 16px; border-radius: 4px;"></ion-skeleton-text></td>
-            <td><ion-skeleton-text animated style="width: 60%; height: 16px; border-radius: 4px;"></ion-skeleton-text></td>
-            <td><ion-skeleton-text animated style="width: 60%; height: 16px; border-radius: 4px;"></ion-skeleton-text></td>
-            <td><ion-skeleton-text animated style="width: 50%; height: 20px; border-radius: 10px;"></ion-skeleton-text></td>
-            <td><ion-skeleton-text animated style="width: 80px; height: 30px; border-radius: 8px;"></ion-skeleton-text></td>
-          </tr>
-        }
+              
+              <div class="card-body">
+                <div class="debt-info">
+                  <span class="label">Total Deuda</span>
+                  <span class="amount">{{ cliente.totalDeuda | currency:'USD':'symbol':'1.0-0' }}</span>
+                </div>
+                <div class="debt-count">
+                  <span class="badge">{{ cliente.deudas.length }} facturas ptes.</span>
+                </div>
+              </div>
+
+              <div class="card-footer">
+                <ion-button expand="block" fill="outline" shape="round" class="action-btn" (click)="verDetalleCliente(cliente)">
+                  <ion-icon name="eye-outline" slot="start"></ion-icon>
+                  Ver Detalle
+                </ion-button>
+                <ion-button expand="block" fill="solid" shape="round" class="action-btn" color="primary" (click)="abonarGeneral(cliente)">
+                  <ion-icon name="wallet-outline" slot="start"></ion-icon>
+                  Abonar Todo
+                </ion-button>
+              </div>
+            </div>
+          }
+        </div>
       } @else {
-        @for (deuda of filteredDeudas; track deuda) {
-        <tr>
-          <td data-label="Cliente">
-            <div class="client-info">
-              <span class="name">{{ deuda.cliente?.nombre }}</span>
-              <span class="cedula">{{ deuda.cliente?.cedula }}</span>
-            </div>
-          </td>
-          <td data-label="Fecha">{{ deuda.fechaCreacion | date:'shortDate' }}</td>
-          <td data-label="Vencimiento">{{ deuda.fechaVencimiento ? (deuda.fechaVencimiento | date:'shortDate') : '-' }}</td>
-          <td data-label="Monto Total">{{ deuda.montoTotal | currency:'USD' }}</td>
-          <td data-label="Saldo" class="amount-pending">{{ deuda.saldoPendiente | currency:'USD' }}</td>
-          <td data-label="Estado">
-            <ion-badge [color]="deuda.estado === 'PAGADO' ? 'success' : (deuda.estado === 'VENCIDO' ? 'danger' : 'warning')">
-              {{ deuda.estado }}
-            </ion-badge>
-          </td>
-          <td data-label="Acciones">
-            @if (deuda.estado !== 'PAGADO') {
-              <ion-button size="small" (click)="registrarAbono(deuda)">
-                <ion-icon slot="start" name="cash-outline"></ion-icon>
-                Abonar
+        <div class="empty-state">
+          <div class="icon-box">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+          </div>
+          <h3>¡Todo al día!</h3>
+          <p>No se encontraron clientes con deudas pendientes.</p>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Modal de Detalle de Deudas -->
+  <ion-modal [isOpen]="isModalOpen" (didDismiss)="cerrarModal()" [initialBreakpoint]="0.9" [breakpoints]="[0, 0.5, 0.9, 1]">
+    <ng-template>
+      <div class="modal-wrapper">
+        <ion-header class="ion-no-border">
+          <ion-toolbar>
+            <ion-title>
+              <div class="modal-title-wrapper">
+                <ion-icon name="person-circle-outline"></ion-icon>
+                <span>{{ selectedCliente?.nombre }}</span>
+              </div>
+            </ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="cerrarModal()" color="medium">
+                <ion-icon name="close-outline" slot="icon-only"></ion-icon>
               </ion-button>
-            }
-          </td>
-        </tr>
-      }
-      @if (filteredDeudas.length === 0) {
-        <tr>
-          <td colspan="7" class="empty-state">
-            <div class="empty-content">
-              <ion-icon name="file-tray-outline"></ion-icon>
-              <h3>No se encontraron deudas</h3>
-              <p>Intenta ajustar los filtros de búsqueda</p>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+
+        <ion-content class="ion-padding">
+          <div class="modal-summary">
+            <div class="summary-item total">
+              <span class="label">Deuda Total</span>
+              <span class="value">{{ selectedCliente?.totalDeuda | currency:'USD':'symbol':'1.0-0' }}</span>
             </div>
-          </td>
-        </tr>
-      }
-      }
-    </tbody>
-  </table>
+          </div>
+
+          <div class="debts-list">
+            <h3>Facturas Pendientes</h3>
+            @if (selectedCliente?.deudas) {
+              @for (deuda of selectedCliente!.deudas; track deuda.id) {
+                <div class="debt-item">
+                  <div class="debt-header">
+                    <span class="date">{{ deuda.fechaCreacion | date:'mediumDate' }}</span>
+                    <ion-badge color="warning" mode="ios">Pendiente</ion-badge>
+                  </div>
+                  <div class="debt-body">
+                    <div class="row">
+                      <span>Monto Original:</span>
+                      <strong>{{ deuda.montoTotal | currency:'USD':'symbol':'1.0-0' }}</strong>
+                    </div>
+                    <div class="row highlight">
+                      <span>Saldo Pendiente:</span>
+                      <strong>{{ deuda.saldoPendiente | currency:'USD':'symbol':'1.0-0' }}</strong>
+                    </div>
+                  </div>
+                  <div class="debt-actions">
+                    <ion-button expand="block" size="small" (click)="registrarAbono(deuda)">
+                      <ion-icon name="cash-outline" slot="start"></ion-icon>
+                      Registrar Abono
+                    </ion-button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </ion-content>
+      </div>
+    </ng-template>
+  </ion-modal>
 </div>

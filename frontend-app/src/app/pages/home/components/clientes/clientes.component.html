@@ -102,43 +102,80 @@
 
 
   @if (seleccionado) {
-    <div class="detalle-panel">
-      <div class="detalle-header">
-        <div class="title"><ion-icon name="person-outline"></ion-icon><strong>{{ seleccionado.nombre }}</strong></div>
-        <ion-button fill="clear" (click)="cerrarDetalle()"><ion-icon name="close-outline"></ion-icon></ion-button>
-      </div>
-      @if (estadoCuenta) {
-        <div class="detalle-content">
-          <div class="resumen">
-            <div><span class="label">Crédito Máximo</span><span class="value">{{ estadoCuenta.cliente.creditoMaximo | currency:'USD' }}</span></div>
-            <div><span class="label">Saldo Deuda</span><span class="value">{{ estadoCuenta.cliente.saldoDeuda | currency:'USD' }}</span></div>
-            <div><span class="label">Crédito Disponible</span><span class="value">{{ estadoCuenta.creditoDisponible | currency:'USD' }}</span></div>
-          </div>
-          <div class="deudas-list">
-            <h3>Deudas</h3>
-            <table class="data-table mini">
-              <thead><tr><th>Fecha</th><th>Total</th><th>Saldo</th><th>Estado</th></tr></thead>
-              <tbody>
-                @for (d of estadoCuenta.deudas; track d) {
-                  <tr>
-                    <td>{{ d.fechaCreacion | date:'shortDate' }}</td>
-                    <td>{{ d.montoTotal | currency:'USD' }}</td>
-                    <td>{{ d.saldoPendiente | currency:'USD' }}</td>
-                    <td><ion-badge [color]="d.estado === 'PAGADO' ? 'success' : (d.estado === 'VENCIDO' ? 'danger' : 'warning')">{{ d.estado }}</ion-badge></td>
-                  </tr>
-                }
-                @if (estadoCuenta.deudas.length === 0) {
-                  <tr>
-                    <td colspan="4" class="empty-state">Sin deudas registradas.</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
+    <ion-modal [isOpen]="!!seleccionado" (didDismiss)="cerrarDetalle()" [initialBreakpoint]="0.85" [breakpoints]="[0, 0.5, 0.85, 1]">
+      <ng-template>
+        <div class="modal-wrapper">
+          <ion-header class="ion-no-border">
+            <ion-toolbar>
+              <ion-title>
+                <div class="client-title-wrapper">
+                  <ion-icon name="person-circle-outline"></ion-icon>
+                  <span>{{ seleccionado.nombre }}</span>
+                </div>
+              </ion-title>
+              <ion-buttons slot="end">
+                <ion-button (click)="cerrarDetalle()" color="medium">
+                  <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+              </ion-buttons>
+            </ion-toolbar>
+          </ion-header>
+
+          <ion-content class="ion-padding">
+            @if (estadoCuenta) {
+              <div class="detalle-content">
+                <div class="resumen-card">
+                  <div class="kpi-item">
+                    <span class="label">Crédito Máximo</span>
+                    <span class="value">{{ estadoCuenta.cliente.creditoMaximo | currency:'USD':'symbol':'1.0-0' }}</span>
+                  </div>
+                  <div class="kpi-item warning">
+                    <span class="label">Saldo Deuda</span>
+                    <span class="value">{{ estadoCuenta.cliente.saldoDeuda | currency:'USD':'symbol':'1.0-0' }}</span>
+                  </div>
+                  <div class="kpi-item success">
+                    <span class="label">Disponible</span>
+                    <span class="value">{{ estadoCuenta.creditoDisponible | currency:'USD':'symbol':'1.0-0' }}</span>
+                  </div>
+                </div>
+
+                <div class="deudas-section">
+                  <h3>Historial de Deudas</h3>
+                  
+                  @if (estadoCuenta.deudas.length > 0) {
+                    <div class="deudas-list">
+                      @for (d of estadoCuenta.deudas; track d.id) {
+                        <div class="deuda-item">
+                          <div class="deuda-main">
+                            <span class="date">{{ d.fechaCreacion | date:'shortDate' }}</span>
+                            <span class="amount">{{ d.montoTotal | currency:'USD':'symbol':'1.0-0' }}</span>
+                          </div>
+                          <div class="deuda-sub">
+                            <span class="pending">Saldo: {{ d.saldoPendiente | currency:'USD':'symbol':'1.0-0' }}</span>
+                            <ion-badge [color]="d.estado === 'PAGADO' ? 'success' : (d.estado === 'VENCIDO' ? 'danger' : 'warning')" mode="ios">
+                              {{ d.estado }}
+                            </ion-badge>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <div class="empty-state-small">
+                      <ion-icon name="checkmark-circle-outline"></ion-icon>
+                      <p>Este cliente no tiene deudas registradas.</p>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div class="loading-state">
+                <ion-spinner name="crescent" color="primary"></ion-spinner>
+                <p>Cargando estado de cuenta...</p>
+              </div>
+            }
+          </ion-content>
         </div>
-      } @else {
-        <div class="loading"><ion-spinner name="dots" color="primary"></ion-spinner></div>
-      }
-    </div>
+      </ng-template>
+    </ion-modal>
   }
 </div>
