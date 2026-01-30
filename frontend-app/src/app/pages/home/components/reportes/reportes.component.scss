@@ -9,68 +9,125 @@
 .header-actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   margin-bottom: 24px;
   
-  @media (min-width: 640px) {
+  @media (min-width: 1024px) {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
   }
 }
 
+.title-segment-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+  }
+}
+
 .page-title {
-  font-size: 1.5rem; /* text-2xl */
-  font-weight: 700;
-  color: #1f2937; /* text-gray-800 */
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #111827;
   margin: 0;
+  white-space: nowrap;
+}
+
+/* Custom Segment Styling */
+.custom-segment {
+  --background: #f3f4f6;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 4px;
+  width: fit-content;
+  min-width: 320px;
+  
+  /* Ensure scrolling on very small screens if needed */
+  overflow-x: auto; 
+
+  ion-segment-button {
+    --indicator-color: #ffffff;
+    --indicator-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --color: #4b5563;
+    --color-checked: #111827;
+    --border-radius: 6px;
+    margin: 0 2px;
+    min-height: 32px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    
+    ion-label {
+      font-size: 0.875rem;
+      margin-top: 2px;
+      margin-bottom: 2px;
+    }
+  }
 }
 
 .buttons-group {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .custom-btn {
   --border-radius: 8px;
-  --padding-start: 12px;
-  --padding-end: 12px;
-  --box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   margin: 0;
-  height: 36px;
+  height: 40px;
+  font-size: 0.875rem;
+  text-transform: uppercase;
   
   ion-icon {
     font-size: 1.1rem;
+    margin-right: 6px;
   }
   
   &.refresh-btn {
     --border-color: #e5e7eb;
-    --color: #4b5563;
+    --border-style: solid;
+    --border-width: 1px;
+    --color: #374151;
     --background: white;
-    width: 36px; /* Square button for icon only */
+    --background-hover: #f9fafb;
+    --box-shadow: none;
+    width: 40px;
     --padding-start: 0;
     --padding-end: 0;
     
     ion-icon {
       margin: 0;
+      font-size: 1.25rem;
     }
   }
 
   &.pdf-btn {
-    --background: #ef4444; /* red-500 */
-    --background-activated: #dc2626;
+    --background: #ef4444; 
     --background-hover: #dc2626;
+    --background-activated: #b91c1c;
     --color: white;
+    --box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
   }
 
   &.excel-btn {
-    --background: #10b981; /* emerald-500 */
-    --background-activated: #059669;
+    --background: #10b981; 
     --background-hover: #059669;
+    --background-activated: #047857;
     --color: white;
+    --box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
   }
 }
 

@@ -10,6 +10,8 @@ import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 
+export type ReportPeriod = 'day' | 'week' | 'month' | 'year' | 'all';
+
 export interface ReportMetric {
   name: string;
   salesVolume: number; // Units
@@ -27,6 +29,15 @@ export interface ReportData {
   totalPending: number; // Por Cobrar (Fiado)
   totalCost: number;
   totalVolume: number;
+  // Breakdowns
+  revenueCash: number;
+  revenueTransfer: number;
+  collectedCash: number;
+  collectedTransfer: number;
+  pendingCash: number;
+  pendingTransfer: number;
+  volumeContado: number;
+  volumeFiado: number;
 }
 
 @Injectable({
@@ -38,13 +49,51 @@ export class ReportesService {
 
   constructor() { }
 
-  getGeneralReport(): Observable<ReportData> {
+  getGeneralReport(period: ReportPeriod = 'month'): Observable<ReportData> {
+    const { startDate, endDate } = this.getDateRange(period);
+    console.log('[DEBUG Frontend] Requesting report for period:', period);
+    console.log('[DEBUG Frontend] Date Range:', { startDate, endDate });
+
     return forkJoin({
-      ventas: this.ventaService.listarVentas(),
+      ventas: this.ventaService.listarVentas({ startDate, endDate }),
       productos: this.productoService.listarProductos()
     }).pipe(
       map(({ ventas, productos }) => this.calculateMetrics(ventas, productos))
     );
+  }
+
+  private getDateRange(period: ReportPeriod): { startDate?: string, endDate?: string } {
+    if (period === 'all') return {};
+
+    const now = new Date();
+    const end = new Date(now);
+    end.setHours(23, 59, 59, 999);
+    
+    let start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+
+    switch (period) {
+      case 'day':
+        // Start is already today 00:00
+        break;
+      case 'week':
+        const day = start.getDay();
+        // Calculate Monday of current week
+        const diff = start.getDate() - day + (day === 0 ? -6 : 1); 
+        start.setDate(diff);
+        break;
+      case 'month':
+        start.setDate(1);
+        break;
+      case 'year':
+        start.setMonth(0, 1);
+        break;
+    }
+
+    return { 
+      startDate: start.toISOString(), 
+      endDate: end.toISOString() 
+    };
   }
 
   private calculateMetrics(ventas: any[], productos: any[]): ReportData {
@@ -56,50 +105,55 @@ export class ReportesService {
       prevRevenue: number
     }> = {};
 
-    const now = new Date();
-    const currentDay = now.getDate();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    const prevMonthDate = new Date(currentYear, currentMonth - 1, 1);
-    const prevMonth = prevMonthDate.getMonth();
-    const prevYear = prevMonthDate.getFullYear();
-
     let totalRevenue = 0;
-    let totalCollected = 0; // New metric
-    let totalPending = 0;   // New metric
+    let totalCollected = 0; 
+    let totalPending = 0;   
     let totalCost = 0;
     let totalVolume = 0;
 
-    ventas.forEach(v => {
-      if (!v.fecha) return;
-      const vDate = new Date(v.fecha);
-      const isCurrentPeriod = vDate.getMonth() === currentMonth && vDate.getFullYear() === currentYear;
-      
-      // Global metrics (Revenue vs Collected) should be calculated for the Current Period
-      if (isCurrentPeriod) {
-          // Use Number() to ensure safety
-          const pagado = Number(v.montoPagado) || 0;
-          const pendiente = Number(v.saldoPendiente) || 0;
-          const totalVenta = Number(v.total) || 0;
+    let revenueCash = 0;
+    let revenueTransfer = 0;
+    let collectedCash = 0;
+    let collectedTransfer = 0;
+    let pendingCash = 0;
+    let pendingTransfer = 0;
+    let volumeContado = 0;
+    let volumeFiado = 0;
 
-          // If montoPagado is not tracked correctly in legacy data, assume:
-          // if estadoPago == 'PAGADO' -> total
-          // else -> use what is available
-          // But our backend seems to track montoPagado well.
-          
-          totalCollected += pagado;
-          totalPending += pendiente;
-          
-          // Note: totalRevenue will be summed up from items below to match category breakdown
+    ventas.forEach(v => {
+      // Since we filter at API level, we assume all returned sales are relevant for the current period
+      
+      // Use Number() to ensure safety
+      const pagado = Number(v.montoPagado) || 0;
+      const pendiente = Number(v.saldoPendiente) || 0;
+      const totalVenta = Number(v.total) || 0;
+      const metodo = (v.metodoPago || 'EFECTIVO').toUpperCase();
+      const estado = (v.estadoPago || 'PAGADO').toUpperCase();
+      
+      totalCollected += pagado;
+      totalPending += pendiente;
+
+      // Revenue breakdown (by sale payment method)
+      if (metodo === 'EFECTIVO') {
+        revenueCash += totalVenta;
+      } else {
+        revenueTransfer += totalVenta;
       }
 
-      const isPrevPeriod = vDate.getMonth() === prevMonth &&
-        vDate.getFullYear() === prevYear &&
-        vDate.getDate() <= currentDay;
+      // Collected breakdown (by sale payment method)
+      if (metodo === 'EFECTIVO') {
+        collectedCash += pagado;
+      } else {
+        collectedTransfer += pagado;
+      }
 
-      if (!isCurrentPeriod && !isPrevPeriod) return;
-
+      // Pending breakdown (by sale payment method)
+      if (metodo === 'EFECTIVO') {
+        pendingCash += pendiente;
+      } else {
+        pendingTransfer += pendiente;
+      }
+      
       const items = v.detalles || v.items || [];
       items.forEach((item: any) => {
         const pId = item.producto?.id || item.productoId;
@@ -118,15 +172,19 @@ export class ReportesService {
           categoryStats[cat] = { volume: 0, revenue: 0, cost: 0, prevRevenue: 0 };
         }
 
-        if (isCurrentPeriod) {
-          categoryStats[cat].volume += qty;
-          categoryStats[cat].revenue += itemRevenue;
-          categoryStats[cat].cost += itemCost;
-          totalRevenue += itemRevenue;
-          totalCost += itemCost;
-          totalVolume += qty;
-        } else if (isPrevPeriod) {
-          categoryStats[cat].prevRevenue += itemRevenue;
+        categoryStats[cat].volume += qty;
+        categoryStats[cat].revenue += itemRevenue;
+        categoryStats[cat].cost += itemCost;
+        
+        totalRevenue += itemRevenue;
+        totalCost += itemCost;
+        totalVolume += qty;
+
+        // Volume breakdown
+        if (estado === 'PAGADO') {
+            volumeContado += qty;
+        } else {
+            volumeFiado += qty;
         }
       });
     });
@@ -134,15 +192,8 @@ export class ReportesService {
     const metrics = Object.entries(categoryStats).map(([name, stats]) => {
       const margin = stats.revenue > 0 ? ((stats.revenue - stats.cost) / stats.revenue) * 100 : 0;
 
-      // Growth calculation:
-      // If we had sales before: (Current - Previous) / Previous
-      // If we had NO sales before and HAVE sales now: 100% growth (New Sales)
-      let growth = 0;
-      if (stats.prevRevenue > 0) {
-        growth = ((stats.revenue - stats.prevRevenue) / stats.prevRevenue) * 100;
-      } else if (stats.revenue > 0) {
-        growth = 100; // It's all growth compared to zero
-      }
+      // Growth calculation is disabled/reset because we don't fetch previous period data anymore
+      const growth = 0; 
 
       const share = totalRevenue > 0 ? (stats.revenue / totalRevenue) * 100 : 0;
 
@@ -157,7 +208,22 @@ export class ReportesService {
       };
     });
 
-    return { metrics, totalRevenue, totalCost, totalVolume, totalCollected, totalPending };
+    return { 
+      metrics, 
+      totalRevenue, 
+      totalCost, 
+      totalVolume, 
+      totalCollected, 
+      totalPending,
+      revenueCash,
+      revenueTransfer,
+      collectedCash,
+      collectedTransfer,
+      pendingCash,
+      pendingTransfer,
+      volumeContado,
+      volumeFiado
+    };
   }
 
   exportToPDF(data: ReportMetric[], title: string = 'Reporte de Categorías') {

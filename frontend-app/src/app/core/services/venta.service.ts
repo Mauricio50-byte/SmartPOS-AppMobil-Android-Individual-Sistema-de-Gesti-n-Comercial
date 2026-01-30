@@ -15,8 +15,12 @@ export class VentaServices {
 
   constructor(private http: HttpClient) {}
 
-  listarVentas(): Observable<Venta[]> {
-    return this.http.get<Venta[]>(this.apiUrl);
+  listarVentas(filters?: { startDate?: string, endDate?: string }): Observable<Venta[]> {
+    let params: any = {};
+    if (filters?.startDate) params.startDate = filters.startDate;
+    if (filters?.endDate) params.endDate = filters.endDate;
+    
+    return this.http.get<Venta[]>(this.apiUrl, { params });
   }
 
   obtenerVentaPorId(id: number): Observable<Venta> {

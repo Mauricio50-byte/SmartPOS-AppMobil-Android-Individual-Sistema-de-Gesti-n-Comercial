@@ -2,7 +2,19 @@ const { listarVentas, obtenerVentaPorId, crearVenta } = require('./venta.servici
 
 async function registrarRutasVenta(app) {
   app.get('/ventas', { preHandler: [app.requiereModulo('ventas'), app.requierePermiso('VER_VENTAS')] }, async (req, res) => {
-    const datos = await listarVentas()
+    const { startDate, endDate } = req.query
+    //console.log('[DEBUG] GET /ventas Query Params:', req.query);
+    const filtro = {}
+    
+    if (startDate || endDate) {
+      filtro.fecha = {}
+      if (startDate) filtro.fecha.gte = new Date(startDate)
+      if (endDate) filtro.fecha.lte = new Date(endDate)
+    }
+
+    //console.log('[DEBUG] Filtro Prisma:', JSON.stringify(filtro, null, 2));
+
+    const datos = await listarVentas(filtro)
     return res.send(datos)
   })
 

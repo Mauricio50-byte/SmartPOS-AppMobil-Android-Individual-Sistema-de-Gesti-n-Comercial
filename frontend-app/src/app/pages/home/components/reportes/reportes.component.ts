@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ChartConfiguration, ChartData } from 'chart.js';
-import { ReportesService, ReportMetric, ReportData } from './services/reportes.service';
+import { ReportesService, ReportMetric, ReportData, ReportPeriod } from './services/reportes.service';
 
 @Component({
   selector: 'app-reportes',
@@ -14,6 +14,7 @@ export class ReportesComponent implements OnInit {
   metrics: ReportMetric[] = [];
   filteredMetrics: ReportMetric[] = [];
   dataLoaded = false;
+  selectedPeriod: ReportPeriod = 'day';
   
   // KPI Cards
   totalRevenue = 0;
@@ -22,6 +23,16 @@ export class ReportesComponent implements OnInit {
   totalCost = 0;
   totalVolume = 0;
   averageMargin = 0;
+
+  // Breakdowns
+  revenueCash = 0;
+  revenueTransfer = 0;
+  collectedCash = 0;
+  collectedTransfer = 0;
+  pendingCash = 0;
+  pendingTransfer = 0;
+  volumeContado = 0;
+  volumeFiado = 0;
 
   // Filters
   searchTerm = '';
@@ -54,9 +65,14 @@ export class ReportesComponent implements OnInit {
     this.loadData();
   }
 
+  setPeriod(period: ReportPeriod) {
+    this.selectedPeriod = period;
+    this.loadData();
+  }
+
   loadData() {
     this.dataLoaded = false;
-    this.reportesService.getGeneralReport().subscribe({
+    this.reportesService.getGeneralReport(this.selectedPeriod).subscribe({
       next: (data: ReportData) => {
         this.metrics = data.metrics;
         this.totalRevenue = data.totalRevenue;
@@ -64,6 +80,15 @@ export class ReportesComponent implements OnInit {
         this.totalPending = data.totalPending;
         this.totalCost = data.totalCost;
         this.totalVolume = data.totalVolume;
+        
+        this.revenueCash = data.revenueCash;
+        this.revenueTransfer = data.revenueTransfer;
+        this.collectedCash = data.collectedCash;
+        this.collectedTransfer = data.collectedTransfer;
+        this.pendingCash = data.pendingCash;
+        this.pendingTransfer = data.pendingTransfer;
+        this.volumeContado = data.volumeContado;
+        this.volumeFiado = data.volumeFiado;
         
         // Calculate weighted average margin
         this.averageMargin = this.totalRevenue > 0 
