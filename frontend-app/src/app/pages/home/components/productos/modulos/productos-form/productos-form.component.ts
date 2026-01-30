@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { camera, trash, shuffleOutline } from 'ionicons/icons';
@@ -14,6 +14,16 @@ import { FormularioFarmaciaComponent } from '../formulario-farmacia/formulario-f
 import { FormularioPapeleriaComponent } from '../formulario-papeleria/formulario-papeleria.component';
 import { FormularioRestauranteComponent } from '../formulario-restaurante/formulario-restaurante.component';
 import { NumericFormatDirective } from 'src/app/shared/directives/numeric-format.directive';
+
+function stockValidator(group: AbstractControl): ValidationErrors | null {
+  const stock = Number(group.get('stock')?.value || 0);
+  const stockMinimo = Number(group.get('stockMinimo')?.value || 0);
+
+  if (stockMinimo > stock) {
+    return { minStockGreaterThanStock: true };
+  }
+  return null;
+}
 
 @Component({
   selector: 'app-productos-form',
@@ -147,7 +157,7 @@ export class ProductosFormComponent implements OnChanges {
 
       // Estado
       activo: [true]
-    });
+    }, { validators: stockValidator });
   }
 
   patchForm(product: Producto) {

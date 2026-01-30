@@ -212,6 +212,11 @@
               <ion-label position="stacked">Stock Mínimo</ion-label>
               <ion-input type="text" inputmode="numeric" formControlName="stockMinimo" appNumericFormat></ion-input>
             </ion-item>
+            @if (productForm.errors?.['minStockGreaterThanStock'] && (productForm.get('stockMinimo')?.touched || productForm.get('stock')?.touched)) {
+            <div class="error-msg">
+              El stock mínimo no puede ser mayor al stock actual.
+            </div>
+            }
           </ion-col>
           <ion-col size="12" size-sm="4">
             <ion-item class="input-item">

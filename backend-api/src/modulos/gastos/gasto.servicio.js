@@ -84,25 +84,79 @@ async function registrarPagoGasto(datos) {
 
         // --- INTEGRACIÓN CAJA ---
         // Se integra con la caja si el método de pago es EFECTIVO o TRANSFERENCIA (ambos afectan el cuadre)
-        if (usuarioId && (metodoPago === 'EFECTIVO' || metodoPago === 'TRANSFERENCIA')) {
-             const cajaAbierta = await tx.caja.findFirst({
+        const metodoPagoUpper = String(metodoPago).toUpperCase();
+        
+        console.log(`[DEBUG] Intentando registrar pago gasto en caja. Usuario: ${usuarioId}, Metodo: ${metodoPagoUpper}, Monto: ${monto}`);
+
+        if (usuarioId && (metodoPagoUpper === 'EFECTIVO' || metodoPagoUpper === 'TRANSFERENCIA')) {
+             // 1. Intentar buscar caja del usuario actual
+             let cajaAbierta = await tx.caja.findFirst({
                  where: { usuarioId: Number(usuarioId), estado: 'ABIERTA' }
              })
+             
+             // 2. Fallback: Si el usuario no tiene caja abierta (ej. Admin registrando gasto), buscar cualquier caja abierta
+             if (!cajaAbierta) {
+                 console.log('[DEBUG] No se encontró caja para usuario actual, buscando cualquier caja abierta...');
+                 cajaAbierta = await tx.caja.findFirst({
+                     where: { estado: 'ABIERTA' }
+                 })
+             }
+
              if (cajaAbierta) {
-                 const metodoPagoNorm = String(metodoPago).toUpperCase();
+                 // --- VALIDACIÓN DE SALDO ---
+                 // Calcular saldo disponible para este método de pago en esta caja
+                 // Obtenemos todos los movimientos de esta caja que coincidan con el método de pago
+                 // Nota: Asumimos que metodoPagoUpper ya está normalizado.
+                 const movimientos = await tx.movimientoCaja.findMany({
+                     where: {
+                         cajaId: cajaAbierta.id,
+                         metodoPago: metodoPagoUpper
+                     }
+                 });
+
+                 let saldoDisponible = 0;
+                 // Si es EFECTIVO, sumamos el monto inicial de la caja
+                 if (metodoPagoUpper === 'EFECTIVO') {
+                     saldoDisponible += (cajaAbierta.montoInicial || 0);
+                 }
+
+                 // Sumar/Restar movimientos
+                 for (const mov of movimientos) {
+                     // Tipos que SUMAN al saldo
+                     if (['INGRESO', 'VENTA', 'ABONO_VENTA', 'ABONO_DEUDA'].includes(mov.tipo)) {
+                         saldoDisponible += mov.monto;
+                     }
+                     // Tipos que RESTAN al saldo
+                     else if (['EGRESO', 'PAGO_GASTO', 'RETIRO'].includes(mov.tipo)) {
+                         saldoDisponible -= mov.monto;
+                     }
+                 }
+
+                 console.log(`[DEBUG] Saldo disponible en ${metodoPagoUpper}: ${saldoDisponible}. Monto a pagar: ${monto}`);
+
+                 if (saldoDisponible < monto) {
+                     throw new Error(`Saldo insuficiente en CAJA (${metodoPagoUpper}). Disponible: $${new Intl.NumberFormat('es-CO').format(saldoDisponible)}. Intenta con otro medio de pago.`);
+                 }
+                 // ---------------------------
+
+                 console.log(`[DEBUG] Caja encontrada: ID ${cajaAbierta.id}. Registrando movimiento...`);
                  await tx.movimientoCaja.create({
                      data: {
                          cajaId: cajaAbierta.id,
-                         usuarioId: Number(usuarioId),
+                         usuarioId: Number(usuarioId), // Se registra a nombre del usuario que hizo la acción
                          tipo: 'PAGO_GASTO',
-                         metodoPago: metodoPagoNorm,
+                         metodoPago: metodoPagoUpper,
                          monto: monto,
-                         descripcion: `Pago a gasto: ${gasto.concepto} (${metodoPagoNorm})`,
+                         descripcion: `Pago a gasto: ${gasto.concepto} (${metodoPagoUpper})`,
                          gastoId: gasto.id,
                          fecha: new Date()
                      }
                  })
+             } else {
+                 console.warn('[WARNING] Se intentó pagar con CAJA pero no se encontró ninguna caja abierta en el sistema.');
              }
+        } else {
+            console.log('[DEBUG] Pago no requiere integración con caja o usuario no definido.');
         }
         // ------------------------
 
