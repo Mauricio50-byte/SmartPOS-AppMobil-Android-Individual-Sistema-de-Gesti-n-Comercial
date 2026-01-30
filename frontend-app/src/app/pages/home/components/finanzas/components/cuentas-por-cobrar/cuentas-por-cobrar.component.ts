@@ -176,7 +176,7 @@ export class CuentasPorCobrarComponent implements OnInit {
     if (role === 'confirm' && data) {
       const monto = Number(data.monto);
       if (monto > deuda.saldoPendiente) {
-        this.mostrarToast('El monto excede el saldo pendiente', 'warning');
+        this.alertService.alert('Monto excedido', 'El monto a pagar no puede ser mayor al saldo pendiente de la deuda.', 'warning');
         return;
       }
 
@@ -290,7 +290,7 @@ export class CuentasPorCobrarComponent implements OnInit {
       const montoAbonar = Number(data.monto);
       
       if (montoAbonar <= 0) {
-        this.mostrarToast('Monto inválido', 'warning');
+        this.alertService.alert('Monto inválido', 'El monto debe ser mayor a 0', 'warning');
         return;
       }
       

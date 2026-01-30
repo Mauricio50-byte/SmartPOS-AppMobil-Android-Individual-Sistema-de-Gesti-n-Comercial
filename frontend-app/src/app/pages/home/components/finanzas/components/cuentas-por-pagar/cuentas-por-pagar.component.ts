@@ -137,11 +137,11 @@ export class CuentasPorPagarComponent implements OnInit {
     if (role === 'confirm' && data) {
       const monto = Number(data.monto);
       if (!monto || monto <= 0) {
-        this.mostrarToast('Monto inválido', 'warning');
+        this.alertService.alert('Monto inválido', 'El monto debe ser mayor a 0', 'warning');
         return;
       }
       if (monto > gasto.saldoPendiente) {
-        this.mostrarToast('El monto excede el saldo pendiente', 'warning');
+        this.alertService.alert('Monto excedido', 'El monto a pagar no puede ser mayor al saldo pendiente de la deuda.', 'warning');
         return;
       }
       this.procesarPago(gasto.id, monto, data.descripcion, data.metodoPago);
@@ -183,7 +183,9 @@ export class CuentasPorPagarComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.mostrarToast('Error al registrar pago', 'danger');
+        // Extraer mensaje de error del backend si existe
+        const errorMessage = err.error?.error || err.error?.message || 'Error al registrar pago';
+        this.alertService.alert('No se pudo procesar', errorMessage, 'error');
       }
     });
   }

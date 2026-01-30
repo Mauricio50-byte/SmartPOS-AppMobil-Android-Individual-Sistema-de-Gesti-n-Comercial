@@ -59,7 +59,7 @@ export class AlertService {
   async alert(title: string, text: string, icon: SweetAlertIcon = 'info') {
     return Swal.fire({
       title,
-      html: text,
+      text,
       icon,
       confirmButtonText: 'OK',
       heightAuto: false,
@@ -76,7 +76,7 @@ export class AlertService {
   async confirm(title: string, text: string, confirmButtonText: string = 'Sí, confirmar', cancelButtonText: string = 'Cancelar'): Promise<boolean> {
     const result = await Swal.fire({
       title,
-      html: text,
+      text,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',

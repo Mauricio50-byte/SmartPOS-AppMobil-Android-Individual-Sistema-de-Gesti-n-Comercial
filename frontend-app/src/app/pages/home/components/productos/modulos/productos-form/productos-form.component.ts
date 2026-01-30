@@ -1,11 +1,12 @@
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
-
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { camera, trash, shuffleOutline } from 'ionicons/icons';
 import { Producto } from 'src/app/core/models/producto';
 import { ProductosServices } from 'src/app/core/services/producto.service';
+import { AlertService } from 'src/app/shared/services/alert.service';
 
 import { FormularioRopaComponent } from '../formulario-ropa/formulario-ropa.component';
 import { FormularioAlimentosComponent } from '../formulario-alimentos/formulario-alimentos.component';
@@ -40,10 +41,31 @@ export class ProductosFormComponent implements OnChanges {
   productForm: FormGroup;
   isEditing: boolean = false;
 
-  constructor(private fb: FormBuilder, private productoService: ProductosServices) {
+  constructor(
+    private fb: FormBuilder, 
+    private productoService: ProductosServices,
+    private alertService: AlertService
+  ) {
     this.productForm = this.initForm();
     addIcons({ camera, trash, 'shuffle-outline': shuffleOutline });
     this.setupMarginCalculation();
+    this.setupSkuGeneration();
+  }
+
+  setupSkuGeneration() {
+    this.productForm.get('categoria')?.valueChanges.pipe(
+      debounceTime(500),
+      distinctUntilChanged()
+    ).subscribe(categoria => {
+      // Si el usuario no ha modificado manualmente el SKU (pristine)
+      // o si es un producto nuevo y el SKU está vacío
+      const skuControl = this.productForm.get('sku');
+      if (categoria && categoria.length >= 3) {
+         if (skuControl?.pristine || !skuControl?.value) {
+            this.generarSkuAutomatico(categoria);
+         }
+      }
+    });
   }
 
   setupMarginCalculation() {
@@ -284,28 +306,25 @@ export class ProductosFormComponent implements OnChanges {
     return this.modulosActivos.has(moduleId);
   }
 
-  generarSkuAutomatico() {
-    const categoria = this.productForm.get('categoria')?.value;
+  generarSkuAutomatico(categoriaInput?: string) {
+    const categoria = categoriaInput || this.productForm.get('categoria')?.value;
     if (!categoria || categoria.length < 3) {
-      // TODO: Mostrar toast indicando que la categoría debe tener al menos 3 caracteres
       return;
     }
 
     this.productoService.obtenerSiguienteSku(categoria).subscribe({
       next: (response: any) => {
         if (response && response.sku) {
-          this.productForm.patchValue({ sku: response.sku });
+          const currentSku = this.productForm.get('sku')?.value;
+          // Solo actualizamos y notificamos si el SKU cambió
+          if (currentSku !== response.sku) {
+            this.productForm.patchValue({ sku: response.sku });
+            // Notificar al usuario como se solicitó
+            this.alertService.toast('Código SKU creado', 'success');
+          }
         }
       },
       error: (err) => console.error('Error generando SKU:', err)
     });
-  }
-
-  onCategoriaBlur() {
-    const currentSku = this.productForm.get('sku')?.value;
-    // Solo generar automáticamente si el SKU está vacío
-    if (!currentSku) {
-      this.generarSkuAutomatico();
-    }
   }
 }

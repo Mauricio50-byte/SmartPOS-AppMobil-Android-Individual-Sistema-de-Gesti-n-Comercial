@@ -135,8 +135,8 @@ async function registrarPagoGasto(datos) {
                  console.log(`[DEBUG] Saldo disponible en ${metodoPagoUpper}: ${saldoDisponible}. Monto a pagar: ${monto}`);
 
                  if (saldoDisponible < monto) {
-                     throw new Error(`Saldo insuficiente en CAJA (${metodoPagoUpper}). Disponible: $${new Intl.NumberFormat('es-CO').format(saldoDisponible)}. Intenta con otro medio de pago.`);
-                 }
+                    throw new Error(`Saldo insuficiente en CAJA para pagar esta deuda. (Método: ${metodoPagoUpper}, Disponible: $${new Intl.NumberFormat('es-CO').format(saldoDisponible)}). Intenta con otro medio de pago.`);
+                }
                  // ---------------------------
 
                  console.log(`[DEBUG] Caja encontrada: ID ${cajaAbierta.id}. Registrando movimiento...`);
