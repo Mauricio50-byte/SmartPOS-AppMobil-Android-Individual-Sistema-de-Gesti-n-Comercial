@@ -17,6 +17,8 @@ export class ReportesComponent implements OnInit {
   
   // KPI Cards
   totalRevenue = 0;
+  totalCollected = 0;
+  totalPending = 0;
   totalCost = 0;
   totalVolume = 0;
   averageMargin = 0;
@@ -58,6 +60,8 @@ export class ReportesComponent implements OnInit {
       next: (data: ReportData) => {
         this.metrics = data.metrics;
         this.totalRevenue = data.totalRevenue;
+        this.totalCollected = data.totalCollected;
+        this.totalPending = data.totalPending;
         this.totalCost = data.totalCost;
         this.totalVolume = data.totalVolume;
         

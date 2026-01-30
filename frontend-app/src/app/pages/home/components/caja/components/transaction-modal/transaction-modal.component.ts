@@ -20,6 +20,8 @@ export class TransactionModalComponent implements OnInit {
 
   @Input() showCashPaymentFields: boolean = false; // Nuevo input para habilitar campos de pago en efectivo
   @Input() amountReceivedLabel: string = 'Monto Recibido';
+  
+  @Input() showPaymentMethodSelector: boolean = false; // Nuevo: Selector de método de pago
 
   form: FormGroup;
 
@@ -30,7 +32,8 @@ export class TransactionModalComponent implements OnInit {
     this.form = this.fb.group({
       monto: [null, [Validators.required, Validators.min(1)]],
       montoRecibido: [null], // Campo opcional por defecto
-      descripcion: ['', Validators.required]
+      descripcion: ['', Validators.required],
+      metodoPago: ['EFECTIVO'] // Default updated
     });
   }
 

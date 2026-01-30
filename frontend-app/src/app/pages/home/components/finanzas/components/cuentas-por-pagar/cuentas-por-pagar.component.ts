@@ -125,7 +125,8 @@ export class CuentasPorPagarComponent implements OnInit {
         cancelText: 'Cancelar',
         descriptionRequired: false,
         initialAmount: null,
-        initialDescription: ''
+        initialDescription: '',
+        showPaymentMethodSelector: true // Habilitar selector de método de pago
       }
     });
 
@@ -143,15 +144,24 @@ export class CuentasPorPagarComponent implements OnInit {
         this.mostrarToast('El monto excede el saldo pendiente', 'warning');
         return;
       }
-      this.procesarPago(gasto.id, monto, data.descripcion);
+      this.procesarPago(gasto.id, monto, data.descripcion, data.metodoPago);
     }
   }
 
-  procesarPago(gastoId: number, monto: number, nota: string) {
+  procesarPago(gastoId: number, monto: number, nota: string, metodoPago: string) {
+    // metodoPago comes directly as 'EFECTIVO', 'TRANSFERENCIA' or 'EXTERNO' from the modal.
+    // 'EFECTIVO' and 'TRANSFERENCIA' will trigger box deduction in backend.
+    // 'EXTERNO' will not.
+    
+    let notaSuffix = '';
+    if (metodoPago === 'EFECTIVO') notaSuffix = ' (Caja Efectivo)';
+    else if (metodoPago === 'TRANSFERENCIA') notaSuffix = ' (Caja Transferencia)';
+    else notaSuffix = ' (Fondos Externos)';
+
     this.gastoService.registrarPago(gastoId, {
       monto,
-      metodoPago: 'EFECTIVO',
-      nota
+      metodoPago: metodoPago,
+      nota: nota + notaSuffix
     }).subscribe({
       next: (response) => {
         this.mostrarToast('Pago registrado exitosamente', 'success');

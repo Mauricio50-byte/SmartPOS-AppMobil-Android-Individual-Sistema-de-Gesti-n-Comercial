@@ -46,6 +46,48 @@
         </div>
       </div>
 
+      <div class="form-group" *ngIf="showPaymentMethodSelector">
+        <label style="display: block; font-size: 14px; font-weight: 600; color: #444; margin-bottom: 8px;">Origen de Fondos</label>
+        
+        <div class="payment-method-selector">
+          <!-- Opción 1: Caja Efectivo -->
+          <div class="payment-option" 
+               [class.selected]="form.get('metodoPago')?.value === 'EFECTIVO'"
+               (click)="form.get('metodoPago')?.setValue('EFECTIVO')">
+            <div class="radio-circle"></div>
+            <div class="option-info">
+              <h4>Caja (Efectivo)</h4>
+              <p>Descuenta del saldo en efectivo</p>
+            </div>
+            <ion-icon name="cash-outline"></ion-icon>
+          </div>
+
+          <!-- Opción 2: Caja Transferencia -->
+          <div class="payment-option" 
+               [class.selected]="form.get('metodoPago')?.value === 'TRANSFERENCIA'"
+               (click)="form.get('metodoPago')?.setValue('TRANSFERENCIA')">
+            <div class="radio-circle"></div>
+            <div class="option-info">
+              <h4>Caja (Transferencia)</h4>
+              <p>Descuenta del saldo digital (Nequi/Bancos)</p>
+            </div>
+            <ion-icon name="phone-portrait-outline"></ion-icon>
+          </div>
+
+          <!-- Opción 3: Externo -->
+          <div class="payment-option" 
+               [class.selected]="form.get('metodoPago')?.value === 'EXTERNO'"
+               (click)="form.get('metodoPago')?.setValue('EXTERNO')">
+            <div class="radio-circle"></div>
+            <div class="option-info">
+              <h4>Fondos Externos</h4>
+              <p>No afecta el cuadre del día</p>
+            </div>
+            <ion-icon name="wallet-outline"></ion-icon>
+          </div>
+        </div>
+      </div>
+
       <div class="form-group">
         <ion-item lines="full" class="input-item">
           <ion-input

@@ -33,27 +33,21 @@
 
   @if (dataLoaded) {
     <!-- KPI Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+      
+      <!-- Fila 1: Métricas de Venta -->
       <ion-card class="m-0 bg-white">
         <ion-card-content>
-          <div class="text-sm text-gray-500 font-medium uppercase">Ventas Totales</div>
+          <div class="text-sm text-gray-500 font-medium uppercase">Ventas Facturadas</div>
           <div class="text-2xl font-bold text-gray-900 mt-1">{{ totalRevenue | currency }}</div>
-          <div class="text-xs text-green-600 mt-1 flex items-center">
-            <ion-icon name="trending-up-outline" class="mr-1"></ion-icon>
-            Ingresos brutos
+          <div class="text-xs text-gray-600 mt-1 flex items-center">
+            <ion-icon name="receipt-outline" class="mr-1"></ion-icon>
+            Total ventas realizadas
           </div>
         </ion-card-content>
       </ion-card>
-      <ion-card class="m-0 bg-white">
-        <ion-card-content>
-          <div class="text-sm text-gray-500 font-medium uppercase">Volumen Ventas</div>
-          <div class="text-2xl font-bold text-gray-900 mt-1">{{ totalVolume }}</div>
-          <div class="text-xs text-blue-600 mt-1 flex items-center">
-            <ion-icon name="cart-outline" class="mr-1"></ion-icon>
-            Unidades vendidas
-          </div>
-        </ion-card-content>
-      </ion-card>
+
+      <!-- Fila 2: Métricas Operativas (Movido aquí para que esté debajo de Ventas Facturadas en grid de 1 columna o al lado en grid más grande) -->
       <ion-card class="m-0 bg-white">
         <ion-card-content>
           <div class="text-sm text-gray-500 font-medium uppercase">Costo Total</div>
@@ -64,13 +58,47 @@
           </div>
         </ion-card-content>
       </ion-card>
+      
+      <ion-card class="m-0 bg-white">
+        <ion-card-content>
+          <div class="text-sm text-gray-500 font-medium uppercase">Recaudo Real</div>
+          <div class="text-2xl font-bold text-green-600 mt-1">{{ totalCollected | currency }}</div>
+          <div class="text-xs text-green-600 mt-1 flex items-center">
+            <ion-icon name="cash-outline" class="mr-1"></ion-icon>
+            Dinero ingresado (Caja/Bancos)
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="m-0 bg-white">
+        <ion-card-content>
+          <div class="text-sm text-gray-500 font-medium uppercase">Por Cobrar (Fiado)</div>
+          <div class="text-2xl font-bold text-orange-500 mt-1">{{ totalPending | currency }}</div>
+          <div class="text-xs text-orange-600 mt-1 flex items-center">
+            <ion-icon name="time-outline" class="mr-1"></ion-icon>
+            Pendiente de pago
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="m-0 bg-white">
+        <ion-card-content>
+          <div class="text-sm text-gray-500 font-medium uppercase">Volumen Ventas</div>
+          <div class="text-2xl font-bold text-gray-900 mt-1">{{ totalVolume }}</div>
+          <div class="text-xs text-blue-600 mt-1 flex items-center">
+            <ion-icon name="cart-outline" class="mr-1"></ion-icon>
+            Unidades vendidas
+          </div>
+        </ion-card-content>
+      </ion-card>
+
       <ion-card class="m-0 bg-white">
         <ion-card-content>
           <div class="text-sm text-gray-500 font-medium uppercase">Margen Promedio</div>
           <div class="text-2xl font-bold text-gray-900 mt-1">{{ averageMargin | number:'1.1-2' }}%</div>
-          <div class="text-xs text-orange-600 mt-1 flex items-center">
+          <div class="text-xs text-blue-600 mt-1 flex items-center">
             <ion-icon name="pie-chart-outline" class="mr-1"></ion-icon>
-            Rentabilidad
+            Rentabilidad estimada
           </div>
         </ion-card-content>
       </ion-card>

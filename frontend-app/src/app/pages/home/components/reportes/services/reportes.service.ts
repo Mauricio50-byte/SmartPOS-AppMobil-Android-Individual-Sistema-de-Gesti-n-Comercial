@@ -22,7 +22,9 @@ export interface ReportMetric {
 
 export interface ReportData {
   metrics: ReportMetric[];
-  totalRevenue: number;
+  totalRevenue: number; // Facturado
+  totalCollected: number; // Recaudado (Real)
+  totalPending: number; // Por Cobrar (Fiado)
   totalCost: number;
   totalVolume: number;
 }
@@ -64,16 +66,34 @@ export class ReportesService {
     const prevYear = prevMonthDate.getFullYear();
 
     let totalRevenue = 0;
+    let totalCollected = 0; // New metric
+    let totalPending = 0;   // New metric
     let totalCost = 0;
     let totalVolume = 0;
 
     ventas.forEach(v => {
       if (!v.fecha) return;
       const vDate = new Date(v.fecha);
-
       const isCurrentPeriod = vDate.getMonth() === currentMonth && vDate.getFullYear() === currentYear;
+      
+      // Global metrics (Revenue vs Collected) should be calculated for the Current Period
+      if (isCurrentPeriod) {
+          // Use Number() to ensure safety
+          const pagado = Number(v.montoPagado) || 0;
+          const pendiente = Number(v.saldoPendiente) || 0;
+          const totalVenta = Number(v.total) || 0;
 
-      // For a more fair comparison (Month-to-Date), compare with previous month up to the same day
+          // If montoPagado is not tracked correctly in legacy data, assume:
+          // if estadoPago == 'PAGADO' -> total
+          // else -> use what is available
+          // But our backend seems to track montoPagado well.
+          
+          totalCollected += pagado;
+          totalPending += pendiente;
+          
+          // Note: totalRevenue will be summed up from items below to match category breakdown
+      }
+
       const isPrevPeriod = vDate.getMonth() === prevMonth &&
         vDate.getFullYear() === prevYear &&
         vDate.getDate() <= currentDay;
@@ -137,7 +157,7 @@ export class ReportesService {
       };
     });
 
-    return { metrics, totalRevenue, totalCost, totalVolume };
+    return { metrics, totalRevenue, totalCost, totalVolume, totalCollected, totalPending };
   }
 
   exportToPDF(data: ReportMetric[], title: string = 'Reporte de Categorías') {

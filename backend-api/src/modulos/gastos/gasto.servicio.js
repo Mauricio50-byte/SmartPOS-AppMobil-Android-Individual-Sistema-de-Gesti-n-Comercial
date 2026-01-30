@@ -82,11 +82,9 @@ async function registrarPagoGasto(datos) {
         const nuevoSaldo = gasto.saldoPendiente - monto
         const nuevoEstado = nuevoSaldo <= 0 ? 'PAGADO' : gasto.estado
 
-        // --- INTEGRACIÓN CAJA ELIMINADA POR SOLICITUD DE USUARIO ---
-        // Se elimina la creación de movimiento de caja para que el módulo
-        // solo funcione como registro administrativo de deudas, sin afectar el flujo de efectivo diario.
-        /*
-        if (usuarioId) {
+        // --- INTEGRACIÓN CAJA ---
+        // Se integra con la caja si el método de pago es EFECTIVO o TRANSFERENCIA (ambos afectan el cuadre)
+        if (usuarioId && (metodoPago === 'EFECTIVO' || metodoPago === 'TRANSFERENCIA')) {
              const cajaAbierta = await tx.caja.findFirst({
                  where: { usuarioId: Number(usuarioId), estado: 'ABIERTA' }
              })
@@ -106,7 +104,6 @@ async function registrarPagoGasto(datos) {
                  })
              }
         }
-        */
         // ------------------------
 
         // Actualizar el gasto
