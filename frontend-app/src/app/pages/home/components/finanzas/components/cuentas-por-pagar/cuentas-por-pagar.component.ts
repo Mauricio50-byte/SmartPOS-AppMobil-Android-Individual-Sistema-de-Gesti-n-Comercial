@@ -4,7 +4,7 @@ import { IonicModule, ModalController } from '@ionic/angular';
 import { GastoService } from 'src/app/core/services/gasto.service';
 import { Gasto } from 'src/app/core/models/gasto';
 import { addIcons } from 'ionicons';
-import { searchOutline, filterOutline, addOutline, cashOutline, trashOutline, fileTrayOutline } from 'ionicons/icons';
+import { searchOutline, filterOutline, addOutline, cashOutline, trashOutline, fileTrayOutline, eyeOutline } from 'ionicons/icons';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NumericFormatDirective } from 'src/app/shared/directives/numeric-format.directive';
 import { TransactionModalComponent } from '../../../caja/components/transaction-modal/transaction-modal.component';
@@ -33,7 +33,7 @@ export class CuentasPorPagarComponent implements OnInit {
     private fb: FormBuilder,
     private alertService: AlertService
   ) {
-    addIcons({ searchOutline, filterOutline, addOutline, cashOutline, trashOutline, fileTrayOutline });
+    addIcons({ searchOutline, filterOutline, addOutline, cashOutline, trashOutline, fileTrayOutline, eyeOutline });
     this.gastoForm = this.fb.group({
       proveedor: ['', Validators.required],
       concepto: ['', Validators.required],
@@ -153,20 +153,17 @@ export class CuentasPorPagarComponent implements OnInit {
       metodoPago: 'EFECTIVO',
       nota
     }).subscribe({
-      next: () => {
+      next: (response) => {
         this.mostrarToast('Pago registrado exitosamente', 'success');
         
-        // Optimistic / Immediate update
+        // Update with the fresh object from backend which includes updated history
         const gastoIndex = this.gastos.findIndex(g => g.id === gastoId);
         if (gastoIndex !== -1) {
-            const gasto = this.gastos[gastoIndex];
-            gasto.saldoPendiente -= monto;
+            // Backend returns { pago, gasto }
+            this.gastos[gastoIndex] = response.gasto;
             
-            if (gasto.saldoPendiente <= 0.01) {
-                gasto.saldoPendiente = 0;
-                gasto.estado = 'PAGADO';
-            }
-
+            // Check filters to see if we should keep showing it
+            const gasto = this.gastos[gastoIndex];
             if (gasto.estado === 'PAGADO' && (this.filterEstado === 'PENDIENTE' || this.filterEstado === 'VENCIDO')) {
                 this.gastos.splice(gastoIndex, 1);
             }
@@ -179,6 +176,94 @@ export class CuentasPorPagarComponent implements OnInit {
         this.mostrarToast('Error al registrar pago', 'danger');
       }
     });
+  }
+
+  async verHistorial(gasto: Gasto) {
+    try {
+      if (!gasto || !gasto.pagos || gasto.pagos.length === 0) {
+        this.mostrarToast('No hay pagos registrados para este gasto', 'info');
+        return;
+      }
+
+      let htmlRows = '';
+
+      gasto.pagos.forEach(pago => {
+        let fechaStr = 'Fecha inválida';
+        try {
+          const fecha = new Date(pago.fecha);
+          if (!isNaN(fecha.getTime())) {
+             // Formato corto para móvil: "29 ene. 2026"
+             fechaStr = fecha.toLocaleString('es-CO', { 
+              year: 'numeric', month: 'short', day: 'numeric',
+              hour: '2-digit', minute: '2-digit'
+            });
+          }
+        } catch (e) {
+          console.error('Error formateando fecha', e);
+          fechaStr = String(pago.fecha);
+        }
+
+        let montoStr = '$0';
+        try {
+           // Sin decimales si son ceros para ahorrar espacio
+           montoStr = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(pago.monto);
+        } catch (e) {
+           montoStr = `$${pago.monto}`;
+        }
+        
+        const notaStr = pago.nota ? pago.nota : '-';
+
+        htmlRows += `
+          <tr style="border-bottom: 1px solid #f0f0f0;">
+            <td style="padding: 12px 8px; vertical-align: middle;">
+              <div style="font-weight: 600; color: #1f2937; font-size: 0.95em;">${montoStr}</div>
+              <div style="font-size: 0.75em; color: #6b7280; margin-top: 2px;">${fechaStr}</div>
+            </td>
+            <td style="padding: 12px 8px; vertical-align: middle; text-align: right; color: #4b5563; font-size: 0.85em; font-style: italic; max-width: 120px; word-wrap: break-word;">
+              ${notaStr}
+            </td>
+          </tr>
+        `;
+      });
+
+      const tableHtml = `
+        <div style="text-align: left; max-height: 350px; overflow-y: auto; border-radius: 8px; border: 1px solid #f3f4f6;">
+          <table style="width: 100%; border-collapse: collapse; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+            <thead style="background-color: #f9fafb; position: sticky; top: 0; z-index: 10;">
+              <tr>
+                <th style="padding: 10px 8px; border-bottom: 1px solid #e5e7eb; text-align: left; font-size: 0.8em; text-transform: uppercase; color: #6b7280; font-weight: 600;">Detalle Pago</th>
+                <th style="padding: 10px 8px; border-bottom: 1px solid #e5e7eb; text-align: right; font-size: 0.8em; text-transform: uppercase; color: #6b7280; font-weight: 600;">Nota</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${htmlRows}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      await this.alertService.fire({
+        title: 'Historial de Pagos',
+        html: `
+          <div style="margin-bottom: 16px;">
+            <div style="font-weight: 700; color: #111827; font-size: 1.1em; margin-bottom: 4px;">${gasto.proveedor}</div>
+            <div style="color: #6b7280; font-size: 0.9em;">${gasto.concepto}</div>
+          </div>
+          ${tableHtml}
+        `,
+        width: '90%', // Más ancho en móvil
+        padding: '1.25em',
+        showCloseButton: true,
+        showConfirmButton: false,
+        customClass: {
+          container: 'swal2-mobile-friendly',
+          popup: 'swal2-rounded-popup'
+        }
+      });
+    } catch (error) {
+      console.error('Error mostrando historial:', error);
+      this.mostrarToast('Error al abrir el historial', 'danger');
+    }
   }
 
   async mostrarToast(mensaje: string, color: string) {
