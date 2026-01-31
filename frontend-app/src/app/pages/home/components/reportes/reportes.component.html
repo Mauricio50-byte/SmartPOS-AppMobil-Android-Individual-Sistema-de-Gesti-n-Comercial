@@ -132,6 +132,31 @@
         </ion-card-content>
       </ion-card>
 
+      <!-- Total Transacciones -->
+      <ion-card class="m-0 bg-white">
+        <ion-card-content class="flex justify-between items-center">
+          <div>
+            <div class="text-sm text-gray-500 font-medium uppercase">Total Ventas (N°)</div>
+            <div class="text-2xl font-bold text-gray-900 mt-1">{{ totalTransactions }}</div>
+            <div class="text-xs text-purple-600 mt-1 flex items-center">
+              <ion-icon name="receipt-outline" class="mr-1"></ion-icon>
+              Transacciones realizadas
+            </div>
+          </div>
+          <!-- Breakdown -->
+          <div class="flex flex-col gap-2 border-l border-gray-100 pl-4 ml-2">
+            <div class="text-xs text-gray-500 flex flex-col items-end">
+              <span class="font-medium text-gray-700">Contado</span>
+              <span>{{ transactionsContado }}</span>
+            </div>
+            <div class="text-xs text-gray-500 flex flex-col items-end">
+              <span class="font-medium text-gray-700">Fiado</span>
+              <span>{{ transactionsFiado }}</span>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
       <ion-card class="m-0 bg-white">
         <ion-card-content class="flex justify-between items-center">
           <div>
@@ -163,6 +188,18 @@
           <div class="text-xs text-blue-600 mt-1 flex items-center">
             <ion-icon name="pie-chart-outline" class="mr-1"></ion-icon>
             Rentabilidad estimada
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Ticket Promedio (Movido aquí) -->
+      <ion-card class="m-0 bg-white">
+        <ion-card-content>
+          <div class="text-sm text-gray-500 font-medium uppercase">Ticket Promedio</div>
+          <div class="text-2xl font-bold text-gray-900 mt-1">{{ averageTicket | currency }}</div>
+          <div class="text-xs text-blue-600 mt-1 flex items-center">
+            <ion-icon name="stats-chart-outline" class="mr-1"></ion-icon>
+            Promedio por venta
           </div>
         </ion-card-content>
       </ion-card>

@@ -22,6 +22,8 @@ export class ReportesComponent implements OnInit {
   totalPending = 0;
   totalCost = 0;
   totalVolume = 0;
+  totalTransactions = 0;
+  averageTicket = 0;
   averageMargin = 0;
 
   // Breakdowns
@@ -33,6 +35,8 @@ export class ReportesComponent implements OnInit {
   pendingTransfer = 0;
   volumeContado = 0;
   volumeFiado = 0;
+  transactionsContado = 0;
+  transactionsFiado = 0;
 
   // Filters
   searchTerm = '';
@@ -80,6 +84,8 @@ export class ReportesComponent implements OnInit {
         this.totalPending = data.totalPending;
         this.totalCost = data.totalCost;
         this.totalVolume = data.totalVolume;
+        this.totalTransactions = data.totalTransactions;
+        this.averageTicket = data.averageTicket;
         
         this.revenueCash = data.revenueCash;
         this.revenueTransfer = data.revenueTransfer;
@@ -89,6 +95,8 @@ export class ReportesComponent implements OnInit {
         this.pendingTransfer = data.pendingTransfer;
         this.volumeContado = data.volumeContado;
         this.volumeFiado = data.volumeFiado;
+        this.transactionsContado = data.transactionsContado;
+        this.transactionsFiado = data.transactionsFiado;
         
         // Calculate weighted average margin
         this.averageMargin = this.totalRevenue > 0 

@@ -29,6 +29,8 @@ export interface ReportData {
   totalPending: number; // Por Cobrar (Fiado)
   totalCost: number;
   totalVolume: number;
+  totalTransactions: number; // Cantidad de ventas (tickets)
+  averageTicket: number; // Ticket Promedio
   // Breakdowns
   revenueCash: number;
   revenueTransfer: number;
@@ -38,6 +40,8 @@ export interface ReportData {
   pendingTransfer: number;
   volumeContado: number;
   volumeFiado: number;
+  transactionsContado: number;
+  transactionsFiado: number;
 }
 
 @Injectable({
@@ -119,6 +123,8 @@ export class ReportesService {
     let pendingTransfer = 0;
     let volumeContado = 0;
     let volumeFiado = 0;
+    let transactionsContado = 0;
+    let transactionsFiado = 0;
 
     ventas.forEach(v => {
       // Since we filter at API level, we assume all returned sales are relevant for the current period
@@ -130,6 +136,13 @@ export class ReportesService {
       const metodo = (v.metodoPago || 'EFECTIVO').toUpperCase();
       const estado = (v.estadoPago || 'PAGADO').toUpperCase();
       
+      // Transaction breakdown
+      if (estado === 'PAGADO') {
+        transactionsContado++;
+      } else {
+        transactionsFiado++;
+      }
+
       totalCollected += pagado;
       totalPending += pendiente;
 
@@ -208,6 +221,9 @@ export class ReportesService {
       };
     });
 
+    const totalTransactions = ventas.length;
+    const averageTicket = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
+
     return { 
       metrics, 
       totalRevenue, 
@@ -215,6 +231,8 @@ export class ReportesService {
       totalVolume, 
       totalCollected, 
       totalPending,
+      totalTransactions,
+      averageTicket,
       revenueCash,
       revenueTransfer,
       collectedCash,
@@ -222,7 +240,9 @@ export class ReportesService {
       pendingCash,
       pendingTransfer,
       volumeContado,
-      volumeFiado
+      volumeFiado,
+      transactionsContado,
+      transactionsFiado
     };
   }
 
