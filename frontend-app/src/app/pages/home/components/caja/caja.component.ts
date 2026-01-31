@@ -42,8 +42,8 @@ export class CajaComponent implements OnInit {
 
   async cargarEstadoCaja() {
     if (!this.hasPermission('ABRIR_CAJA') && !this.hasPermission('VER_FINANZAS')) {
-       // Si no tiene permisos, no cargamos nada o mostramos error visual
-       return;
+      // Si no tiene permisos, no cargamos nada o mostramos error visual
+      return;
     }
 
     this.loading = true;
@@ -51,8 +51,8 @@ export class CajaComponent implements OnInit {
       next: (data) => {
         this.caja = data;
         if (this.caja && this.caja.movimientos) {
-            this.movimientos = this.caja.movimientos;
-            this.calcularSaldoTransferencia();
+          this.movimientos = this.caja.movimientos;
+          this.calcularSaldoTransferencia();
         }
         this.loading = false;
       },
@@ -128,15 +128,16 @@ export class CajaComponent implements OnInit {
     }
 
     // Calcular montos esperados para mostrar en el alert? Sería ideal, pero por ahora simple.
-    const saldoSistema = this.caja.resumen?.saldoActual || 0;
+    // El saldo esperado para el arqueo es ÚNICAMENTE el EFECTIVO
+    const saldoEsperadoEfectivo = this.caja.resumen?.saldoEfectivo || 0;
 
     const modal = await this.modalController.create({
       component: TransactionModalComponent,
       cssClass: 'transaction-modal',
       componentProps: {
         title: 'Cerrar Caja',
-        message: `El saldo esperado por el sistema es: $${saldoSistema.toLocaleString()}`,
-        amountLabel: 'Monto Real en Caja',
+        message: `El efectivo esperado en caja es: $${saldoEsperadoEfectivo.toLocaleString()}`,
+        amountLabel: 'Efectivo Real en Caja',
         descriptionLabel: 'Observaciones',
         confirmText: 'Cerrar Caja',
         cancelText: 'Cancelar',

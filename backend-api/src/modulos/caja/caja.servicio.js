@@ -30,7 +30,7 @@ async function abrirCaja({ usuarioId, montoInicial, observaciones }) {
 
   // Registrar movimiento inicial de apertura si es > 0 (opcional, pero buena práctica)
   // O simplemente el montoInicial es el saldo inicial.
-  
+
   return nuevaCaja
 }
 
@@ -49,34 +49,25 @@ async function cerrarCaja({ usuarioId, montoFinal, observaciones }) {
     throw new Error('No tienes una caja abierta para cerrar.')
   }
 
-  // Calcular montoSistema
-  // montoSistema = montoInicial + sum(ingresos) - sum(egresos)
-  // Ingresos: INGRESO, VENTA (cualquier método), ABONO_VENTA
-  // Egresos: EGRESO, PAGO_GASTO
-
-  // Calcular totales (INCLUYENDO TODO) para el historial
-  const totalIngresos = caja.movimientos
-    .filter(m => ['INGRESO', 'VENTA', 'ABONO_VENTA'].includes(m.tipo))
-    .reduce((acc, curr) => acc + curr.monto, 0)
-
-  const totalEgresos = caja.movimientos
-    .filter(m => ['EGRESO', 'PAGO_GASTO'].includes(m.tipo))
-    .reduce((acc, curr) => acc + curr.monto, 0)
-
   const montoFinalNum = parseFloat(montoFinal)
   if (isNaN(montoFinalNum)) {
     throw new Error('El monto final debe ser un número válido.')
   }
 
-  // Calcular montoSistema solo para EFECTIVO (Lo que se espera en el cajón)
+  // Tipos que SUMAN al saldo
+  const tiposIngreso = ['INGRESO', 'VENTA', 'ABONO_VENTA', 'ABONO_DEUDA'];
+  // Tipos que RESTAN al saldo
+  const tiposEgreso = ['EGRESO', 'PAGO_GASTO', 'RETIRO'];
+
+  // Calcular montoSistema solo para EFECTIVO (Lo que se espera físicamente en el cajón)
   const saldoInicialEfectivo = caja.montoInicial;
-  
+
   const ingresosEfectivo = caja.movimientos
-    .filter(m => ['INGRESO', 'VENTA', 'ABONO_VENTA'].includes(m.tipo) && m.metodoPago === 'EFECTIVO')
+    .filter(m => tiposIngreso.includes(m.tipo) && m.metodoPago === 'EFECTIVO')
     .reduce((acc, curr) => acc + curr.monto, 0)
 
   const egresosEfectivo = caja.movimientos
-    .filter(m => ['EGRESO', 'PAGO_GASTO'].includes(m.tipo) && m.metodoPago === 'EFECTIVO')
+    .filter(m => tiposEgreso.includes(m.tipo) && m.metodoPago === 'EFECTIVO')
     .reduce((acc, curr) => acc + curr.monto, 0)
 
   const montoSistema = saldoInicialEfectivo + ingresosEfectivo - egresosEfectivo
@@ -120,12 +111,14 @@ async function registrarMovimiento({ usuarioId, cajaId, tipo, monto, descripcion
     throw new Error('El monto debe ser un número válido.')
   }
 
+  const metodoPagoUpper = String(metodoPago).toUpperCase();
+
   const movimiento = await prisma.movimientoCaja.create({
     data: {
       cajaId: idCaja,
       usuarioId,
       tipo, // INGRESO, EGRESO, VENTA, PAGO_GASTO
-      metodoPago,
+      metodoPago: metodoPagoUpper,
       monto: montoNum,
       descripcion,
       ventaId,
@@ -150,27 +143,31 @@ async function obtenerEstadoCaja(usuarioId) {
 
   if (!caja) return null
 
+  // Tipos para totales globales (lo que el sistema dice que hay en todo lado)
+  const tiposIngreso = ['INGRESO', 'VENTA', 'ABONO_VENTA', 'ABONO_DEUDA'];
+  const tiposEgreso = ['EGRESO', 'PAGO_GASTO', 'RETIRO'];
+
   // Calcular totales al vuelo
   const totalIngresos = caja.movimientos
-    .filter(m => ['INGRESO', 'VENTA', 'ABONO_VENTA'].includes(m.tipo))
+    .filter(m => tiposIngreso.includes(m.tipo))
     .reduce((acc, curr) => acc + curr.monto, 0)
 
   const totalEgresos = caja.movimientos
-    .filter(m => ['EGRESO', 'PAGO_GASTO'].includes(m.tipo))
+    .filter(m => tiposEgreso.includes(m.tipo))
     .reduce((acc, curr) => acc + curr.monto, 0)
 
-  // Saldo total (incluye bancos)
+  // Saldo total (incluye bancos/transferencias)
   const saldoTotal = caja.montoInicial + totalIngresos - totalEgresos
-  
-  // Saldo solo efectivo (para cuadre)
+
+  // Saldo solo efectivo (para cuadre/reconciliación física)
   const ingresosEfectivo = caja.movimientos
-    .filter(m => ['INGRESO', 'VENTA', 'ABONO_VENTA'].includes(m.tipo) && m.metodoPago === 'EFECTIVO')
+    .filter(m => tiposIngreso.includes(m.tipo) && m.metodoPago === 'EFECTIVO')
     .reduce((acc, curr) => acc + curr.monto, 0)
-    
+
   const egresosEfectivo = caja.movimientos
-    .filter(m => ['EGRESO', 'PAGO_GASTO'].includes(m.tipo) && m.metodoPago === 'EFECTIVO')
+    .filter(m => tiposEgreso.includes(m.tipo) && m.metodoPago === 'EFECTIVO')
     .reduce((acc, curr) => acc + curr.monto, 0)
-    
+
   const saldoEfectivo = caja.montoInicial + ingresosEfectivo - egresosEfectivo
 
   return {
@@ -187,7 +184,7 @@ async function obtenerEstadoCaja(usuarioId) {
 async function obtenerHistorial({ usuarioId, fechaInicio, fechaFin }) {
   const where = {}
   if (usuarioId) where.usuarioId = parseInt(usuarioId)
-  
+
   if (fechaInicio || fechaFin) {
     where.fechaApertura = {}
     if (fechaInicio) where.fechaApertura.gte = new Date(fechaInicio)
@@ -204,13 +201,13 @@ async function obtenerHistorial({ usuarioId, fechaInicio, fechaFin }) {
 async function obtenerEstadisticas({ fechaInicio, fechaFin }) {
   // Estadísticas globales (no por caja individual)
   // Ventas por día, etc. se pueden sacar de Venta, pero aquí nos enfocamos en flujo de caja.
-  
+
   // Ejemplo: Flujo de caja diario (entradas vs salidas)
   // Necesitamos agrupar movimientos por fecha.
-  
+
   // Por simplicidad, devolveremos todos los movimientos en el rango y el frontend agrupa,
   // o hacemos una query raw si es mucho datos.
-  
+
   // Vamos a devolver resumen de cajas cerradas en el periodo
   const cajas = await prisma.caja.findMany({
     where: {
@@ -221,11 +218,11 @@ async function obtenerEstadisticas({ fechaInicio, fechaFin }) {
       estado: 'CERRADA'
     }
   })
-  
+
   // Calcular totales
   const totalIngresos = cajas.reduce((acc, c) => acc + (c.montoSistema || 0), 0) // Aproximación
   // Realmente deberíamos sumar movimientos.
-  
+
   return {
     cantidadCierres: cajas.length,
     promedioCierre: cajas.length > 0 ? totalIngresos / cajas.length : 0,
