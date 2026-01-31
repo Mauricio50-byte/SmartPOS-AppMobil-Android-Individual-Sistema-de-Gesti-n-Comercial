@@ -119,11 +119,9 @@ async function crearVenta(payload) {
 
       console.log('Producto encontrado:', p);
 
-      // MODIFICACIÓN: Permitir stock negativo temporalmente para no bloquear ventas
-      // El usuario reportó esto como un bug, lo que implica que desea vender aunque no haya stock registrado.
-      // if (p.stock < Number(i.cantidad)) {
-      //   throw new Error(`Stock insuficiente para ${p.nombre}. Disponible: ${p.stock}, Solicitado: ${i.cantidad}`)
-      // }
+      if (p.stock < Number(i.cantidad)) {
+        throw new Error(`Stock insuficiente para ${p.nombre}. Disponible: ${p.stock}, Solicitado: ${i.cantidad}`)
+      }
 
       const cantidad = Number(i.cantidad)
       // Usar precioVenta en lugar de precio, asegurando que sea numérico
@@ -272,15 +270,15 @@ async function crearVenta(payload) {
 
       if (cajaAbierta) {
         const metodoPagoNorm = String(metodoPago).toUpperCase(); // Normalizar a mayúsculas (EFECTIVO, TRANSFERENCIA)
-        
+
         // CORRECCIÓN SOLICITADA POR USUARIO:
         // Si el pago es en EFECTIVO y se recibe un monto mayor (para dar cambio),
         // registramos el INGRESO por el total recibido (ej. 20.000) y luego el EGRESO por el cambio (ej. 5.000).
         // Esto refleja fielmente el movimiento físico de dinero en la caja.
-        
+
         let montoIngresoReal = montoPagadoValidado;
         if (metodoPagoNorm === 'EFECTIVO' && Number(montoRecibido) > montoPagadoValidado) {
-           montoIngresoReal = Number(montoRecibido);
+          montoIngresoReal = Number(montoRecibido);
         }
 
         // Registrar el INGRESO de la venta

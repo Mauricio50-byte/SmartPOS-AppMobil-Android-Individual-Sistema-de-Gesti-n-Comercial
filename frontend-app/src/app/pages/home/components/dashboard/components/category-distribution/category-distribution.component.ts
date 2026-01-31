@@ -1,6 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
-import { calculateCategoryStats, CategoryStat } from '../../utils/dashboard.utils';
 
 @Component({
   selector: 'app-category-distribution',
@@ -9,10 +8,7 @@ import { calculateCategoryStats, CategoryStat } from '../../utils/dashboard.util
   standalone: false
 })
 export class CategoryDistributionComponent implements OnChanges {
-  @Input() ventas: any[] = [];
-  @Input() productos: any[] = [];
-
-  stats: CategoryStat[] = [];
+  @Input() stats: any[] = [];
 
   // Chart Config
   public chartType: ChartType = 'doughnut';
@@ -20,7 +16,7 @@ export class CategoryDistributionComponent implements OnChanges {
     labels: [],
     datasets: []
   };
-  
+
   public chartOptions: ChartConfiguration['options'] = {
     responsive: true,
     maintainAspectRatio: false,
@@ -52,16 +48,9 @@ export class CategoryDistributionComponent implements OnChanges {
   };
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['ventas'] || changes['productos']) {
-      this.processData();
+    if (changes['stats']) {
+      this.updateChart();
     }
-  }
-
-  private processData() {
-    if (!this.ventas || !this.productos) return;
-
-    this.stats = calculateCategoryStats(this.ventas, this.productos);
-    this.updateChart();
   }
 
   private updateChart() {

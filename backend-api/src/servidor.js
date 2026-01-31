@@ -17,6 +17,7 @@ const { registrarRutasGasto } = require('./modulos/gastos/gasto.rutas')
 const { registrarRutasCaja } = require('./modulos/caja/caja.rutas')
 const { registrarRutasModulos } = require('./modulos/sistema/modulo.rutas')
 const { registrarRutasNotificaciones } = require('./modulos/notificaciones/notificacion.rutas')
+const { registrarRutasDashboard } = require('./modulos/dashboard/dashboard.rutas')
 const { asegurarPermisosYAdmin } = require('./infraestructura/bootstrap')
 const { prisma } = require('./infraestructura/bd')
 
@@ -46,7 +47,7 @@ async function iniciar() {
 
   await app.register(compress)
   await app.register(cors, { origin: true })
-  if (JWT_SECRETO) await app.register(jwtPlugin, { 
+  if (JWT_SECRETO) await app.register(jwtPlugin, {
     secret: JWT_SECRETO,
     sign: {
       expiresIn: '30d' // Duración de la sesión: 30 días
@@ -71,6 +72,7 @@ async function iniciar() {
         !req.raw.url.startsWith('/permisos') &&
         !req.raw.url.startsWith('/caja') &&
         !req.raw.url.startsWith('/notificaciones') &&
+        !req.raw.url.startsWith('/dashboard') &&
         !req.raw.url.startsWith('/gastos')) {
         return res.sendFile('index.html')
       }
@@ -144,6 +146,7 @@ async function iniciar() {
   await registrarRutasCaja(app)
   await registrarRutasModulos(app)
   await registrarRutasNotificaciones(app)
+  await registrarRutasDashboard(app)
 
   try {
     const address = await app.listen({ port: Number(PUERTO), host: '0.0.0.0' })

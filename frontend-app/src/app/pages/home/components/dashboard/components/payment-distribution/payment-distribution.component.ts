@@ -1,6 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
-import { calculatePaymentMethodStats, CategoryStat } from '../../utils/dashboard.utils';
 
 @Component({
   selector: 'app-payment-distribution',
@@ -9,9 +8,7 @@ import { calculatePaymentMethodStats, CategoryStat } from '../../utils/dashboard
   standalone: false
 })
 export class PaymentDistributionComponent implements OnChanges {
-  @Input() ventas: any[] = [];
-
-  stats: CategoryStat[] = [];
+  @Input() stats: any[] = [];
 
   // Chart Config
   public chartType: ChartType = 'doughnut';
@@ -19,7 +16,7 @@ export class PaymentDistributionComponent implements OnChanges {
     labels: [],
     datasets: []
   };
-  
+
   public chartOptions: ChartConfiguration['options'] = {
     responsive: true,
     maintainAspectRatio: false,
@@ -51,16 +48,9 @@ export class PaymentDistributionComponent implements OnChanges {
   };
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['ventas']) {
-      this.processData();
+    if (changes['stats']) {
+      this.updateChart();
     }
-  }
-
-  private processData() {
-    if (!this.ventas) return;
-
-    this.stats = calculatePaymentMethodStats(this.ventas);
-    this.updateChart();
   }
 
   private updateChart() {
