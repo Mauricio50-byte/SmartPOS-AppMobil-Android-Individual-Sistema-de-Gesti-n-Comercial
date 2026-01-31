@@ -239,24 +239,35 @@
     </div>
     <!-- Data Table -->
     <ion-card class="m-0 bg-white">
-      <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h3 class="text-lg font-bold text-gray-800 m-0">Detalle por Categoría</h3>
-        <div class="w-full sm:w-64">
-          <ion-searchbar
-            placeholder="Buscar categoría..."
+      <div class="p-4 border-b border-gray-100">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+            <h3 class="text-lg font-bold text-gray-800 m-0">Detalle Operativo</h3>
+            
+            <!-- Group By Selector -->
+            <ion-segment [value]="groupBy" (ionChange)="setGroupBy($any($event).detail.value)" mode="ios" class="custom-segment w-full sm:w-auto" style="min-width: 250px;">
+                <ion-segment-button value="category">
+                    <ion-label>Categoría</ion-label>
+                </ion-segment-button>
+                <ion-segment-button value="product">
+                    <ion-label>Producto</ion-label>
+                </ion-segment-button>
+            </ion-segment>
+        </div>
+
+        <ion-searchbar
+            [placeholder]="groupBy === 'category' ? 'Buscar categoría...' : 'Buscar producto...'"
             [(ngModel)]="searchTerm"
             (ionInput)="applyFilters()"
             class="h-10 p-0"
             style="--box-shadow: none; --background: #f3f4f6; border-radius: 8px;">
-          </ion-searchbar>
-        </div>
+        </ion-searchbar>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead class="bg-gray-50">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" (click)="toggleSort('name')">
-                Categoría @if (sortColumn === 'name') {
+                {{ groupBy === 'category' ? 'Categoría' : 'Producto' }} @if (sortColumn === 'name') {
                 <ion-icon name="swap-vertical-outline"></ion-icon>
               }
             </th>
@@ -285,7 +296,7 @@
 <tbody class="divide-y divide-gray-200">
   @for (item of filteredMetrics; track item) {
     <tr class="hover:bg-gray-50 transition-colors">
-      <td data-label="Categoría" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ item.name }}</td>
+      <td [attr.data-label]="groupBy === 'category' ? 'Categoría' : 'Producto'" class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ item.name }}</td>
       <td data-label="Ventas" class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">{{ item.revenue | currency }}</td>
       <td data-label="Volumen" class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">{{ item.salesVolume }}</td>
       <td data-label="Margen" class="px-6 py-4 whitespace-nowrap text-sm text-right">

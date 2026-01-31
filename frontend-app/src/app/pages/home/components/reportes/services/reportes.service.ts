@@ -12,6 +12,8 @@ import { Share } from '@capacitor/share';
 
 export type ReportPeriod = 'day' | 'week' | 'month' | 'year' | 'all';
 
+export type GroupByOption = 'category' | 'product';
+
 export interface ReportMetric {
   name: string;
   salesVolume: number; // Units
@@ -53,16 +55,16 @@ export class ReportesService {
 
   constructor() { }
 
-  getGeneralReport(period: ReportPeriod = 'month'): Observable<ReportData> {
+  getGeneralReport(period: ReportPeriod = 'month', groupBy: GroupByOption = 'category'): Observable<ReportData> {
     const { startDate, endDate } = this.getDateRange(period);
-    console.log('[DEBUG Frontend] Requesting report for period:', period);
+    console.log('[DEBUG Frontend] Requesting report for period:', period, 'Group by:', groupBy);
     console.log('[DEBUG Frontend] Date Range:', { startDate, endDate });
 
     return forkJoin({
       ventas: this.ventaService.listarVentas({ startDate, endDate }),
       productos: this.productoService.listarProductos()
     }).pipe(
-      map(({ ventas, productos }) => this.calculateMetrics(ventas, productos))
+      map(({ ventas, productos }) => this.calculateMetrics(ventas, productos, groupBy))
     );
   }
 
@@ -100,7 +102,7 @@ export class ReportesService {
     };
   }
 
-  private calculateMetrics(ventas: any[], productos: any[]): ReportData {
+  private calculateMetrics(ventas: any[], productos: any[], groupBy: GroupByOption): ReportData {
     const productMap = new Map(productos.map(p => [p.id, p]));
     const categoryStats: Record<string, {
       volume: number,
@@ -173,7 +175,15 @@ export class ReportesService {
         const product = productMap.get(pId);
         if (!product) return;
 
-        const cat = (product.categoria || product.tipo || 'General').trim();
+        let key = '';
+        if (groupBy === 'category') {
+           key = (product.categoria || product.tipo || 'General').trim();
+        } else {
+           // Agrupar por nombre de producto
+           // Opcional: concatenar SKU si se desea diferenciar variantes: `${product.nombre} (${product.sku || 'Sin SKU'})`
+           key = product.nombre.trim();
+        }
+        
         const qty = Number(item.cantidad) || 0;
 
         // Prioritize subtotal, then calculated, then unit * qty
@@ -181,13 +191,13 @@ export class ReportesService {
         const unitCost = Number(product.precioCosto) || 0;
         const itemCost = unitCost * qty;
 
-        if (!categoryStats[cat]) {
-          categoryStats[cat] = { volume: 0, revenue: 0, cost: 0, prevRevenue: 0 };
+        if (!categoryStats[key]) {
+          categoryStats[key] = { volume: 0, revenue: 0, cost: 0, prevRevenue: 0 };
         }
 
-        categoryStats[cat].volume += qty;
-        categoryStats[cat].revenue += itemRevenue;
-        categoryStats[cat].cost += itemCost;
+        categoryStats[key].volume += qty;
+        categoryStats[key].revenue += itemRevenue;
+        categoryStats[key].cost += itemCost;
         
         totalRevenue += itemRevenue;
         totalCost += itemCost;

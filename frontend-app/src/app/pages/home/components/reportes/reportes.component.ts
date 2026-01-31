@@ -15,6 +15,7 @@ export class ReportesComponent implements OnInit {
   filteredMetrics: ReportMetric[] = [];
   dataLoaded = false;
   selectedPeriod: ReportPeriod = 'day';
+  groupBy: 'category' | 'product' = 'category';
   
   // KPI Cards
   totalRevenue = 0;
@@ -74,9 +75,14 @@ export class ReportesComponent implements OnInit {
     this.loadData();
   }
 
+  setGroupBy(groupBy: 'category' | 'product') {
+    this.groupBy = groupBy;
+    this.loadData();
+  }
+
   loadData() {
     this.dataLoaded = false;
-    this.reportesService.getGeneralReport(this.selectedPeriod).subscribe({
+    this.reportesService.getGeneralReport(this.selectedPeriod, this.groupBy).subscribe({
       next: (data: ReportData) => {
         this.metrics = data.metrics;
         this.totalRevenue = data.totalRevenue;
@@ -140,6 +146,7 @@ export class ReportesComponent implements OnInit {
 
   prepareCharts() {
     const labels = this.filteredMetrics.map(m => m.name);
+    const labelTitle = this.groupBy === 'category' ? 'Categoría' : 'Producto';
     
     // Bar Chart
     this.barChartData = {
@@ -196,7 +203,8 @@ export class ReportesComponent implements OnInit {
   }
 
   exportPDF() {
-    this.reportesService.exportToPDF(this.filteredMetrics);
+    const title = this.groupBy === 'category' ? 'Reporte de Categorías' : 'Reporte de Productos';
+    this.reportesService.exportToPDF(this.filteredMetrics, title);
   }
 
   exportExcel() {
