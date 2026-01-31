@@ -336,21 +336,17 @@ export class CuentasPorCobrarComponent implements OnInit {
         // Lo mejor es no enviar montoRecibido en las transacciones internas automáticas para no afectar arqueos duplicados,
         // pero necesitamos que sume en caja.
         // Asumiremos: El monto recibido se envía tal cual en el primer pago (si cubre) o dividido? 
-        // No, el backend probablemente suma al arqueo.
-        // Estrategia simple: Enviar montoRecibido = montoPagar para que no genere "cambio" en cada sub-pago,
-        // excepto si queremos registrar el "billete grande". 
-        // Lo más limpio en batch frontend es: enviar montoRecibido solo en el primer pago o dividirlo?
-        // Enviaremos undefined para evitar cálculos de cambio en backend por cada sub-transacción, 
-        // ya que el cambio se calculó globalmente aquí.
+        // Modificación: Enviamos el montoRecibido completo en el primer pago para registrar el ingreso del billete real.
+        // En los siguientes pagos, enviamos undefined (asumiendo pago exacto) para no duplicar ingresos masivos visuales,
+        // aunque matemáticamente el cambio del primero cubriría los siguientes.
         
+        const montoRecibidoParaTransaccion = (pagosRealizados === 0 && montoRecibidoTotal) ? montoRecibidoTotal : undefined;
+
         await firstValueFrom(this.deudaService.registrarAbono(deuda.id, {
           monto: montoPagar,
           metodoPago: metodo,
-          nota: `Abono General: ${nota || ''} (Pago automático)`,
-          // Solo enviamos montoRecibido en el primer pago si es necesario para registro de billetes, 
-          // pero podría duplicar "dinero recibido" en reportes si no se maneja bien.
-          // Mejor: null/undefined para que solo registre el ingreso real.
-          montoRecibido: undefined 
+          nota: `Abono General: ${nota || ''}`,
+          montoRecibido: montoRecibidoParaTransaccion 
         }));
 
         montoRestante -= montoPagar;

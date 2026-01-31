@@ -227,11 +227,13 @@
       margin: 0.5rem 0 0;
       font-size: 0.85rem;
       color: #64748b;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      /* Mostrar descripción completa sin truncar */
+      /* display: -webkit-box; */
+      /* -webkit-line-clamp: 2; */
+      /* line-clamp: 2; */
+      /* -webkit-box-orient: vertical; */
+      /* overflow: hidden; */
+      word-wrap: break-word; /* Asegurar que palabras largas bajen */
     }
   }
 }

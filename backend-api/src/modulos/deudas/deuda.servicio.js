@@ -190,7 +190,7 @@ async function registrarAbono(datos) {
                         tipo: 'ABONO_VENTA',
                         metodoPago: metodoPago,
                         monto: montoIngresoReal,
-                        descripcion: `Abono a deuda de venta #${deuda.ventaId} ${nota ? '- ' + nota : ''} - Valor: $${Number(monto).toLocaleString('es-CO')} - Recibido: $${(Number(montoRecibido) > 0 ? Number(montoRecibido) : Number(monto)).toLocaleString('es-CO')}`,
+                        descripcion: `Abono Venta #${deuda.ventaId} - Valor: $${Number(monto).toLocaleString('es-CO')} Recibido: $${(Number(montoRecibido) > 0 ? Number(montoRecibido) : Number(monto)).toLocaleString('es-CO')} ${nota ? '| ' + nota : ''}`,
                         abonoId: abono.id,
                         fecha: new Date()
                     }
@@ -206,7 +206,7 @@ async function registrarAbono(datos) {
                             tipo: 'EGRESO',
                             metodoPago: 'EFECTIVO',
                             monto: cambio,
-                            descripcion: `Cambio/Vuelto de Abono a deuda #${deuda.id} - Valor: $${Number(monto).toLocaleString('es-CO')} - Recibido: $${Number(montoRecibido).toLocaleString('es-CO')}`,
+                            descripcion: `Cambio/Vuelto de Abono a Venta #${deuda.ventaId} - Valor: $${Number(monto).toLocaleString('es-CO')} - Recibido: $${Number(montoRecibido).toLocaleString('es-CO')} ${nota ? '| ' + nota : ''}`,
                             abonoId: abono.id,
                             fecha: new Date()
                         }
