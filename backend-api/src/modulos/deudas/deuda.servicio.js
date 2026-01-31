@@ -173,6 +173,15 @@ async function registrarAbono(datos) {
             })
 
             if (cajaAbierta) {
+                // CORRECCIÓN SOLICITADA POR USUARIO:
+                // Si el pago es en EFECTIVO y se recibe un monto mayor (para dar cambio),
+                // registramos el INGRESO por el total recibido y luego el EGRESO por el cambio.
+                
+                let montoIngresoReal = monto;
+                if (metodoPago === 'EFECTIVO' && montoRecibido > monto) {
+                    montoIngresoReal = montoRecibido;
+                }
+
                 // Registrar el INGRESO del abono
                 await tx.movimientoCaja.create({
                     data: {
@@ -180,8 +189,8 @@ async function registrarAbono(datos) {
                         usuarioId: Number(usuarioId),
                         tipo: 'ABONO_VENTA',
                         metodoPago: metodoPago,
-                        monto: monto,
-                        descripcion: `Abono a deuda de venta #${deuda.ventaId} ${nota ? '- ' + nota : ''}`,
+                        monto: montoIngresoReal,
+                        descripcion: `Abono a deuda de venta #${deuda.ventaId} ${nota ? '- ' + nota : ''} - Valor: $${Number(monto).toLocaleString('es-CO')} - Recibido: $${(Number(montoRecibido) > 0 ? Number(montoRecibido) : Number(monto)).toLocaleString('es-CO')}`,
                         abonoId: abono.id,
                         fecha: new Date()
                     }
@@ -197,7 +206,7 @@ async function registrarAbono(datos) {
                             tipo: 'EGRESO',
                             metodoPago: 'EFECTIVO',
                             monto: cambio,
-                            descripcion: `Cambio/Vuelto de Abono a deuda #${deuda.id}`,
+                            descripcion: `Cambio/Vuelto de Abono a deuda #${deuda.id} - Valor: $${Number(monto).toLocaleString('es-CO')} - Recibido: $${Number(montoRecibido).toLocaleString('es-CO')}`,
                             abonoId: abono.id,
                             fecha: new Date()
                         }

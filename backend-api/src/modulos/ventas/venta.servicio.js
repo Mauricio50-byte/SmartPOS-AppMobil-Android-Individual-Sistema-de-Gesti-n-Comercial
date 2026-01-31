@@ -273,15 +273,25 @@ async function crearVenta(payload) {
       if (cajaAbierta) {
         const metodoPagoNorm = String(metodoPago).toUpperCase(); // Normalizar a mayúsculas (EFECTIVO, TRANSFERENCIA)
         
-        // Registrar el INGRESO de la venta (Monto que el cliente pagó efectivamente para la venta)
+        // CORRECCIÓN SOLICITADA POR USUARIO:
+        // Si el pago es en EFECTIVO y se recibe un monto mayor (para dar cambio),
+        // registramos el INGRESO por el total recibido (ej. 20.000) y luego el EGRESO por el cambio (ej. 5.000).
+        // Esto refleja fielmente el movimiento físico de dinero en la caja.
+        
+        let montoIngresoReal = montoPagadoValidado;
+        if (metodoPagoNorm === 'EFECTIVO' && Number(montoRecibido) > montoPagadoValidado) {
+           montoIngresoReal = Number(montoRecibido);
+        }
+
+        // Registrar el INGRESO de la venta
         const movVenta = await tx.movimientoCaja.create({
           data: {
             cajaId: cajaAbierta.id,
             usuarioId: Number(usuarioId),
             tipo: 'VENTA',
             metodoPago: metodoPagoNorm,
-            monto: montoPagadoValidado,
-            descripcion: `Venta #${venta.id} (${metodoPagoNorm})`,
+            monto: montoIngresoReal,
+            descripcion: `Venta #${venta.id} (${metodoPagoNorm}) - Valor: $${Number(montoPagadoValidado).toLocaleString('es-CO')} - Recibido: $${(Number(montoRecibido) > 0 ? Number(montoRecibido) : Number(montoPagadoValidado)).toLocaleString('es-CO')}`,
             ventaId: venta.id,
             fecha: new Date()
           }
@@ -298,7 +308,7 @@ async function crearVenta(payload) {
               tipo: 'EGRESO',
               metodoPago: 'EFECTIVO',
               monto: cambio,
-              descripcion: `Cambio/Vuelto de Venta #${venta.id}`,
+              descripcion: `Cambio/Vuelto de Venta #${venta.id} - Valor: $${Number(montoPagadoValidado).toLocaleString('es-CO')} - Recibido: $${Number(montoRecibido).toLocaleString('es-CO')}`,
               ventaId: venta.id,
               fecha: new Date()
             }
