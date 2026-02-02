@@ -5,7 +5,7 @@ import { UsuarioPerfil } from '../../core/models';
 import { NotificationService, AppNotification } from '../../core/services/notification.service';
 import { Observable } from 'rxjs';
 
-import { ModalController, PopoverController } from '@ionic/angular';
+import { ModalController, PopoverController, MenuController } from '@ionic/angular';
 
 export type HomeView = 'dashboard' | 'users' | 'ventas' | 'historial' | 'productos' | 'inventario' | 'modulos' | 'finanzas' | 'clientes' | 'reportes' | 'reportes_contables' | 'configuracion';
 
@@ -28,7 +28,8 @@ export class HomePage implements OnInit {
     private authService: AuthService,
     private router: Router,
     private modalCtrl: ModalController,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private menuCtrl: MenuController
   ) {
     this.notifications$ = this.notificationService.notifications$;
     this.unreadCount$ = this.notificationService.unreadCount$;
@@ -97,6 +98,7 @@ export class HomePage implements OnInit {
 
   setView(view: HomeView | string) {
     this.currentView = view as HomeView;
+    this.closeMenu();
     if (view === 'dashboard') {
       this.pageTitle = 'Dashboard';
     } else if (view === 'users') {
@@ -122,6 +124,14 @@ export class HomePage implements OnInit {
     } else if (view === 'configuracion') {
       this.pageTitle = 'Configuración del Sistema';
     }
+  }
+
+  toggleMenu() {
+    this.menuCtrl.toggle();
+  }
+
+  closeMenu() {
+    this.menuCtrl.close();
   }
 
   // Notification Methods

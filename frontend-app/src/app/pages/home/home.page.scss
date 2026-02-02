@@ -98,10 +98,28 @@ ion-split-pane {
 }
 
 .sidebar ion-list {
-  display: grid;
-  gap: 6px;
-  padding: 0 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 10px;
   background: transparent;
+}
+
+.menu-section {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+
+  .section-title {
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding-left: 14px;
+    margin-bottom: 8px;
+    display: block;
+  }
 }
 
 .sidebar ion-item {
@@ -284,19 +302,12 @@ ion-split-pane {
   padding-bottom: calc(8px + env(safe-area-inset-bottom));
   background: var(--brand-teal);
   padding-top: 8px;
-  padding-left: 12px;
-  padding-right: 12px;
-  box-shadow: var(--shadow-1);
+  padding-left: 8px;
+  padding-right: 8px;
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
   display: flex;
-  justify-content: flex-start;
-  /* Changed from space-around to handle scroll better */
-  overflow-x: auto;
-  gap: 8px;
+  justify-content: space-around;
   z-index: 100;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
 }
 
 .mobile-tabbar .item {
@@ -308,16 +319,21 @@ ion-split-pane {
   background: transparent;
   border: none;
   border-radius: var(--radius-12);
-  padding: 6px 4px;
-  /* Reduced side padding */
-  min-width: 56px;
-  /* Reduced min-width */
+  padding: 6px 2px;
+  min-width: 64px;
   flex-shrink: 0;
-}
+  transition: all 0.2s ease;
 
-.mobile-tabbar .item.active {
-  background: #ffffff;
-  color: var(--brand-teal);
+  &.active {
+    background: #ffffff;
+    color: var(--brand-teal);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  &.menu-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
 }
 
 .mobile-tabbar ion-icon {
