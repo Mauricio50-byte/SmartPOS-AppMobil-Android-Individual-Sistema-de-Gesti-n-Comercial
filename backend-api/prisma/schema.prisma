@@ -89,6 +89,7 @@ model DetalleDevolucion {
   producto         Producto   @relation(fields: [productoId], references: [id])
   cantidad         Int
   precioUnitario   Float
+  precioCosto      Float      @default(0)
   subtotal         Float
 
   @@index([devolucionId])
@@ -166,6 +167,7 @@ model Producto {
   stockMinimo        Int?                 @default(0)
   unidadMedida       String?              @default("UNIDAD")
   margenGanancia     Float?               @default(0)
+  porcentajeIva      Float                @default(0)
   proveedor          String?
   activo             Boolean              @default(true)
   creadoEn           DateTime             @default(now())
@@ -282,6 +284,8 @@ model Venta {
   estadoPago     String         @default("PAGADO")
   montoPagado    Float          @default(0)
   saldoPendiente Float          @default(0)
+  subtotal       Float          @default(0)
+  impuestos      Float          @default(0)
   detalles       DetalleVenta[]
   deuda          Deuda?
   cliente        Cliente?       @relation(fields: [clienteId], references: [id])
@@ -345,6 +349,8 @@ model DetalleVenta {
   cantidad       Int
   precioUnitario Float
   precioCosto    Float    @default(0)
+  porcentajeIva  Float    @default(0)
+  montoIva       Float    @default(0)
   subtotal       Float
   producto       Producto @relation(fields: [productoId], references: [id])
   venta          Venta    @relation(fields: [ventaId], references: [id])

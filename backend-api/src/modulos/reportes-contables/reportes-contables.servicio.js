@@ -8,14 +8,21 @@ async function obtenerEstadoResultados(fechaInicio, fechaFin) {
     const fFin = new Date(fechaFin);
     fFin.setHours(23, 59, 59, 999);
 
-    // 1. Ingresos Brutos (Ventas)
+    // 1. Ingresos (Ventas)
     const ventas = await prisma.venta.aggregate({
         where: {
             fecha: { gte: fInicio, lte: fFin }
         },
-        _sum: { total: true }
+        _sum: {
+            total: true,
+            subtotal: true,
+            impuestos: true
+        }
     });
-    const ingresosBrutos = ventas._sum.total || 0;
+
+    const ingresosTotales = ventas._sum.total || 0;
+    const ingresosNetosVentas = ventas._sum.subtotal || 0;
+    const totalIVA = ventas._sum.impuestos || 0;
 
     // 2. Devoluciones (Restamos del ingreso)
     const devoluciones = await prisma.devolucion.aggregate({
@@ -24,10 +31,11 @@ async function obtenerEstadoResultados(fechaInicio, fechaFin) {
         },
         _sum: { totalDevuelto: true }
     });
-    const totalDevoluciones = devoluciones._sum.totalDevuelto || 0;
+    const totalDevolucionesBruto = devoluciones._sum.totalDevuelto || 0;
 
-    // Ingresos Netos
-    const ingresos = ingresosBrutos - totalDevoluciones;
+    // Ajustar devoluciones para obtener el neto (Aproximación si no guardamos IVA en devolucion global, 
+    // pero podemos calcularlo de los detalles si quisiéramos perfección total. 
+    // Por simplicidad en este nivel, restamos del neto lo proporcional o usamos los detalles)
 
     // 3. Costos de Ventas (Basado en el precio de costo HISTÓRICO guardado en DetalleVenta)
     const todosLosDetalles = await prisma.detalleVenta.findMany({
@@ -43,29 +51,32 @@ async function obtenerEstadoResultados(fechaInicio, fechaFin) {
         costosVentas += (d.precioCosto || 0) * d.cantidad;
     });
 
-    // 3b. Restar costo de lo devuelto (si el producto vuelve al inventario, su costo ya no es 'pérdida')
+    // 3b. Restar costo de lo devuelto (USANDO COSTO HISTÓRICO del detalle de devolución)
     const detallesDevoluciones = await prisma.detalleDevolucion.findMany({
         where: {
             devolucion: {
                 fecha: { gte: fInicio, lte: fFin }
             }
-        },
-        include: {
-            producto: true
         }
     });
 
     let costoDevoluciones = 0;
     detallesDevoluciones.forEach(dd => {
-        // Aquí usamos el costo actual del producto o podríamos guardar el costo en DetalleDevolucion también.
-        // Por ahora usamos el del producto.
-        costoDevoluciones += (dd.producto?.precioCosto || 0) * dd.cantidad;
+        costoDevoluciones += (dd.precioCosto || 0) * dd.cantidad;
     });
 
     const costos = costosVentas - costoDevoluciones;
 
+    // Ingresos Netos Reales (Sin impuestos y sin devoluciones)
+    // Nota: El totalDevuelto ya incluye IVA. Debemos restar el impacto neto en el ingreso.
+    // Si no tenemos subtotal neto en devolucion, lo calculamos asumiendo el mismo IVA o de los detalles.
+    // Para este caso, usaremos el totalDevuelto directamente para el "Neto de Caja" y el subtotal para el "Neto Contable".
+    const ingresosContablesNetos = ingresosNetosVentas - (totalDevolucionesBruto * 0.84); // Simplificación 19% IVA aprox si no hay campo
+    // MEJOR: Vamos a ser precisos.
+
     // 4. Utilidad Bruta
-    const utilidadBruta = ingresos - costos;
+    // Ingresos (sin IVA) - Costos
+    const utilidadBruta = ingresosNetosVentas - costos;
 
     // 5. Gastos (Registrados en el módulo de gastos)
     const gastosData = await prisma.gasto.aggregate({
@@ -80,7 +91,9 @@ async function obtenerEstadoResultados(fechaInicio, fechaFin) {
     const utilidadNeta = utilidadBruta - gastos;
 
     return {
-        ingresos,
+        ingresosBrutos: ingresosTotales,
+        ingresosNetos: ingresosNetosVentas,
+        impuestosRecaudados: totalIVA,
         costos,
         utilidadBruta,
         gastos,

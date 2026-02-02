@@ -31,6 +31,7 @@ async function crearDevolucion(datos) {
                     productoId: item.productoId,
                     cantidad: item.cantidad,
                     precioUnitario: detalleOriginal.precioUnitario,
+                    precioCosto: detalleOriginal.precioCosto || 0,
                     subtotal
                 })
 

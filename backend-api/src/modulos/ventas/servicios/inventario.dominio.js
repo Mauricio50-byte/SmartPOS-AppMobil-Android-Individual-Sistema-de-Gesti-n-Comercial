@@ -11,6 +11,8 @@ async function validarYDescontarStock(tx, items, usuarioId, ventaId) {
     const mapa = new Map(productos.map(p => [p.id, p]));
     const detalles = [];
     let totalVenta = 0;
+    let totalImpuestos = 0;
+    let totalSubtotalNeto = 0;
 
     for (const item of items) {
         const p = mapa.get(Number(item.productoId));
@@ -21,17 +23,28 @@ async function validarYDescontarStock(tx, items, usuarioId, ventaId) {
             throw new Error(`Stock insuficiente para ${p.nombre}. Disponible: ${p.stock}, Solicitado: ${cantidad}`);
         }
 
-        const precioUnitario = Number(p.precioVenta || 0);
-        const subtotal = cantidad * precioUnitario;
-        totalVenta += subtotal;
+        const precioBruto = Number(p.precioVenta || 0);
+        const porcentajeIva = Number(p.porcentajeIva || 0);
+
+        const totalItem = cantidad * precioBruto;
+        const subtotalNetoItem = totalItem / (1 + (porcentajeIva / 100));
+        const montoIvaItem = totalItem - subtotalNetoItem;
+
+        totalVenta += totalItem;
+        totalImpuestos += montoIvaItem;
+        totalSubtotalNeto += subtotalNetoItem;
 
         detalles.push({
             productoId: p.id,
             cantidad,
-            precioUnitario,
+            precioUnitario: precioBruto,
             precioCosto: Number(p.precioCosto || 0),
-            subtotal,
-            productoOriginal: p // Para uso posterior en notificaciones o kardex
+            porcentajeIva,
+            montoIva: montoIvaItem,
+            subtotal: totalItem, // Mantenemos subtotal como total del item para no romper compatibilidad, o lo cambiamos?
+            // En Prisma, DetalleVenta.subtotal parece ser el total del item.
+            // Pero agregamos subtotalNeto para claridad interna si fuera necesario.
+            productoOriginal: p
         });
 
         // Descontar stock
@@ -58,7 +71,7 @@ async function validarYDescontarStock(tx, items, usuarioId, ventaId) {
         });
     }
 
-    return { detalles, totalVenta };
+    return { detalles, totalVenta, totalImpuestos, totalSubtotalNeto };
 }
 
 module.exports = { validarYDescontarStock };

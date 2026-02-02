@@ -89,7 +89,7 @@ async function crearVenta(payload) {
         }
       });
 
-      const { detalles, totalVenta } = await InventarioDom.validarYDescontarStock(tx, items, usuarioId, ventaPrevia.id);
+      const { detalles, totalVenta, totalImpuestos, totalSubtotalNeto } = await InventarioDom.validarYDescontarStock(tx, items, usuarioId, ventaPrevia.id);
 
       // C. Fase de Cartera (Créditos y Deudas)
       await CarteraDom.gestionarCartera(tx, {
@@ -127,6 +127,8 @@ async function crearVenta(payload) {
         where: { id: ventaPrevia.id },
         data: {
           total: totalVenta,
+          subtotal: totalSubtotalNeto,
+          impuestos: totalImpuestos,
           montoPagado: montoPagadoFinal,
           saldoPendiente: saldoPendiente
         }
@@ -139,6 +141,8 @@ async function crearVenta(payload) {
           cantidad: d.cantidad,
           precioUnitario: d.precioUnitario,
           precioCosto: d.precioCosto,
+          porcentajeIva: d.porcentajeIva,
+          montoIva: d.montoIva,
           subtotal: d.subtotal
         }))
       });

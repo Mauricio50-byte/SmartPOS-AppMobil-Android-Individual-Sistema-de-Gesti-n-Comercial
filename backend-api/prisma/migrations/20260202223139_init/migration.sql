@@ -46,6 +46,31 @@ CREATE TABLE "MovimientoCaja" (
 );
 
 -- CreateTable
+CREATE TABLE "Devolucion" (
+    "id" SERIAL NOT NULL,
+    "ventaId" INTEGER NOT NULL,
+    "totalDevuelto" DOUBLE PRECISION NOT NULL,
+    "motivo" TEXT,
+    "fecha" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "usuarioId" INTEGER NOT NULL,
+
+    CONSTRAINT "Devolucion_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "DetalleDevolucion" (
+    "id" SERIAL NOT NULL,
+    "devolucionId" INTEGER NOT NULL,
+    "productoId" INTEGER NOT NULL,
+    "cantidad" INTEGER NOT NULL,
+    "precioUnitario" DOUBLE PRECISION NOT NULL,
+    "precioCosto" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "subtotal" DOUBLE PRECISION NOT NULL,
+
+    CONSTRAINT "DetalleDevolucion_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Modulo" (
     "id" TEXT NOT NULL,
     "nombre" TEXT NOT NULL,
@@ -88,6 +113,17 @@ CREATE TABLE "UsuarioModulo" (
 );
 
 -- CreateTable
+CREATE TABLE "Categoria" (
+    "id" SERIAL NOT NULL,
+    "nombre" TEXT NOT NULL,
+    "descripcion" TEXT,
+    "activo" BOOLEAN NOT NULL DEFAULT true,
+    "creadoEn" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Categoria_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Producto" (
     "id" SERIAL NOT NULL,
     "tipo" TEXT NOT NULL DEFAULT 'GENERAL',
@@ -95,6 +131,7 @@ CREATE TABLE "Producto" (
     "sku" TEXT,
     "descripcion" TEXT,
     "imagen" TEXT,
+    "categoriaId" INTEGER,
     "categoria" TEXT,
     "subcategoria" TEXT,
     "marca" TEXT,
@@ -105,6 +142,7 @@ CREATE TABLE "Producto" (
     "stockMinimo" INTEGER DEFAULT 0,
     "unidadMedida" TEXT DEFAULT 'UNIDAD',
     "margenGanancia" DOUBLE PRECISION DEFAULT 0,
+    "porcentajeIva" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "proveedor" TEXT,
     "activo" BOOLEAN NOT NULL DEFAULT true,
     "creadoEn" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -224,6 +262,8 @@ CREATE TABLE "Venta" (
     "estadoPago" TEXT NOT NULL DEFAULT 'PAGADO',
     "montoPagado" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "saldoPendiente" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "subtotal" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "impuestos" DOUBLE PRECISION NOT NULL DEFAULT 0,
 
     CONSTRAINT "Venta_pkey" PRIMARY KEY ("id")
 );
@@ -278,6 +318,9 @@ CREATE TABLE "DetalleVenta" (
     "productoId" INTEGER NOT NULL,
     "cantidad" INTEGER NOT NULL,
     "precioUnitario" DOUBLE PRECISION NOT NULL,
+    "precioCosto" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "porcentajeIva" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "montoIva" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "subtotal" DOUBLE PRECISION NOT NULL,
 
     CONSTRAINT "DetalleVenta_pkey" PRIMARY KEY ("id")
@@ -353,6 +396,25 @@ CREATE TABLE "Notificacion" (
     CONSTRAINT "Notificacion_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "MovimientoInventario" (
+    "id" SERIAL NOT NULL,
+    "productoId" INTEGER NOT NULL,
+    "tipo" TEXT NOT NULL,
+    "cantidad" INTEGER NOT NULL,
+    "costoUnitario" DOUBLE PRECISION NOT NULL,
+    "valorTotal" DOUBLE PRECISION NOT NULL,
+    "stockAnterior" INTEGER NOT NULL,
+    "stockNuevo" INTEGER NOT NULL,
+    "referencia" TEXT,
+    "tipoReferencia" TEXT,
+    "usuarioId" INTEGER NOT NULL,
+    "motivo" TEXT,
+    "fecha" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "MovimientoInventario_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Usuario_correo_key" ON "Usuario"("correo");
 
@@ -364,6 +426,18 @@ CREATE INDEX "MovimientoCaja_cajaId_idx" ON "MovimientoCaja"("cajaId");
 
 -- CreateIndex
 CREATE INDEX "MovimientoCaja_tipo_idx" ON "MovimientoCaja"("tipo");
+
+-- CreateIndex
+CREATE INDEX "Devolucion_ventaId_idx" ON "Devolucion"("ventaId");
+
+-- CreateIndex
+CREATE INDEX "Devolucion_fecha_idx" ON "Devolucion"("fecha");
+
+-- CreateIndex
+CREATE INDEX "DetalleDevolucion_devolucionId_idx" ON "DetalleDevolucion"("devolucionId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Categoria_nombre_key" ON "Categoria"("nombre");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Producto_sku_key" ON "Producto"("sku");
@@ -422,6 +496,12 @@ CREATE INDEX "Deuda_clienteId_idx" ON "Deuda"("clienteId");
 -- CreateIndex
 CREATE INDEX "Deuda_estado_idx" ON "Deuda"("estado");
 
+-- CreateIndex
+CREATE INDEX "MovimientoInventario_productoId_fecha_idx" ON "MovimientoInventario"("productoId", "fecha");
+
+-- CreateIndex
+CREATE INDEX "MovimientoInventario_tipo_idx" ON "MovimientoInventario"("tipo");
+
 -- AddForeignKey
 ALTER TABLE "Usuario" ADD CONSTRAINT "Usuario_negocioId_fkey" FOREIGN KEY ("negocioId") REFERENCES "Negocio"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
@@ -435,6 +515,18 @@ ALTER TABLE "MovimientoCaja" ADD CONSTRAINT "MovimientoCaja_cajaId_fkey" FOREIGN
 ALTER TABLE "MovimientoCaja" ADD CONSTRAINT "MovimientoCaja_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "Usuario"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Devolucion" ADD CONSTRAINT "Devolucion_ventaId_fkey" FOREIGN KEY ("ventaId") REFERENCES "Venta"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Devolucion" ADD CONSTRAINT "Devolucion_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "Usuario"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DetalleDevolucion" ADD CONSTRAINT "DetalleDevolucion_devolucionId_fkey" FOREIGN KEY ("devolucionId") REFERENCES "Devolucion"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DetalleDevolucion" ADD CONSTRAINT "DetalleDevolucion_productoId_fkey" FOREIGN KEY ("productoId") REFERENCES "Producto"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "NegocioModulo" ADD CONSTRAINT "NegocioModulo_moduloId_fkey" FOREIGN KEY ("moduloId") REFERENCES "Modulo"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -445,6 +537,9 @@ ALTER TABLE "UsuarioModulo" ADD CONSTRAINT "UsuarioModulo_moduloId_fkey" FOREIGN
 
 -- AddForeignKey
 ALTER TABLE "UsuarioModulo" ADD CONSTRAINT "UsuarioModulo_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "Usuario"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Producto" ADD CONSTRAINT "Producto_categoriaId_fkey" FOREIGN KEY ("categoriaId") REFERENCES "Categoria"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ProductoRopa" ADD CONSTRAINT "ProductoRopa_productoId_fkey" FOREIGN KEY ("productoId") REFERENCES "Producto"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -517,3 +612,9 @@ ALTER TABLE "PagoGasto" ADD CONSTRAINT "PagoGasto_usuarioId_fkey" FOREIGN KEY ("
 
 -- AddForeignKey
 ALTER TABLE "Notificacion" ADD CONSTRAINT "Notificacion_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "Usuario"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MovimientoInventario" ADD CONSTRAINT "MovimientoInventario_productoId_fkey" FOREIGN KEY ("productoId") REFERENCES "Producto"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MovimientoInventario" ADD CONSTRAINT "MovimientoInventario_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "Usuario"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
