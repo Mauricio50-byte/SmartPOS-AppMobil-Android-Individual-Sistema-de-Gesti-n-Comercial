@@ -73,6 +73,11 @@
           <ion-icon slot="start" name="bar-chart-outline"></ion-icon>
           <ion-label>Reportes</ion-label>
         </ion-item>
+        <ion-item button [class.active]="currentView === 'reportes_contables'" (click)="setView('reportes_contables')"
+          title="Reportes Contables" aria-label="Reportes Contables">
+          <ion-icon slot="start" name="analytics-outline"></ion-icon>
+          <ion-label>Reportes Contables</ion-label>
+        </ion-item>
         }
 
         @if (hasModule('configuracion') || hasPermission('VER_CONFIGURACION')) {
@@ -184,34 +189,37 @@
 
     <ion-content [fullscreen]="true" class="dashboard">
       <div class="content-container">
-      @if (currentView === 'dashboard') {
-      <app-dashboard (navigate)="setView($event)"></app-dashboard>
-      }
-      @if (currentView === 'users') {
-      <app-users></app-users>
-      }
-      @if (currentView === 'ventas') {
-      <app-ventas></app-ventas>
-      }
-      @if (currentView === 'productos') {
-      <app-productos></app-productos>
-      }
-      @if (currentView === 'clientes') {
-      <app-clientes></app-clientes>
-      }
-      @if (currentView === 'modulos') {
-      <app-modulos></app-modulos>
-      }
-      @if (currentView === 'finanzas') {
-      <app-finanzas></app-finanzas>
-      }
-      @if (currentView === 'reportes') {
-      <app-reportes></app-reportes>
-      }
-      @if (currentView === 'configuracion') {
-      <app-configuracion></app-configuracion>
-      }
-    </div>
+        @if (currentView === 'dashboard') {
+        <app-dashboard (navigate)="setView($event)"></app-dashboard>
+        }
+        @if (currentView === 'users') {
+        <app-users></app-users>
+        }
+        @if (currentView === 'ventas') {
+        <app-ventas></app-ventas>
+        }
+        @if (currentView === 'productos') {
+        <app-productos></app-productos>
+        }
+        @if (currentView === 'clientes') {
+        <app-clientes></app-clientes>
+        }
+        @if (currentView === 'modulos') {
+        <app-modulos></app-modulos>
+        }
+        @if (currentView === 'finanzas') {
+        <app-finanzas></app-finanzas>
+        }
+        @if (currentView === 'reportes') {
+        <app-reportes></app-reportes>
+        }
+        @if (currentView === 'reportes_contables') {
+        <app-reportes-contables></app-reportes-contables>
+        }
+        @if (currentView === 'configuracion') {
+        <app-configuracion></app-configuracion>
+        }
+      </div>
     </ion-content>
 
     <div class="mobile-tabbar" role="tablist" aria-label="Navegación inferior">
@@ -275,6 +283,12 @@
         [attr.aria-selected]="currentView === 'reportes'">
         <ion-icon name="bar-chart-outline"></ion-icon>
         <span>Reportes</span>
+      </button>
+
+      <button class="item" [class.active]="currentView === 'reportes_contables'" (click)="setView('reportes_contables')"
+        role="tab" [attr.aria-selected]="currentView === 'reportes_contables'">
+        <ion-icon name="analytics-outline"></ion-icon>
+        <span>Contable</span>
       </button>
       }
 

@@ -5,10 +5,12 @@ import { IonicModule } from '@ionic/angular';
 import { BaseChartDirective } from 'ng2-charts';
 
 import { ReportesComponent } from './reportes.component';
+import { ReportesContablesComponent } from './contables/reportes-contables.component';
 
 @NgModule({
   declarations: [
-    ReportesComponent
+    ReportesComponent,
+    ReportesContablesComponent
   ],
   imports: [
     CommonModule,
@@ -17,7 +19,8 @@ import { ReportesComponent } from './reportes.component';
     BaseChartDirective
   ],
   exports: [
-    ReportesComponent
+    ReportesComponent,
+    ReportesContablesComponent
   ]
 })
 export class ReportesModule { }

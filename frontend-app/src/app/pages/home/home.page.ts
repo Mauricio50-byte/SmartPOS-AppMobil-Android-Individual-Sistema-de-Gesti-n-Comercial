@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 
 import { ModalController, PopoverController } from '@ionic/angular';
 
-export type HomeView = 'dashboard' | 'users' | 'ventas' | 'productos' | 'modulos' | 'finanzas' | 'clientes' | 'reportes' | 'configuracion';
+export type HomeView = 'dashboard' | 'users' | 'ventas' | 'productos' | 'modulos' | 'finanzas' | 'clientes' | 'reportes' | 'reportes_contables' | 'configuracion';
 
 @Component({
   selector: 'app-home',
@@ -107,6 +107,8 @@ export class HomePage implements OnInit {
       this.pageTitle = 'Gestión Financiera';
     } else if (view === 'reportes') {
       this.pageTitle = 'Informes y Análisis';
+    } else if (view === 'reportes_contables') {
+      this.pageTitle = 'Reportes Contables';
     } else if (view === 'configuracion') {
       this.pageTitle = 'Configuración del Sistema';
     }

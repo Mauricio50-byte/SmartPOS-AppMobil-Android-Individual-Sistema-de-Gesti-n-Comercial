@@ -1,0 +1,192 @@
+<div class="reportes-contables-container">
+    <div class="header-section">
+        <div class="tabs-container">
+            <div class="tab" [class.active]="activeTab === 'pnl'" (click)="setTab('pnl')">
+                <ion-icon name="trending-up-outline"></ion-icon>
+                <span>P&L</span>
+            </div>
+            <div class="tab" [class.active]="activeTab === 'cashflow'" (click)="setTab('cashflow')">
+                <ion-icon name="cash-outline"></ion-icon>
+                <span>Flujo Caja</span>
+            </div>
+            <div class="tab" [class.active]="activeTab === 'receivables'" (click)="setTab('receivables')">
+                <ion-icon name="people-outline"></ion-icon>
+                <span>Cartera</span>
+            </div>
+            <div class="tab" [class.active]="activeTab === 'inventory'" (click)="setTab('inventory')">
+                <ion-icon name="cube-outline"></ion-icon>
+                <span>Inventario</span>
+            </div>
+            <div class="tab" [class.active]="activeTab === 'payables'" (click)="setTab('payables')">
+                <ion-icon name="receipt-outline"></ion-icon>
+                <span>CxP</span>
+            </div>
+        </div>
+
+        <!-- Date Filters for relative reports -->
+        <div class="filters-row" *ngIf="activeTab === 'pnl' || activeTab === 'cashflow'">
+            <div class="filter-item">
+                <ion-label position="stacked">Desde</ion-label>
+                <ion-input type="date" [(ngModel)]="fechaInicio" (ionChange)="onFilterChange()"></ion-input>
+            </div>
+            <div class="filter-item">
+                <ion-label position="stacked">Hasta</ion-label>
+                <ion-input type="date" [(ngModel)]="fechaFin" (ionChange)="onFilterChange()"></ion-input>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <div *ngIf="loading" class="loading-state">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>Generando reporte profesional...</p>
+        </div>
+
+        <!-- 1. Estado de Resultados -->
+        <div *ngIf="activeTab === 'pnl' && !loading && estadoResultados"
+            class="report-card animate__animated animate__fadeIn">
+            <h3 class="section-title">Estado de Resultados</h3>
+            <div class="stats-grid">
+                <div class="stat-item positive">
+                    <span class="label">Ingresos Totales</span>
+                    <span class="value">{{ estadoResultados.ingresos | currency }}</span>
+                </div>
+                <div class="stat-item negative">
+                    <span class="label">Costo de Ventas</span>
+                    <span class="value">- {{ estadoResultados.costos | currency }}</span>
+                </div>
+                <div class="stat-item highlight">
+                    <span class="label">Utilidad Bruta</span>
+                    <span class="value">{{ estadoResultados.utilidadBruta | currency }}</span>
+                </div>
+                <div class="stat-item negative">
+                    <span class="label">Gastos Operativos</span>
+                    <span class="value">- {{ estadoResultados.gastos | currency }}</span>
+                </div>
+                <div class="stat-item final" [class.profit]="estadoResultados.utilidadNeta >= 0"
+                    [class.loss]="estadoResultados.utilidadNeta < 0">
+                    <span class="label">Utilidad Neta</span>
+                    <span class="value">{{ estadoResultados.utilidadNeta | currency }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Flujo de Caja -->
+        <div *ngIf="activeTab === 'cashflow' && !loading && flujoCaja"
+            class="report-card animate__animated animate__fadeIn">
+            <h3 class="section-title">Flujo de Efectivo</h3>
+            <div class="stats-grid">
+                <div class="stat-item info">
+                    <span class="label">Saldo Inicial</span>
+                    <span class="value">{{ flujoCaja.saldoInicial | currency }}</span>
+                </div>
+                <div class="stat-item positive">
+                    <span class="label">Entradas (Recaudación/Ingresos)</span>
+                    <span class="value">+ {{ flujoCaja.entradas | currency }}</span>
+                </div>
+                <div class="stat-item negative">
+                    <span class="label">Salidas (Gastos/Pagos)</span>
+                    <span class="value">- {{ flujoCaja.salidas | currency }}</span>
+                </div>
+                <div class="stat-item final highlight">
+                    <span class="label">Saldo Final en Caja</span>
+                    <span class="value">{{ flujoCaja.saldoFinal | currency }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Cartera (CxC) -->
+        <div *ngIf="activeTab === 'receivables' && !loading && cartera"
+            class="report-card animate__animated animate__fadeIn">
+            <h3 class="section-title">Cartera de Clientes</h3>
+            <div class="kpi-row">
+                <div class="kpi-box">
+                    <span class="label">Total por Cobrar</span>
+                    <span class="value">{{ cartera.totalPorCobrar | currency }}</span>
+                </div>
+                <div class="kpi-box warning">
+                    <span class="label">Deuda Vencida</span>
+                    <span class="value">{{ cartera.deudasVencidas | currency }}</span>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th class="ion-text-right">Total</th>
+                            <th class="ion-text-right">Vencido</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of cartera.carteraAgrupada">
+                            <td>{{ item.nombre }}</td>
+                            <td class="ion-text-right">{{ item.total | currency }}</td>
+                            <td class="ion-text-right" [class.text-danger]="item.vencido > 0">{{ item.vencido | currency
+                                }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 4. Inventario Valorizado -->
+        <div *ngIf="activeTab === 'inventory' && !loading && inventario"
+            class="report-card animate__animated animate__fadeIn">
+            <h3 class="section-title">Inventario Valorizado</h3>
+            <div class="kpi-box main">
+                <span class="label">Valor Total del Inventario (Costo)</span>
+                <span class="value">{{ inventario.valorTotal | currency }}</span>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Categoría</th>
+                            <th class="ion-text-center">Artículos</th>
+                            <th class="ion-text-right">Valorización</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let cat of inventario.analisisCategoria">
+                            <td>{{ cat.categoria }}</td>
+                            <td class="ion-text-center">{{ cat.items }}</td>
+                            <td class="ion-text-right">{{ cat.valor | currency }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 5. Cuentas por Pagar -->
+        <div *ngIf="activeTab === 'payables' && !loading && cuentasPagar"
+            class="report-card animate__animated animate__fadeIn">
+            <h3 class="section-title">Cuentas por Pagar</h3>
+            <div class="kpi-box negative">
+                <span class="label">Total Pendiente a Proveedores</span>
+                <span class="value">{{ cuentasPagar.totalPorPagar | currency }}</span>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Proveedor</th>
+                            <th class="ion-text-center">Facturas</th>
+                            <th class="ion-text-right">Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let prov of cuentasPagar.analisisProveedor">
+                            <td>{{ prov.proveedor }}</td>
+                            <td class="ion-text-center">{{ prov.facturas }}</td>
+                            <td class="ion-text-right">{{ prov.total | currency }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
