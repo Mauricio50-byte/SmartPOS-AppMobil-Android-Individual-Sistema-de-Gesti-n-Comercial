@@ -358,7 +358,7 @@
 ## 🟡 FASE 2: ALTAS (Semanas 3-4) - 4 tareas
 
 ### Tarea 5: Mejorar Módulo de Reportes y Agregar Reportes Contables
-- [ ] **Migrar Reportes Existentes al Backend y Agregar Reportes Contables** (Esfuerzo: 3-5 días)
+- [x] **Migrar Reportes Existentes al Backend y Agregar Reportes Contables** (Esfuerzo: 3-5 días)
   
   **Descripción:**
   Ya tienes un módulo de reportes funcional en el frontend (`frontend-app/src/app/pages/home/components/reportes/`) que genera reportes operativos por categoría/producto con exportación a PDF/Excel. Esta tarea consiste en:

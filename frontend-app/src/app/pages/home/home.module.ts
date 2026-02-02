@@ -6,6 +6,7 @@ import { HomePage } from './home.page';
 import { SharedModule } from '../../shared/shared.module';
 import { VentasComponent } from './components/ventas/ventas.component';
 import { ProductosComponent } from './components/productos/productos.component';
+import { InventarioComponent } from './components/inventario/inventario.component';
 
 import { HomePageRoutingModule } from './home-routing.module';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
@@ -79,7 +80,8 @@ import { ClientEditModalComponent } from './components/clientes/components/clien
     CuentasPorCobrarComponent,
     CajaComponent,
     TransactionModalComponent,
-    ClientEditModalComponent
+    ClientEditModalComponent,
+    InventarioComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

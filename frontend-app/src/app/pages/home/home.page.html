@@ -25,6 +25,11 @@
           <ion-icon slot="start" name="cube-outline"></ion-icon>
           <ion-label>Productos</ion-label>
         </ion-item>
+        <ion-item button [class.active]="currentView === 'inventario'" (click)="setView('inventario')"
+          title="Movimientos de Inventario" aria-label="Movimientos de Inventario">
+          <ion-icon slot="start" name="swap-horizontal-outline"></ion-icon>
+          <ion-label>Mov. Inventario</ion-label>
+        </ion-item>
         }
 
         @if (hasModule('ventas') || hasPermission('VENDER') || hasPermission('VER_VENTAS')) {
@@ -201,6 +206,9 @@
         @if (currentView === 'productos') {
         <app-productos></app-productos>
         }
+        @if (currentView === 'inventario') {
+        <app-inventario></app-inventario>
+        }
         @if (currentView === 'clientes') {
         <app-clientes></app-clientes>
         }
@@ -235,6 +243,11 @@
         [attr.aria-selected]="currentView === 'productos'">
         <ion-icon name="cube-outline"></ion-icon>
         <span>Prod.</span>
+      </button>
+      <button class="item" [class.active]="currentView === 'inventario'" (click)="setView('inventario')" role="tab"
+        [attr.aria-selected]="currentView === 'inventario'">
+        <ion-icon name="swap-horizontal-outline"></ion-icon>
+        <span>Inv.</span>
       </button>
       }
 

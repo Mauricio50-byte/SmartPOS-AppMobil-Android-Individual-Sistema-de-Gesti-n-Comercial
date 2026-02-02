@@ -24,6 +24,7 @@ model Usuario {
   cajas           Caja[]
   movimientosCaja MovimientoCaja[]
   notificaciones  Notificacion[]
+  movimientosInventario MovimientoInventario[]
 }
 
 model Caja {
@@ -129,6 +130,7 @@ model Producto {
   creadoEn           DateTime             @default(now())
   actualizadoEn      DateTime             @updatedAt
   detalles           DetalleVenta[]
+  movimientos        MovimientoInventario[]
   detalleAlimento    ProductoAlimento?
   detalleFarmacia    ProductoFarmacia?
   detallePapeleria   ProductoPapeleria?
@@ -304,8 +306,6 @@ model DetalleVenta {
   venta          Venta    @relation(fields: [ventaId], references: [id])
 }
 
-
-
 model Deuda {
   id               Int       @id @default(autoincrement())
   clienteId        Int
@@ -371,4 +371,25 @@ model Notificacion {
   leido     Boolean  @default(false)
   link      String?
   creadoEn  DateTime @default(now())
+}
+
+model MovimientoInventario {
+  id              Int      @id @default(autoincrement())
+  productoId      Int
+  producto        Producto @relation(fields: [productoId], references: [id])
+  tipo            String   // ENTRADA, SALIDA, AJUSTE, DEVOLUCION
+  cantidad        Int
+  costoUnitario   Float
+  valorTotal      Float
+  stockAnterior   Int
+  stockNuevo      Int
+  referencia      String?  // ID de venta, compra, etc.
+  tipoReferencia  String?  // VENTA, COMPRA, AJUSTE
+  usuarioId       Int
+  usuario         Usuario  @relation(fields: [usuarioId], references: [id])
+  motivo          String?
+  fecha           DateTime @default(now())
+  
+  @@index([productoId, fecha])
+  @@index([tipo])
 }

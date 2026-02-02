@@ -1,0 +1,118 @@
+<div class="inventario-container">
+    <div class="header-section">
+        <h2>
+            <ion-icon name="repeat-outline"></ion-icon>
+            Movimientos de Inventario
+        </h2>
+        <div class="valor-total">
+            <span class="label">Valor Total Inventario</span>
+            <span class="amount">{{ valorInventario | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+    </div>
+
+    <div class="filters-card">
+        <div class="filter-item">
+            <label>Tipo de Movimiento</label>
+            <select [(ngModel)]="filtros.tipo" (change)="cargarMovimientos()">
+                <option value="">Todos</option>
+                <option value="ENTRADA">Entrada</option>
+                <option value="SALIDA">Salida</option>
+                <option value="AJUSTE">Ajuste</option>
+                <option value="DEVOLUCION">Devolución</option>
+            </select>
+        </div>
+        <div class="filter-item">
+            <label>Fecha Inicio</label>
+            <input type="date" [(ngModel)]="filtros.fechaInicio" (change)="cargarMovimientos()">
+        </div>
+        <div class="filter-item">
+            <label>Fecha Fin</label>
+            <input type="date" [(ngModel)]="filtros.fechaFin" (change)="cargarMovimientos()">
+        </div>
+        <div class="filter-item">
+            <ion-button expand="block" color="light" (click)="limpiarFiltros()">
+                <ion-icon name="refresh-outline" slot="start"></ion-icon>
+                Limpiar
+            </ion-button>
+        </div>
+        <div class="filter-item">
+            <ion-button expand="block" color="primary" (click)="abrirModalAjuste()">
+                <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+                Nuevo Ajuste
+            </ion-button>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-wrapper">
+            @if (isLoading) {
+            <div class="no-data">
+                <ion-spinner name="crescent" color="primary"></ion-spinner>
+                <p>Cargando movimientos...</p>
+            </div>
+            } @else if (movimientos.length > 0) {
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Producto</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Stock Ant.</th>
+                        <th>Stock Nuevo</th>
+                        <th>Motivo</th>
+                        <th>Usuario</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (m of movimientos; track m.id) {
+                    <tr>
+                        <td>{{ m.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+                        <td>
+                            <div style="font-weight: 600;">{{ m.producto?.nombre }}</div>
+                            <div style="font-size: 0.75rem; color: #64748b;">SKU: {{ m.producto?.sku }}</div>
+                        </td>
+                        <td>
+                            <span class="badge" [class]="m.tipo.toLowerCase()">{{ m.tipo }}</span>
+                        </td>
+                        <td>
+                            <span class="cantidad" [class.negative]="m.tipo === 'SALIDA'"
+                                [class.positive]="m.tipo === 'ENTRADA'">
+                                {{ m.tipo === 'SALIDA' ? '-' : '+' }}{{ m.cantidad }}
+                            </span>
+                        </td>
+                        <td>{{ m.stockAnterior }}</td>
+                        <td style="font-weight: 600;">{{ m.stockNuevo }}</td>
+                        <td>{{ m.motivo }}</td>
+                        <td>{{ m.usuario?.nombre }}</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+            } @else {
+            <div class="no-data">
+                <ion-icon name="list-outline"></ion-icon>
+                <h3>Sin movimientos</h3>
+                <p>No se encontraron registros con los filtros seleccionados.</p>
+            </div>
+            }
+        </div>
+
+        @if (total > filtros.take) {
+        <div class="pagination">
+            <div class="page-info">
+                Mostrando {{ filtros.skip + 1 }} - {{ mathMin(filtros.skip + filtros.take, total) }} de {{ total }}
+            </div>
+            <div class="btns">
+                <ion-button size="small" fill="outline" [disabled]="filtros.skip === 0" (click)="cambiarPagina(-1)">
+                    Anterior
+                </ion-button>
+                <ion-button size="small" fill="outline" [disabled]="filtros.skip + filtros.take >= total"
+                    (click)="cambiarPagina(1)">
+                    Siguiente
+                </ion-button>
+            </div>
+        </div>
+        }
+    </div>
+</div>

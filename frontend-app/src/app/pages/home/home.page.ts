@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 
 import { ModalController, PopoverController } from '@ionic/angular';
 
-export type HomeView = 'dashboard' | 'users' | 'ventas' | 'productos' | 'modulos' | 'finanzas' | 'clientes' | 'reportes' | 'reportes_contables' | 'configuracion';
+export type HomeView = 'dashboard' | 'users' | 'ventas' | 'productos' | 'inventario' | 'modulos' | 'finanzas' | 'clientes' | 'reportes' | 'reportes_contables' | 'configuracion';
 
 @Component({
   selector: 'app-home',
@@ -70,6 +70,9 @@ export class HomePage implements OnInit {
     if (this.currentView === 'productos' && !this.hasPermission('VER_INVENTARIO')) {
       this.currentView = 'dashboard';
     }
+    if (this.currentView === 'inventario' && !this.hasPermission('VER_INVENTARIO')) {
+      this.currentView = 'dashboard';
+    }
     if (this.currentView === 'modulos' && !this.hasPermission('GESTION_MODULOS') && !this.hasPermission('ADMIN')) {
       this.currentView = 'dashboard';
     }
@@ -99,6 +102,8 @@ export class HomePage implements OnInit {
       this.pageTitle = 'Ventas';
     } else if (view === 'productos') {
       this.pageTitle = 'Productos';
+    } else if (view === 'inventario') {
+      this.pageTitle = 'Movimientos de Inventario';
     } else if (view === 'clientes') {
       this.pageTitle = 'Gestión de Clientes';
     } else if (view === 'modulos') {
