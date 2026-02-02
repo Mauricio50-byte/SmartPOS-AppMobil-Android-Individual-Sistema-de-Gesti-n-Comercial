@@ -68,7 +68,13 @@ export class DashboardComponent implements OnInit {
     scales: {
       x: {
         grid: { display: false },
-        ticks: { color: '#6b7280', font: { size: 12 } }
+        ticks: {
+          color: '#6b7280',
+          font: { size: 9 },
+          autoSkip: false,
+          maxRotation: 45,
+          minRotation: 45
+        }
       },
       y: {
         grid: { color: '#f3f4f6' },

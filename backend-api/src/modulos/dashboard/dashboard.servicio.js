@@ -26,19 +26,20 @@ function getPeriodRanges(period = 'month') {
         prevEnd.setDate(end.getDate() - 7);
 
     } else if (period === 'year') {
-        // Año actual vs Año anterior
+        // Años: Desde el año actual hacia adelante (5 años en total)
+        start = new Date(now.getFullYear(), 0, 1);
+        end = new Date(now.getFullYear() + 4, 11, 31, 23, 59, 59, 999);
+
+        // Previos: Los 5 años anteriores al actual (para comparación de tendencias)
+        prevStart = new Date(now.getFullYear() - 5, 0, 1);
+        prevEnd = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59, 999);
+    } else {
+        // 'month' (Meses) -> Muestra los meses del año actual
         start = new Date(now.getFullYear(), 0, 1);
         end = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
 
         prevStart = new Date(now.getFullYear() - 1, 0, 1);
         prevEnd = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59, 999);
-    } else {
-        // 'month' -> Mes actual vs Mes anterior
-        start = new Date(now.getFullYear(), now.getMonth(), 1);
-        end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-
-        prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        prevEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
     }
 
     return { start, end, prevStart, prevEnd };
@@ -104,7 +105,7 @@ async function obtenerGraficoVentas(periodo = 'month') {
     let data = [];
 
     if (periodo === 'week') {
-        labels = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+        labels = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
         data = new Array(7).fill(0);
         ventas.forEach(v => {
             let dayIndex = v.fecha.getDay() - 1; // 0 (Dom) to 6 (Sat)
@@ -112,19 +113,25 @@ async function obtenerGraficoVentas(periodo = 'month') {
             data[dayIndex] += v.total;
         });
     } else if (periodo === 'year') {
-        // Muestra meses del año actual
+        // Muestra desde el año actual hacia adelante (5 años)
+        const currentYear = new Date().getFullYear();
+        for (let i = 0; i < 5; i++) {
+            labels.push((currentYear + i).toString());
+            data.push(0);
+        }
+        ventas.forEach(v => {
+            const year = v.fecha.getFullYear();
+            const index = labels.indexOf(year.toString());
+            if (index !== -1) {
+                data[index] += v.total;
+            }
+        });
+    } else {
+        // 'month' (Meses) -> Muestra meses del año actual
         labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
         data = new Array(12).fill(0);
         ventas.forEach(v => {
             data[v.fecha.getMonth()] += v.total;
-        });
-    } else {
-        // Month -> Muestra días del mes actual
-        const lastDay = end.getDate();
-        labels = Array.from({ length: lastDay }, (_, i) => (i + 1).toString());
-        data = new Array(lastDay).fill(0);
-        ventas.forEach(v => {
-            data[v.fecha.getDate() - 1] += v.total;
         });
     }
 
@@ -171,20 +178,17 @@ async function obtenerProductosTop(limit = 5, periodo = 'month') {
 }
 
 async function obtenerStockBajo(limit = 5) {
-    // Stock bajo no depende del periodo, es el estado actual
+    // Obtenemos los productos con menor stock primero
     const productos = await prisma.producto.findMany({
         where: {
-            activo: true,
-            OR: [
-                { stock: { lte: prisma.producto.stockMinimo } }, // Esto no es posible directamente en Prisma findMany
-            ]
+            activo: true
         },
         orderBy: { stock: 'asc' },
-        take: limit * 2 // Traemos un poco más para filtrar manualmente lo del stockMinimo
+        take: 50 // Traemos una muestra suficiente para filtrar
     });
 
-    // Filtrado manual ya que Prisma no permite comparar dos campos de la misma tabla fácilmente en findMany
-    const filtrados = productos.filter(p => p.stock <= (p.stockMinimo || 5))
+    // Filtrado manual: productos cuyo stock sea menor o igual a su stock mínimo personalizado (o 5 por defecto)
+    const filtrados = productos.filter(p => p.stock <= (p.stockMinimo ?? 5))
         .sort((a, b) => a.stock - b.stock)
         .slice(0, limit);
 
@@ -192,7 +196,7 @@ async function obtenerStockBajo(limit = 5) {
         id: p.id,
         nombre: p.nombre,
         stock: p.stock,
-        stockMinimo: p.stockMinimo || 5
+        stockMinimo: p.stockMinimo ?? 5
     }));
 }
 
