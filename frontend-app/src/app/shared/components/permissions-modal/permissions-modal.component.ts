@@ -123,9 +123,20 @@ export class PermissionsModalComponent implements OnInit {
         this.selectedRoles = fullUsuario.roles ? [...fullUsuario.roles] : [];
         this.directPermissions = fullUsuario.permisosDirectos ? [...fullUsuario.permisosDirectos] : [];
         this.selectedModules = (fullUsuario as any).modulos ? [...(fullUsuario as any).modulos] : [];
+
+        // Ensure Admin Consistency: If user is ADMIN, they should see all permissions/modules as checked
+        // unless they were specifically restricted (we assume empty means 'all' for admins in this context)
+        if (this.selectedRoles.includes('ADMIN')) {
+          if (this.directPermissions.length === 0) {
+            this.directPermissions = [...this.availablePermissions];
+          }
+          if (this.selectedModules.length === 0 && this.modulosSistema.length > 0) {
+            // Will be refined once modules are loaded in loadAvailableModules
+          }
+        }
+
         this.loadAvailableModules(fullUsuario.negocioId ?? null);
         this.loading = false;
-        // Logic check for editing admins removed as per request to allow full admin control
       },
       error: (error) => {
         console.error('Error loading user details', error);
@@ -172,15 +183,13 @@ export class PermissionsModalComponent implements OnInit {
 
       // Update Modules based on Role
       if (roleName === 'ADMIN') {
-        // Admin gets all system modules
-        const sysMods = this.modulosSistema.map(m => m.id);
-        // Keep existing business modules
-        const currentBizMods = this.selectedModules.filter(m => !this.modulosSistema.find(sm => sm.id === m));
-        this.selectedModules = [...new Set([...sysMods, ...currentBizMods])];
+        // Admin gets TOTAL access by default
+        this.directPermissions = [...this.availablePermissions];
+        this.selectedModules = this.availableModules.map(m => m.id);
       } else if (['TRABAJADOR', 'CAJERO'].includes(roleName)) {
         // Worker defaults (Ensure Dashboard)
         if (!this.selectedModules.includes('dashboard')) {
-          this.selectedModules.push('dashboard');
+          this.selectedModules = ['dashboard'];
         }
       }
     }
@@ -220,15 +229,18 @@ export class PermissionsModalComponent implements OnInit {
       next: (modulos) => {
         this.availableModules = modulos || [];
 
-        // Separar módulos por tipo
         this.modulosSistema = this.availableModules.filter(m => m.tipo === 'SISTEMA');
         this.modulosNegocio = this.availableModules.filter(m => m.tipo === 'NEGOCIO' || !m.tipo);
 
-        const activosSet = new Set(this.availableModules.filter(m => m.activo).map(m => m.id));
-        this.selectedModules = (this.selectedModules || []).filter(m => activosSet.has(m));
+        // MODIFICADO: No filtrar módulos inactivos para administradores, ya que deben poder verlos para activarlos.
+        this.selectedModules = this.selectedModules || [];
 
-        // Agregar módulos del sistema a selectedModules si no están
-        // MODIFICADO: Solo asegurar 'dashboard' por defecto, no todos los módulos del sistema.
+        // Si es Admin y no tiene módulos seleccionados, cargar todos por defecto
+        if (this.selectedRoles.includes('ADMIN') && this.selectedModules.length === 0) {
+          this.selectedModules = this.availableModules.map(m => m.id);
+        }
+
+        // Solo asegurar 'dashboard' por defecto para el resto
         if (!this.selectedModules.includes('dashboard')) {
           this.selectedModules.push('dashboard');
         }
@@ -315,8 +327,22 @@ export class PermissionsModalComponent implements OnInit {
 
   async save() {
     if (!this.usuario) return;
-    const targetRoles = Array.isArray(this.usuario?.roles) ? this.usuario.roles : [];
-    // Permitir guardar si es Admin
+
+    const targetIsAdmin = this.usuario.roles?.includes('ADMIN');
+    const targetIsSuperAdmin = (this.usuario as any).adminPorDefecto === true;
+
+    // RESTRICCIÓN DE SEGURIDAD: Solo el Admin por Defecto puede quitarle permisos a otro Admin
+    if (targetIsAdmin && !this.actorAdminPorDefecto) {
+      this.alertService.error('Solo el Administrador Principal (Super Admin) puede modificar los permisos de otros administradores.');
+      return;
+    }
+
+    // El Admin por Defecto es intocable salvo por él mismo (si se permite)
+    if (targetIsSuperAdmin && !this.actorAdminPorDefecto) {
+      this.alertService.error('No tienes permisos suficientes para modificar al Administrador Principal.');
+      return;
+    }
+
     if (!this.actorEsAdmin) { this.dismiss(); return; }
 
     // Confirm critical changes if permissions are being removed or admin role removed
