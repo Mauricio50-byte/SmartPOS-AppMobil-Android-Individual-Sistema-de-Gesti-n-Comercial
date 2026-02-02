@@ -1,95 +1,123 @@
-<div class="modal-container">
-    <div class="modal-header">
-        <h2>Registrar Devolución</h2>
-        <ion-button fill="clear" color="medium" (click)="cerrar()">
-            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
-        </ion-button>
-    </div>
+<div class="modal-wrapper glass">
+    <header class="fancy-header">
+        <div class="header-main">
+            <div class="title-section">
+                <div class="icon-circle danger">
+                    <ion-icon name="arrow-undo-outline"></ion-icon>
+                </div>
+                <div>
+                    <h2 class="modal-title">Registrar Devolución</h2>
+                    <p class="subtitle">Gestión de devoluciones de productos</p>
+                </div>
+            </div>
+            <button class="close-btn" (click)="cerrar()">
+                <ion-icon name="close-outline"></ion-icon>
+            </button>
+        </div>
+    </header>
 
-    <div class="modal-content">
+    <div class="modal-body">
 
+        <!-- Sale Search Section -->
         <div class="search-section" *ngIf="!venta">
-            <input type="number" placeholder="Ingrese ID de Venta" [(ngModel)]="searchId" (keyup.enter)="buscarVenta()">
-            <ion-button (click)="buscarVenta()" [disabled]="isLoading">
-                <ion-icon name="search"></ion-icon>
-            </ion-button>
+            <div class="search-card glass">
+                <h3>Buscar Venta</h3>
+                <p>Ingrese el folio de la venta para iniciar la devolución</p>
+                <div class="input-group-premium">
+                    <div class="input-glow">
+                        <ion-icon name="barcode-outline"></ion-icon>
+                        <input type="number" placeholder="Folio de venta (ID)..." [(ngModel)]="searchId"
+                            (keyup.enter)="buscarVenta()">
+                    </div>
+                    <button class="btn-neo danger" (click)="buscarVenta()" [disabled]="isLoading">
+                        <ion-icon name="search-outline" *ngIf="!isLoading"></ion-icon>
+                        <ion-spinner name="crescent" *ngIf="isLoading"></ion-spinner>
+                        <span>Buscar</span>
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <div *ngIf="venta">
-            <div class="sale-info">
-                <div class="row">
-                    <label>Venta #</label>
-                    <span>{{ venta.id }}</span>
+        <!-- Sale Selected Details -->
+        <div class="sale-details-view" *ngIf="venta">
+            <div class="sale-summary-card glass">
+                <div class="summary-header">
+                    <div class="folio">Folio: #{{ venta.id }}</div>
+                    <span class="badge" [class]="venta.estadoPago | lowercase">{{ venta.estadoPago }}</span>
                 </div>
-                <div class="row">
-                    <label>Fecha</label>
-                    <span>{{ venta.fecha | date:'medium' }}</span>
+                <div class="summary-grid">
+                    <div class="info-item">
+                        <span class="label">Fecha</span>
+                        <span class="value">{{ venta.fecha | date:'dd MMM yyyy, HH:mm' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Cliente</span>
+                        <span class="value">{{ venta.cliente?.nombre || 'General' }}</span>
+                    </div>
                 </div>
-                <div class="row">
-                    <label>Cliente</label>
-                    <span>{{ venta.cliente?.nombre || 'General' }}</span>
-                </div>
-                <div class="row">
-                    <label>Estado Pago</label>
-                    <span>{{ venta.estadoPago }}</span>
-                </div>
-                <br>
-                <ion-button size="small" fill="outline" color="danger" (click)="reset()">Cambiar Venta</ion-button>
+                <button class="btn-link danger" (click)="reset()">
+                    <ion-icon name="swap-horizontal-outline"></ion-icon>
+                    Cambiar Venta
+                </button>
             </div>
 
-            <h3 style="font-size: 1rem; margin-bottom: 1rem;">Seleccione ítems a devolver:</h3>
+            <h3 class="section-title">Productos de la Venta</h3>
 
-            <div class="items-list">
+            <div class="items-grid">
                 @for (item of itemsDevolucion; track item.productoId) {
-                <div class="item-card" [class.selected]="item.cantidad > 0">
-                    <div class="info">
-                        <span class="name">{{ item.nombreProducto }}</span>
-                        <span class="sku" *ngIf="item.sku">SKU: {{ item.sku }}</span>
-                        <span class="price">Precio Venta: ${{ item.precioUnitario | number }}</span>
+                <div class="item-neo-card glass" [class.selected]="item.cantidad > 0">
+                    <div class="p-header">
+                        <div class="p-info">
+                            <span class="p-name">{{ item.nombreProducto }}</span>
+                            <span class="p-sku">#{{ item.sku }}</span>
+                        </div>
+                        <div class="p-price">${{ item.precioUnitario | number }}</div>
                     </div>
 
-                    <div class="controls">
-                        <span class="limit">Comprado: <strong>{{ item.cantidadComprada }}</strong> de {{
-                            item.cantidadComprada }}</span>
-
-                        <div class="qty-control">
-                            <ion-button size="small" fill="clear" (click)="decrementar(item)">
-                                <ion-icon name="remove-circle-outline"></ion-icon>
-                            </ion-button>
-                            <input type="number" [(ngModel)]="item.cantidad" min="0" [max]="item.cantidadComprada">
-                            <ion-button size="small" fill="clear" (click)="incrementar(item)">
-                                <ion-icon name="add-circle-outline"></ion-icon>
-                            </ion-button>
+                    <div class="p-footer">
+                        <div class="p-limit">
+                            Comprado: <strong>{{ item.cantidadComprada }}</strong>
+                        </div>
+                        <div class="qty-stepper">
+                            <button class="step-btn" (click)="decrementar(item)" [disabled]="item.cantidad <= 0">
+                                <ion-icon name="remove-outline"></ion-icon>
+                            </button>
+                            <input type="number" [(ngModel)]="item.cantidad" readonly>
+                            <button class="step-btn" (click)="incrementar(item)"
+                                [disabled]="item.cantidad >= item.cantidadComprada">
+                                <ion-icon name="add-outline"></ion-icon>
+                            </button>
                         </div>
                     </div>
                 </div>
                 }
             </div>
 
-            <div class="form-group" style="margin-bottom: 1rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Motivo de la devolución</label>
-                <textarea style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;" rows="3"
-                    placeholder="Explique la razón..." [(ngModel)]="motivo"></textarea>
-            </div>
-
-            <div class="summary"
-                style="background: #ecfdf5; padding: 1rem; border-radius: 12px; border: 1px solid #10b981;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="color: #047857; font-weight: 600;">Total a Devolver:</span>
-                    <span style="font-size: 1.25rem; font-weight: 700; color: #047857;">${{ calcularTotal() | number
-                        }}</span>
+            <div class="reason-section glass">
+                <label>Motivo de la devolución</label>
+                <div class="textarea-glow">
+                    <textarea [(ngModel)]="motivo" placeholder="Ej: Producto defectuoso, Cambio de talla, etc..."
+                        rows="2"></textarea>
                 </div>
             </div>
         </div>
-
     </div>
 
-    <div class="footer" *ngIf="venta">
-        <ion-button fill="outline" color="medium" (click)="cerrar()">Cancelar</ion-button>
-        <ion-button color="danger" [disabled]="calcularTotal() === 0 || !motivo || isSubmitting"
-            (click)="confirmarDevolucion()">
-            <span *ngIf="!isSubmitting">Confirmar Devolución</span>
-            <ion-spinner *ngIf="isSubmitting"></ion-spinner>
-        </ion-button>
-    </div>
+    <!-- Professional Footer -->
+    <footer class="modal-footer glass" *ngIf="venta">
+        <div class="total-bar">
+            <div class="total-label">Subtotal a Devolver:</div>
+            <div class="total-amount">${{ calcularTotal() | number }}</div>
+        </div>
+        <div class="button-group">
+            <button class="btn-neo secondary" (click)="cerrar()">
+                Cancelar
+            </button>
+            <button class="btn-neo danger" [disabled]="calcularTotal() === 0 || !motivo || isSubmitting"
+                (click)="confirmarDevolucion()">
+                <ion-spinner name="crescent" *ngIf="isSubmitting"></ion-spinner>
+                <span *ngIf="!isSubmitting">Confirmar Devolución</span>
+            </button>
+        </div>
+    </footer>
 </div>

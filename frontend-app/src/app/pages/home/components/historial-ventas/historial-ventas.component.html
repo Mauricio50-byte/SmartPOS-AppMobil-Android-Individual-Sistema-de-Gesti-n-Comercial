@@ -1,102 +1,205 @@
 <div class="historial-container">
-    <div class="header-section">
-        <h2>
-            <ion-icon name="time-outline"></ion-icon>
-            Historial de Ventas
-        </h2>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card primary">
-            <span class="label">Total Vendido</span>
-            <span class="value">{{ estadisticas.totalVendido | currency:'USD':'symbol':'1.0-0' }}</span>
-        </div>
-        <div class="stat-card">
-            <span class="label">Transacciones</span>
-            <span class="value">{{ estadisticas.totalTransacciones }}</span>
-        </div>
-        <div class="stat-card success">
-            <span class="label">Ticket Promedio</span>
-            <span class="value">{{ estadisticas.promedioVenta | currency:'USD':'symbol':'1.0-0' }}</span>
-        </div>
-    </div>
-
-    <div class="filters-card">
-        <div class="filter-item">
-            <label>Buscar</label>
-            <input type="text" placeholder="ID, Cliente o Vendedor..." [(ngModel)]="filtros.busqueda"
-                (input)="aplicarFiltrosLocales()">
-        </div>
-        <div class="filter-item">
-            <label>Fecha Inicio</label>
-            <input type="date" [(ngModel)]="filtros.fechaInicio" (change)="cargarVentas()">
-        </div>
-        <div class="filter-item">
-            <label>Fecha Fin</label>
-            <input type="date" [(ngModel)]="filtros.fechaFin" (change)="cargarVentas()">
-        </div>
-        <div class="filter-item" style="flex: 0 0 auto;">
-            <ion-button color="medium" fill="outline" (click)="limpiarFiltros()">
-                <ion-icon name="refresh-outline"></ion-icon>
-            </ion-button>
-        </div>
-    </div>
-
-    <div class="table-card">
-        <div class="table-wrapper">
-            @if (isLoading) {
-            <div style="padding: 2rem; text-align: center;">
-                <ion-spinner></ion-spinner>
-                <p>Cargando ventas...</p>
+    <!-- Sophisticated Header -->
+    <header class="fancy-header">
+        <div class="header-main">
+            <div class="title-section">
+                <div class="icon-circle">
+                    <ion-icon name="receipt-outline"></ion-icon>
+                </div>
+                <div>
+                    <h1 class="page-title">Historial de Ventas</h1>
+                    <p class="subtitle">Registro histórico de transacciones</p>
+                </div>
             </div>
-            } @else if (filteredVentas.length > 0) {
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Fecha</th>
-                        <th>Cliente</th>
-                        <th>Total</th>
-                        <th>M. Pago</th>
-                        <th>Estado</th>
-                        <th>Vendedor</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (v of filteredVentas; track v.id) {
-                    <tr>
-                        <td>#{{ v.id }}</td>
-                        <td>{{ v.fecha | date:'dd/MM/yy HH:mm' }}</td>
-                        <td>{{ v.cliente?.nombre || 'General' }}</td>
-                        <td style="font-weight: 600;">{{ v.total | currency:'USD':'symbol':'1.0-0' }}</td>
-                        <td>{{ v.metodoPago }}</td>
-                        <td>
-                            <span class="badge" [class.pagado]="v.estadoPago === 'PAGADO'"
-                                [class.pendiente]="v.estadoPago === 'FIADO'">
-                                {{ v.estadoPago }}
-                            </span>
-                        </td>
-                        <td>{{ v.usuario?.nombre }}</td>
-                        <td>
-                            <ion-button size="small" fill="clear" (click)="verDetalleVenta(v)" title="Ver Detalle">
-                                <ion-icon name="eye-outline" slot="icon-only"></ion-icon>
-                            </ion-button>
-                            <ion-button size="small" fill="clear" color="danger" (click)="iniciarDevolucion(v)"
-                                title="Devolución">
-                                <ion-icon name="arrow-undo-outline" slot="icon-only"></ion-icon>
-                            </ion-button>
-                        </td>
-                    </tr>
-                    }
-                </tbody>
-            </table>
-            } @else {
-            <div style="padding: 2rem; text-align: center; color: #64748b;">
-                <ion-icon name="search-outline" style="font-size: 2rem;"></ion-icon>
-                <p>No se encontraron ventas</p>
+
+            <div class="stats-grid">
+                <div class="stat-card glass primary">
+                    <span class="label">Total Vendido</span>
+                    <span class="value">{{ estadisticas.totalVendido | currency:'USD':'symbol':'1.0-0' }}</span>
+                </div>
+                <div class="stat-card glass secondary">
+                    <span class="label">Transacciones</span>
+                    <span class="value">{{ estadisticas.totalTransacciones }}</span>
+                </div>
+                <div class="stat-card glass success">
+                    <span class="label">Ticket Promedio</span>
+                    <span class="value">{{ estadisticas.promedioVenta | currency:'USD':'symbol':'1.0-0' }}</span>
+                </div>
             </div>
-            }
         </div>
-    </div>
+    </header>
+
+    <!-- Interactive Filters & Actions -->
+    <section class="controls-section glass">
+        <div class="filter-layout">
+            <div class="search-filters">
+                <div class="input-glow">
+                    <ion-icon name="search-outline"></ion-icon>
+                    <input type="text" placeholder="Buscar por ID, Cliente o Vendedor..." [(ngModel)]="filtros.busqueda"
+                        (input)="aplicarFiltrosLocales()">
+                </div>
+
+                <div class="date-range">
+                    <div class="input-glow">
+                        <ion-icon name="calendar-outline"></ion-icon>
+                        <input type="date" [(ngModel)]="filtros.fechaInicio" (change)="cargarVentas()">
+                    </div>
+                    <div class="input-glow">
+                        <ion-icon name="calendar-outline"></ion-icon>
+                        <input type="date" [(ngModel)]="filtros.fechaFin" (change)="cargarVentas()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-icon-neo" (click)="limpiarFiltros()" title="Restablecer">
+                    <ion-icon name="refresh-outline"></ion-icon>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Data Display Area -->
+    <main class="content-view">
+        @if (isLoading) {
+        <div class="loader-overlay">
+            <ion-spinner name="crescent"></ion-spinner>
+            <span>Cargando historial...</span>
+        </div>
+        } @else if (filteredVentas.length > 0) {
+
+        <!-- Desktop Table View -->
+        <div class="desktop-view">
+            <div class="table-container glass">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Folio</th>
+                            <th>Fecha/Hora</th>
+                            <th>Cliente</th>
+                            <th class="text-right">Total</th>
+                            <th>Método</th>
+                            <th>Estado</th>
+                            <th>Vendedor</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (v of filteredVentas; track v.id) {
+                        <tr class="table-row">
+                            <td class="id-info">
+                                <span class="folio">#{{ v.id }}</span>
+                            </td>
+                            <td class="date-info">
+                                <strong>{{ v.fecha | date:'dd/MM/yyyy' }}</strong>
+                                <span>{{ v.fecha | date:'HH:mm' }}hs</span>
+                            </td>
+                            <td class="client-info">
+                                <span class="name">{{ v.cliente?.nombre || 'General' }}</span>
+                            </td>
+                            <td class="text-right">
+                                <span class="amount-text">{{ v.total | currency:'USD':'symbol':'1.0-0' }}</span>
+                            </td>
+                            <td>
+                                <div class="payment-method">
+                                    <ion-icon
+                                        [name]="v.metodoPago === 'EFECTIVO' ? 'cash-outline' : 'card-outline'"></ion-icon>
+                                    {{ v.metodoPago }}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge" [class]="v.estadoPago | lowercase">
+                                    {{ v.estadoPago }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="user-pill">
+                                    <ion-icon name="person-circle-outline"></ion-icon>
+                                    {{ v.usuario?.nombre }}
+                                </div>
+                            </td>
+                            <td class="actions-cell">
+                                <div class="btn-group">
+                                    <button class="icon-btn info" (click)="verDetalleVenta(v)" title="Detalles">
+                                        <ion-icon name="eye-outline"></ion-icon>
+                                    </button>
+                                    <button class="icon-btn danger" (click)="iniciarDevolucion(v)" title="Devolución">
+                                        <ion-icon name="arrow-undo-outline"></ion-icon>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="mobile-view">
+            <div class="cards-grid">
+                @for (v of filteredVentas; track v.id) {
+                <div class="sale-card glass" [class]="v.estadoPago | lowercase">
+                    <div class="card-header">
+                        <div class="folio-tag">#{{ v.id }}</div>
+                        <div class="type-indicator">
+                            <span class="badge" [class]="v.estadoPago | lowercase">{{ v.estadoPago }}</span>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="customer-row">
+                            <ion-icon name="person-outline"></ion-icon>
+                            <h3>{{ v.cliente?.nombre || 'General' }}</h3>
+                        </div>
+
+                        <div class="data-row">
+                            <div class="info-group">
+                                <span class="label">Total</span>
+                                <span class="value highlight">{{ v.total | currency:'USD':'symbol':'1.0-0' }}</span>
+                            </div>
+                            <div class="info-group">
+                                <span class="label">Método</span>
+                                <span class="value">{{ v.metodoPago }}</span>
+                            </div>
+                        </div>
+
+                        <div class="data-footer">
+                            <div class="meta">
+                                <ion-icon name="time-outline"></ion-icon>
+                                <span>{{ v.fecha | date:'dd MMM, HH:mm' }}</span>
+                            </div>
+                            <div class="meta">
+                                <ion-icon name="person-outline"></ion-icon>
+                                <span>{{ v.usuario?.nombre }}</span>
+                            </div>
+                        </div>
+
+                        <div class="card-actions">
+                            <button class="btn-card primary" (click)="verDetalleVenta(v)">
+                                <ion-icon name="eye-outline"></ion-icon>
+                                Detalles
+                            </button>
+                            <button class="btn-card danger" (click)="iniciarDevolucion(v)">
+                                <ion-icon name="arrow-undo-outline"></ion-icon>
+                                Devolución
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+
+        } @else {
+        <div class="empty-placeholder">
+            <div class="empty-icon">
+                <ion-icon name="receipt-outline"></ion-icon>
+            </div>
+            <h3>No hay ventas registradas</h3>
+            <p>Ajusta los filtros o realiza una nueva venta desde el POS.</p>
+            <button class="btn-neo primary" (click)="limpiarFiltros()">Limpiar Filtros</button>
+        </div>
+        }
+    </main>
 </div>
