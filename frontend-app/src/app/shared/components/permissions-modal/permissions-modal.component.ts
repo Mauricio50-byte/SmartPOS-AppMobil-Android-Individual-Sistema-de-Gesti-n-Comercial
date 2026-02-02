@@ -21,11 +21,11 @@ export class PermissionsModalComponent implements OnInit {
   selectedRoles: string[] = [];
   rolesLoadError = false;
   modulesLoadError = false;
-  
+
   availablePermissions: string[] = [];
   visiblePermissions: string[] = [];
   allPermissionsData: Permiso[] = [];
-  
+
   // Permisos asignados directamente (no por rol)
   directPermissions: string[] = [];
 
@@ -36,7 +36,7 @@ export class PermissionsModalComponent implements OnInit {
 
   actorAdminPorDefecto = false;
   actorEsAdmin = false;
-  
+
   loading = false;
   activeTab: 'roles' | 'permisos' | 'modulos' = 'roles';
 
@@ -47,7 +47,7 @@ export class PermissionsModalComponent implements OnInit {
     private usuarioService: UsuarioService,
     private moduloService: ModuloService,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.authService.getPerfil$().subscribe(p => {
@@ -78,15 +78,35 @@ export class PermissionsModalComponent implements OnInit {
         console.error('Error loading permissions', error);
         this.availablePermissions = [
           'GESTION_USUARIOS',
+          'VER_USUARIOS',
+          'CREAR_USUARIO',
+          'EDITAR_USUARIO',
+          'ELIMINAR_USUARIO',
           'CREAR_ADMIN',
           'CREAR_ROL',
           'EDITAR_ROL',
           'ASIGNAR_PERMISOS',
           'VENDER',
-          'GESTION_INVENTARIO',
-          'GESTION_CLIENTES',
+          'VER_VENTAS',
+          'CREAR_VENTA',
+          'EDITAR_VENTA',
+          'ANULAR_VENTA',
+          'VER_DETALLE_VENTA',
+          'REALIZAR_DEVOLUCION',
+          'VER_INVENTARIO',
+          'CREAR_PRODUCTO',
+          'AJUSTAR_STOCK',
+          'VER_CLIENTES',
           'VER_REPORTES',
-          'GESTION_FINANZAS',
+          'VER_FINANZAS',
+          'VER_CAJA',
+          'APERTURA_CAJA',
+          'CIERRE_CAJA',
+          'MOVIMIENTO_CAJA',
+          'VER_GASTOS',
+          'CREAR_GASTO',
+          'VER_DEUDAS',
+          'VER_REPORTES_CONTABLES',
           'GESTION_MODULOS',
           'ADMIN'
         ];
@@ -149,19 +169,19 @@ export class PermissionsModalComponent implements OnInit {
       const rolePerms = role.permisos.map((p: any) => p.permiso.clave);
       // We replace permissions with the new role's defaults to ensure the state matches the role
       this.directPermissions = [...rolePerms];
-      
+
       // Update Modules based on Role
       if (roleName === 'ADMIN') {
-          // Admin gets all system modules
-          const sysMods = this.modulosSistema.map(m => m.id);
-          // Keep existing business modules
-          const currentBizMods = this.selectedModules.filter(m => !this.modulosSistema.find(sm => sm.id === m));
-          this.selectedModules = [...new Set([...sysMods, ...currentBizMods])];
+        // Admin gets all system modules
+        const sysMods = this.modulosSistema.map(m => m.id);
+        // Keep existing business modules
+        const currentBizMods = this.selectedModules.filter(m => !this.modulosSistema.find(sm => sm.id === m));
+        this.selectedModules = [...new Set([...sysMods, ...currentBizMods])];
       } else if (['TRABAJADOR', 'CAJERO'].includes(roleName)) {
-          // Worker defaults (Ensure Dashboard)
-          if (!this.selectedModules.includes('dashboard')) {
-             this.selectedModules.push('dashboard');
-          }
+        // Worker defaults (Ensure Dashboard)
+        if (!this.selectedModules.includes('dashboard')) {
+          this.selectedModules.push('dashboard');
+        }
       }
     }
   }
@@ -199,18 +219,18 @@ export class PermissionsModalComponent implements OnInit {
     this.moduloService.listarModulos(negocioId).subscribe({
       next: (modulos) => {
         this.availableModules = modulos || [];
-        
+
         // Separar módulos por tipo
         this.modulosSistema = this.availableModules.filter(m => m.tipo === 'SISTEMA');
         this.modulosNegocio = this.availableModules.filter(m => m.tipo === 'NEGOCIO' || !m.tipo);
 
         const activosSet = new Set(this.availableModules.filter(m => m.activo).map(m => m.id));
         this.selectedModules = (this.selectedModules || []).filter(m => activosSet.has(m));
-        
+
         // Agregar módulos del sistema a selectedModules si no están
         // MODIFICADO: Solo asegurar 'dashboard' por defecto, no todos los módulos del sistema.
         if (!this.selectedModules.includes('dashboard')) {
-           this.selectedModules.push('dashboard');
+          this.selectedModules.push('dashboard');
         }
       },
       error: () => {
@@ -253,7 +273,7 @@ export class PermissionsModalComponent implements OnInit {
         const mod = this.availableModules.find(m => m.id === permData.moduloId);
         modName = mod ? mod.nombre : (permData.moduloId.charAt(0).toUpperCase() + permData.moduloId.slice(1));
       }
-      
+
       if (!groups[modName]) {
         groups[modName] = [];
       }
@@ -296,7 +316,7 @@ export class PermissionsModalComponent implements OnInit {
 
     // Confirm critical changes if permissions are being removed or admin role removed
     const isRemovingAdmin = this.usuario.roles?.includes('ADMIN') && !this.selectedRoles.includes('ADMIN');
-    
+
     if (isRemovingAdmin) {
       const confirmed = await this.alertService.confirm(
         'Confirmación Crítica',
@@ -304,7 +324,7 @@ export class PermissionsModalComponent implements OnInit {
         'Sí, quitar rol',
         'Cancelar'
       );
-      
+
       if (confirmed) {
         this.executeSave();
       }
@@ -315,7 +335,7 @@ export class PermissionsModalComponent implements OnInit {
 
   executeSave() {
     this.loading = true;
-    
+
     // Save roles
     this.usuarioService.asignarRoles(this.usuario.id, this.selectedRoles).subscribe({
       next: () => {
@@ -359,9 +379,9 @@ export class PermissionsModalComponent implements OnInit {
             })
           },
           error: (err) => {
-             console.error('Error saving permissions', err);
-             this.alertService.error('No se pudieron guardar los permisos.');
-             this.loading = false;
+            console.error('Error saving permissions', err);
+            this.alertService.error('No se pudieron guardar los permisos.');
+            this.loading = false;
           }
         });
       },

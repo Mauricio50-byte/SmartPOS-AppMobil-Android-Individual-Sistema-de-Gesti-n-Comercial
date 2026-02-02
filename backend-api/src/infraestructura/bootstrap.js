@@ -12,10 +12,15 @@ async function asegurarPermisosYAdmin() {
     { id: 'productos', nombre: 'Productos', descripcion: 'Gestión de inventario, stock y precios', activo: true },
     { id: 'clientes', nombre: 'Clientes', descripcion: 'Gestión de datos de clientes', activo: true },
     { id: 'finanzas', nombre: 'Finanzas', descripcion: 'Ingresos, gastos, caja y balances', activo: true },
+    { id: 'caja', nombre: 'Caja', descripcion: 'Control de apertura, cierre y movimientos de efectivo', activo: true },
+    { id: 'gastos', nombre: 'Gastos', descripcion: 'Registro y seguimiento de egresos del negocio', activo: true },
+    { id: 'deudas', nombre: 'Deudas y Cartera', descripcion: 'Control de créditos a clientes y deudas a proveedores', activo: true },
     { id: 'usuarios', nombre: 'Usuarios', descripcion: 'Administración de cuentas y roles', activo: true },
     { id: 'modulos', nombre: 'Módulos', descripcion: 'Control de módulos del sistema', activo: true },
-    { id: 'reportes', nombre: 'Reportes', descripcion: 'Visualización y exportación de reportes', activo: true },
+    { id: 'reportes', nombre: 'Reportes', descripcion: 'Visualización y exportación de reportes operativos', activo: true },
+    { id: 'reportes-contables', nombre: 'Contabilidad', descripcion: 'Estados de resultados, balances y reportes contables', activo: true },
     { id: 'configuracion', nombre: 'Configuración', descripcion: 'Datos del negocio y preferencias', activo: true },
+    { id: 'notificaciones', nombre: 'Notificaciones', descripcion: 'Alertas de stock, vencimientos y mensajes', activo: true },
   ]
 
   for (const m of modulosDefinidos) {
@@ -33,6 +38,8 @@ async function asegurarPermisosYAdmin() {
       { clave: 'CREAR_VENTA', descripcion: 'Registrar nuevas ventas y facturar' },
       { clave: 'EDITAR_VENTA', descripcion: 'Modificar ventas existentes' },
       { clave: 'ANULAR_VENTA', descripcion: 'Anular ventas realizadas' },
+      { clave: 'VER_DETALLE_VENTA', descripcion: 'Ver el desglose de productos de una venta' },
+      { clave: 'REALIZAR_DEVOLUCION', descripcion: 'Procesar devoluciones de productos' },
       { clave: 'REPORTES_VENTAS', descripcion: 'Ver reportes específicos de ventas' },
       { clave: 'VENDER', descripcion: 'Acceso general al punto de venta (Legacy)' }
     ],
@@ -81,6 +88,32 @@ async function asegurarPermisosYAdmin() {
     ],
     dashboard: [
       { clave: 'VER_DASHBOARD', descripcion: 'Acceso al dashboard principal' }
+    ],
+    caja: [
+      { clave: 'VER_CAJA', descripcion: 'Ver estado actual de la caja' },
+      { clave: 'APERTURA_CAJA', descripcion: 'Abrir caja diaria' },
+      { clave: 'CIERRE_CAJA', descripcion: 'Cerrar caja y arqueo' },
+      { clave: 'MOVIMIENTO_CAJA', descripcion: 'Registrar entradas o salidas de efectivo' }
+    ],
+    gastos: [
+      { clave: 'VER_GASTOS', descripcion: 'Ver lista de gastos' },
+      { clave: 'CREAR_GASTO', descripcion: 'Registrar nuevos gastos' },
+      { clave: 'EDITAR_GASTO', descripcion: 'Modificar gastos existentes' },
+      { clave: 'ELIMINAR_GASTO', descripcion: 'Eliminar registros de gastos' }
+    ],
+    deudas: [
+      { clave: 'VER_DEUDAS', descripcion: 'Ver deudas de clientes y proveedores' },
+      { clave: 'COBRAR_DEUDA', descripcion: 'Registrar abonos de clientes' },
+      { clave: 'PAGAR_DEUDA', descripcion: 'Registrar pagos a proveedores' }
+    ],
+    'reportes-contables': [
+      { clave: 'VER_REPORTES_CONTABLES', descripcion: 'Acceso a contabilidad avanzada' },
+      { clave: 'GENERAR_BALANCE', descripcion: 'Generar balance general' },
+      { clave: 'GENERAR_ESTADO_RESULTADOS', descripcion: 'Generar estado de resultados' }
+    ],
+    notificaciones: [
+      { clave: 'VER_NOTIFICACIONES', descripcion: 'Ver centro de notificaciones' },
+      { clave: 'CONFIGURAR_NOTIFICACIONES', descripcion: 'Configurar tipos de alertas' }
     ]
   }
 
@@ -135,7 +168,12 @@ async function asegurarPermisosYAdmin() {
 
   // 6. Asignar permisos base al rol TRABAJADOR
   const permisosTrabajador = [
-    'VER_DASHBOARD'
+    'VER_DASHBOARD',
+    'VENDER',
+    'VER_VENTAS',
+    'VER_DETALLE_VENTA',
+    'VER_INVENTARIO',
+    'VER_CLIENTES'
   ]
 
   // Limpiar permisos antiguos que no deban estar en TRABAJADOR
