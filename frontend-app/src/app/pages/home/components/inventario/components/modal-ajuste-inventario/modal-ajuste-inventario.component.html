@@ -1,0 +1,73 @@
+<div class="modal-container">
+    <div class="modal-header">
+        <h2>Nuevo Ajuste de Inventario</h2>
+        <ion-button fill="clear" color="medium" (click)="cerrar()">
+            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+    </div>
+
+    <div class="form-body">
+        <div class="form-item product-selector">
+            <label>Producto</label>
+            <input type="text" placeholder="Buscar producto por nombre o SKU..." [(ngModel)]="searchTerm"
+                (input)="buscarProducto()" *ngIf="!selectedProduct">
+
+            <div class="product-info" *ngIf="selectedProduct">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <strong>{{ selectedProduct.nombre }}</strong>
+                        <div class="sku">SKU: {{ selectedProduct.sku }}</div>
+                    </div>
+                    <ion-button fill="clear" size="small" color="danger" (click)="selectedProduct = null">
+                        Cambiar
+                    </ion-button>
+                </div>
+            </div>
+
+            <div class="search-results" *ngIf="searchTerm && filteredProducts.length > 0 && !selectedProduct">
+                @for (p of filteredProducts; track p.id) {
+                <div class="result-item" (click)="seleccionarProducto(p)">
+                    <div class="name">{{ p.nombre }}</div>
+                    <div class="stock">SKU: {{ p.sku }} | Stock actual: {{ p.stock }}</div>
+                </div>
+                }
+            </div>
+        </div>
+
+        <div class="form-item">
+            <label>Tipo de Ajuste</label>
+            <select [(ngModel)]="ajuste.tipo">
+                <option value="ENTRADA">Entrada (Sumar al stock)</option>
+                <option value="SALIDA">Salida (Restar al stock)</option>
+                <option value="DEVOLUCION">Devolución (Reingreso por devolución)</option>
+                <option value="AJUSTE">Corrección Directa (Reemplazar stock)</option>
+            </select>
+        </div>
+
+        <div class="form-item">
+            <label>{{ ajuste.tipo === 'AJUSTE' ? 'Nuevo Stock Total' : 'Cantidad' }}</label>
+            <input type="number" [(ngModel)]="ajuste.cantidad" min="1">
+        </div>
+
+        <div class="stock-preview" *ngIf="selectedProduct">
+            <span>Stock Anterior: <strong>{{ selectedProduct.stock }}</strong></span>
+            <span>Stock Nuevo: <span class="val">{{ calcularNuevoStock() }}</span></span>
+        </div>
+
+        <div class="form-item">
+            <label>Motivo / Observación</label>
+            <textarea rows="3" [(ngModel)]="ajuste.motivo"
+                placeholder="Ej: Error en conteo, mercancia dañada, etc."></textarea>
+        </div>
+    </div>
+
+    <div class="footer">
+        <ion-button expand="block" fill="outline" color="medium" (click)="cerrar()">
+            Cancelar
+        </ion-button>
+        <ion-button expand="block" color="primary" [disabled]="!esValido() || isSubmitting" (click)="guardar()">
+            <ion-spinner name="crescent" *ngIf="isSubmitting"></ion-spinner>
+            <span *ngIf="!isSubmitting">Confirmar</span>
+        </ion-button>
+    </div>
+</div>

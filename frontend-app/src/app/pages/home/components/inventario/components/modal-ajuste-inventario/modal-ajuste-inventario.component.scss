@@ -1,0 +1,133 @@
+@import 'src/theme/variables.scss';
+
+.modal-container {
+    padding: 1.5rem;
+    background: white;
+    border-radius: 20px;
+    max-width: 500px;
+    margin: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+    }
+}
+
+.form-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.form-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #64748b;
+    }
+
+    input,
+    select,
+    textarea {
+        padding: 0.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 0.875rem;
+        outline: none;
+        transition: all 0.2s;
+
+        &:focus {
+            border-color: #0d9488;
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+        }
+    }
+
+    .product-info {
+        padding: 0.75rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+
+        .sku {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+    }
+}
+
+.product-selector {
+    position: relative;
+
+    .search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 10;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+        .result-item {
+            padding: 0.75rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+
+            &:hover {
+                background: #f8fafc;
+            }
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            .name {
+                font-weight: 600;
+                font-size: 0.875rem;
+            }
+
+            .stock {
+                font-size: 0.75rem;
+                color: #64748b;
+            }
+        }
+    }
+}
+
+.footer {
+    margin-top: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.stock-preview {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: #f1f5f9;
+    border-radius: 10px;
+    font-size: 0.875rem;
+
+    .val {
+        font-weight: 700;
+        color: #0d9488;
+    }
+}

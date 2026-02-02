@@ -71,7 +71,7 @@ async function registrarAjuste(datos) {
         const stockAnterior = producto.stock
         let stockNuevo = stockAnterior
 
-        if (tipo === 'ENTRADA') stockNuevo += Number(cantidad)
+        if (tipo === 'ENTRADA' || tipo === 'DEVOLUCION') stockNuevo += Number(cantidad)
         else if (tipo === 'SALIDA') stockNuevo -= Number(cantidad)
         else if (tipo === 'AJUSTE') stockNuevo = Number(cantidad)
 

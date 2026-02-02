@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { InventarioService, MovimientoInventario } from 'src/app/core/services/inventario.service';
 import { AlertService } from 'src/app/shared/services/alert.service';
 import { ModalController } from '@ionic/angular';
-// Importaremos un componente de modal que crearemos a continuación
-// import { ModalAjusteInventarioComponent } from './components/modal-ajuste-inventario/modal-ajuste-inventario.component';
+import { ModalAjusteInventarioComponent } from './components/modal-ajuste-inventario/modal-ajuste-inventario.component';
+import { ModalDevolucionComponent } from '../ventas/components/modal-devolucion/modal-devolucion.component';
 
 @Component({
     standalone: false,
@@ -81,22 +81,32 @@ export class InventarioComponent implements OnInit {
     }
 
     async abrirModalAjuste() {
-        // Implementaremos esto si es necesario, por ahora mostraremos un mensaje
-        this.alertService.toast('Módulo de ajustes en desarrollo', 'info');
-
-        /*
         const modal = await this.modalCtrl.create({
-          component: ModalAjusteInventarioComponent,
-          cssClass: 'modal-ajuste-inventario'
+            component: ModalAjusteInventarioComponent,
+            cssClass: 'modal-ajuste-inventario'
         });
-    
+
         await modal.present();
-    
+
         const { data } = await modal.onWillDismiss();
         if (data?.success) {
-          this.cargarMovimientos();
-          this.cargarValorInventario();
+            this.cargarMovimientos();
+            this.cargarValorInventario();
         }
-        */
+    }
+
+    async abrirModalDevolucion() {
+        const modal = await this.modalCtrl.create({
+            component: ModalDevolucionComponent,
+            cssClass: 'modal-devolucion'
+        });
+
+        await modal.present();
+
+        const { data } = await modal.onWillDismiss();
+        if (data?.success) {
+            this.cargarMovimientos();
+            this.cargarValorInventario();
+        }
     }
 }

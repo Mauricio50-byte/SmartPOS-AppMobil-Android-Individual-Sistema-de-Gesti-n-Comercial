@@ -35,8 +35,13 @@
                 Limpiar
             </ion-button>
         </div>
-        <div class="filter-item">
-            <ion-button expand="block" color="primary" (click)="abrirModalAjuste()">
+        <div class="filter-actions"
+            style="display: flex; gap: 0.5rem; flex: 1; min-width: 300px; justify-content: flex-end;">
+            <ion-button color="tertiary" (click)="abrirModalDevolucion()">
+                <ion-icon name="arrow-undo-outline" slot="start"></ion-icon>
+                Devolución
+            </ion-button>
+            <ion-button color="primary" (click)="abrirModalAjuste()">
                 <ion-icon name="add-circle-outline" slot="start"></ion-icon>
                 Nuevo Ajuste
             </ion-button>

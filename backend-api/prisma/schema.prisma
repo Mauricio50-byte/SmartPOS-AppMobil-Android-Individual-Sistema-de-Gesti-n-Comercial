@@ -25,6 +25,7 @@ model Usuario {
   movimientosCaja MovimientoCaja[]
   notificaciones  Notificacion[]
   movimientosInventario MovimientoInventario[]
+  devoluciones    Devolucion[]
 }
 
 model Caja {
@@ -63,6 +64,34 @@ model MovimientoCaja {
 
   @@index([cajaId])
   @@index([tipo])
+}
+
+model Devolucion {
+  id              Int      @id @default(autoincrement())
+  ventaId         Int
+  venta           Venta    @relation(fields: [ventaId], references: [id])
+  totalDevuelto   Float
+  motivo          String?
+  fecha           DateTime @default(now())
+  usuarioId       Int
+  usuario         Usuario  @relation(fields: [usuarioId], references: [id])
+  detalles        DetalleDevolucion[]
+
+  @@index([ventaId])
+  @@index([fecha])
+}
+
+model DetalleDevolucion {
+  id               Int        @id @default(autoincrement())
+  devolucionId     Int
+  devolucion       Devolucion @relation(fields: [devolucionId], references: [id])
+  productoId       Int
+  producto         Producto   @relation(fields: [productoId], references: [id])
+  cantidad         Int
+  precioUnitario   Float
+  subtotal         Float
+
+  @@index([devolucionId])
 }
 
 model Modulo {
@@ -137,6 +166,7 @@ model Producto {
   detalleRestaurante ProductoRestaurante?
   detalleRopa        ProductoRopa?
   detalleServicio    ProductoServicio?
+  devoluciones       DetalleDevolucion[]
 
   @@index([categoria])
   @@index([activo])
@@ -244,6 +274,7 @@ model Venta {
   deuda          Deuda?
   cliente        Cliente?       @relation(fields: [clienteId], references: [id])
   usuario        Usuario        @relation(fields: [usuarioId], references: [id])
+  devoluciones   Devolucion[]
 
   @@index([clienteId])
   @@index([usuarioId])

@@ -7,6 +7,7 @@ import { SharedModule } from '../../shared/shared.module';
 import { VentasComponent } from './components/ventas/ventas.component';
 import { ProductosComponent } from './components/productos/productos.component';
 import { InventarioComponent } from './components/inventario/inventario.component';
+import { ModalAjusteInventarioComponent } from './components/inventario/components/modal-ajuste-inventario/modal-ajuste-inventario.component';
 
 import { HomePageRoutingModule } from './home-routing.module';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
@@ -15,6 +16,7 @@ import { PermissionsModalComponent } from '../../shared/components/permissions-m
 import { ClientSelectorComponent } from './components/ventas/components/client-selector/client-selector.component';
 import { ClientRegistrationFormComponent } from './components/ventas/components/client-registration-form/client-registration-form.component';
 import { SalesCartComponent } from './components/ventas/components/sales-cart/sales-cart.component';
+import { ModalDevolucionComponent } from './components/ventas/components/modal-devolucion/modal-devolucion.component';
 import { ModulosComponent } from './components/modulos/modulos.component';
 import { ProductosListaComponent } from './components/productos/modulos/productos-lista/productos-lista.component';
 import { ProductosFormComponent } from './components/productos/modulos/productos-form/productos-form.component';
@@ -60,6 +62,7 @@ import { ClientEditModalComponent } from './components/clientes/components/clien
     ClientSelectorComponent,
     ClientRegistrationFormComponent,
     SalesCartComponent,
+    ModalDevolucionComponent,
     ModulosComponent,
     CategoryDistributionComponent,
     TopCustomersComponent,
@@ -81,7 +84,8 @@ import { ClientEditModalComponent } from './components/clientes/components/clien
     CajaComponent,
     TransactionModalComponent,
     ClientEditModalComponent,
-    InventarioComponent
+    InventarioComponent,
+    ModalAjusteInventarioComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

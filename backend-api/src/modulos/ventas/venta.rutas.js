@@ -1,11 +1,12 @@
 const { listarVentas, obtenerVentaPorId, crearVenta } = require('./venta.servicio')
+const { crearDevolucion, listarDevoluciones } = require('./devolucion.servicio')
 
 async function registrarRutasVenta(app) {
   app.get('/ventas', { preHandler: [app.requiereModulo('ventas'), app.requierePermiso('VER_VENTAS')] }, async (req, res) => {
     const { startDate, endDate } = req.query
     //console.log('[DEBUG] GET /ventas Query Params:', req.query);
     const filtro = {}
-    
+
     if (startDate || endDate) {
       filtro.fecha = {}
       if (startDate) filtro.fecha.gte = new Date(startDate)
@@ -30,6 +31,18 @@ async function registrarRutasVenta(app) {
 
   app.post('/ventas', { preHandler: [app.requiereModulo('ventas'), app.requierePermiso('CREAR_VENTA')] }, async (req, res) => {
     const creado = await crearVenta({ ...req.body, usuarioId: req.user.id })
+    res.code(201)
+    return creado
+  })
+
+  // Rutas de Devoluciones
+  app.get('/ventas/devoluciones', { preHandler: [app.requiereModulo('ventas'), app.requierePermiso('VER_VENTAS')] }, async (req, res) => {
+    const datos = await listarDevoluciones()
+    return res.send(datos)
+  })
+
+  app.post('/ventas/devolucion', { preHandler: [app.requiereModulo('ventas'), app.requierePermiso('CREAR_VENTA')] }, async (req, res) => {
+    const creado = await crearDevolucion({ ...req.body, usuarioId: req.user.id })
     res.code(201)
     return creado
   })
