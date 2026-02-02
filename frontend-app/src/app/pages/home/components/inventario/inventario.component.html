@@ -1,123 +1,225 @@
 <div class="inventario-container">
-    <div class="header-section">
-        <h2>
-            <ion-icon name="repeat-outline"></ion-icon>
-            Movimientos de Inventario
-        </h2>
-        <div class="valor-total">
-            <span class="label">Valor Total Inventario</span>
-            <span class="amount">{{ valorInventario | currency:'USD':'symbol':'1.2-2' }}</span>
-        </div>
-    </div>
-
-    <div class="filters-card">
-        <div class="filter-item">
-            <label>Tipo de Movimiento</label>
-            <select [(ngModel)]="filtros.tipo" (change)="cargarMovimientos()">
-                <option value="">Todos</option>
-                <option value="ENTRADA">Entrada</option>
-                <option value="SALIDA">Salida</option>
-                <option value="AJUSTE">Ajuste</option>
-                <option value="DEVOLUCION">Devolución</option>
-            </select>
-        </div>
-        <div class="filter-item">
-            <label>Fecha Inicio</label>
-            <input type="date" [(ngModel)]="filtros.fechaInicio" (change)="cargarMovimientos()">
-        </div>
-        <div class="filter-item">
-            <label>Fecha Fin</label>
-            <input type="date" [(ngModel)]="filtros.fechaFin" (change)="cargarMovimientos()">
-        </div>
-        <div class="filter-item">
-            <ion-button expand="block" color="light" (click)="limpiarFiltros()">
-                <ion-icon name="refresh-outline" slot="start"></ion-icon>
-                Limpiar
-            </ion-button>
-        </div>
-        <div class="filter-actions"
-            style="display: flex; gap: 0.5rem; flex: 1; min-width: 300px; justify-content: flex-end;">
-            <ion-button color="tertiary" (click)="abrirModalDevolucion()">
-                <ion-icon name="arrow-undo-outline" slot="start"></ion-icon>
-                Devolución
-            </ion-button>
-            <ion-button color="primary" (click)="abrirModalAjuste()">
-                <ion-icon name="add-circle-outline" slot="start"></ion-icon>
-                Nuevo Ajuste
-            </ion-button>
-        </div>
-    </div>
-
-    <div class="table-card">
-        <div class="table-wrapper">
-            @if (isLoading) {
-            <div class="no-data">
-                <ion-spinner name="crescent" color="primary"></ion-spinner>
-                <p>Cargando movimientos...</p>
+    <!-- Sophisticated Header -->
+    <header class="fancy-header">
+        <div class="header-main">
+            <div class="title-section">
+                <div class="icon-circle">
+                    <ion-icon name="swap-horizontal"></ion-icon>
+                </div>
+                <div>
+                    <h1 class="page-title">Movimientos</h1>
+                    <p class="subtitle">Control de Stock en Tiempo Real</p>
+                </div>
             </div>
-            } @else if (movimientos.length > 0) {
-            <table>
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Producto</th>
-                        <th>Tipo</th>
-                        <th>Cantidad</th>
-                        <th>Stock Ant.</th>
-                        <th>Stock Nuevo</th>
-                        <th>Motivo</th>
-                        <th>Usuario</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (m of movimientos; track m.id) {
-                    <tr>
-                        <td>{{ m.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
-                        <td>
-                            <div style="font-weight: 600;">{{ m.producto?.nombre }}</div>
-                            <div style="font-size: 0.75rem; color: #64748b;">SKU: {{ m.producto?.sku }}</div>
-                        </td>
-                        <td>
-                            <span class="badge" [class]="m.tipo.toLowerCase()">{{ m.tipo }}</span>
-                        </td>
-                        <td>
-                            <span class="cantidad" [class.negative]="m.tipo === 'SALIDA'"
-                                [class.positive]="m.tipo === 'ENTRADA'">
-                                {{ m.tipo === 'SALIDA' ? '-' : '+' }}{{ m.cantidad }}
-                            </span>
-                        </td>
-                        <td>{{ m.stockAnterior }}</td>
-                        <td style="font-weight: 600;">{{ m.stockNuevo }}</td>
-                        <td>{{ m.motivo }}</td>
-                        <td>{{ m.usuario?.nombre }}</td>
-                    </tr>
-                    }
-                </tbody>
-            </table>
-            } @else {
-            <div class="no-data">
-                <ion-icon name="list-outline"></ion-icon>
-                <h3>Sin movimientos</h3>
-                <p>No se encontraron registros con los filtros seleccionados.</p>
+
+            <div class="stats-grid">
+                <div class="stat-card glass primary">
+                    <span class="label">Valor Inventario</span>
+                    <span class="value">{{ valorInventario | currency:'USD':'symbol':'1.0-0' }}</span>
+                </div>
+                <div class="stat-card glass secondary">
+                    <span class="label">Total Operaciones</span>
+                    <span class="value">{{ total }}</span>
+                </div>
             </div>
-            }
+        </div>
+    </header>
+
+    <!-- Interactive Filters & Actions -->
+    <section class="controls-section glass">
+        <div class="filter-layout">
+            <div class="search-filters">
+                <div class="input-glow">
+                    <ion-icon name="funnel-outline"></ion-icon>
+                    <select [(ngModel)]="filtros.tipo" (change)="cargarMovimientos()">
+                        <option value="">Todos los tipos</option>
+                        <option value="ENTRADA">Entradas</option>
+                        <option value="SALIDA">Salidas</option>
+                        <option value="AJUSTE">Ajustes</option>
+                        <option value="DEVOLUCION">Devoluciones</option>
+                    </select>
+                </div>
+
+                <div class="date-range">
+                    <div class="input-glow">
+                        <ion-icon name="calendar-outline"></ion-icon>
+                        <input type="date" [(ngModel)]="filtros.fechaInicio" (change)="cargarMovimientos()">
+                    </div>
+                    <div class="input-glow">
+                        <ion-icon name="calendar-outline"></ion-icon>
+                        <input type="date" [(ngModel)]="filtros.fechaFin" (change)="cargarMovimientos()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-neo secondary" (click)="abrirModalDevolucion()">
+                    <ion-icon name="arrow-undo-outline"></ion-icon>
+                    <span>Devolución</span>
+                </button>
+                <button class="btn-neo success" (click)="abrirModalAjuste()">
+                    <ion-icon name="add-outline"></ion-icon>
+                    <span>Nuevo Ajuste</span>
+                </button>
+                <button class="btn-icon-neo" (click)="limpiarFiltros()" title="Restablecer">
+                    <ion-icon name="refresh-outline"></ion-icon>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Data Display Area -->
+    <main class="content-view">
+        @if (isLoading) {
+        <div class="loader-overlay">
+            <ion-spinner name="crescent"></ion-spinner>
+            <span>Cargando movimientos...</span>
+        </div>
+        } @else if (movimientos.length > 0) {
+
+        <!-- Desktop Table View -->
+        <div class="desktop-view">
+            <div class="table-container glass">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th class="text-right">Cantidad</th>
+                            <th class="text-right">Stock Final</th>
+                            <th>Usuario</th>
+                            <th>Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (m of movimientos; track m.id) {
+                        <tr class="table-row">
+                            <td class="product-info">
+                                <span class="name">{{ m.producto?.nombre }}</span>
+                                <span class="sku">#{{ m.producto?.sku }}</span>
+                            </td>
+                            <td class="date-info">
+                                <strong>{{ m.fecha | date:'dd/MM/yyyy' }}</strong>
+                                <span>{{ m.fecha | date:'HH:mm' }}</span>
+                            </td>
+                            <td>
+                                <span class="badge" [class]="m.tipo | lowercase">
+                                    {{ m.tipo }}
+                                </span>
+                            </td>
+                            <td class="text-right">
+                                <span class="amount-text" [class]="m.tipo | lowercase">
+                                    {{ m.tipo === 'SALIDA' ? '-' : '+' }}{{ m.cantidad }}
+                                </span>
+                            </td>
+                            <td class="text-right stock-info">
+                                <div class="stock-flow">
+                                    <span class="previous">{{ m.stockAnterior }}</span>
+                                    <ion-icon name="arrow-forward-outline"></ion-icon>
+                                    <span class="actual">{{ m.stockNuevo }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="user-pill">
+                                    <ion-icon name="person-circle-outline"></ion-icon>
+                                    {{ m.usuario?.nombre }}
+                                </div>
+                            </td>
+                            <td class="reason">{{ m.motivo || 'Sin observaciones' }}</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
 
+        <!-- Mobile Card View -->
+        <div class="mobile-view">
+            <div class="cards-grid">
+                @for (m of movimientos; track m.id) {
+                <div class="movement-card glass" [class]="m.tipo | lowercase">
+                    <div class="card-header">
+                        <div class="p-details">
+                            <h3>{{ m.producto?.nombre }}</h3>
+                            <span class="sku">{{ m.producto?.sku }}</span>
+                        </div>
+                        <div class="type-indicator">
+                            <span class="badge" [class]="m.tipo | lowercase">{{ m.tipo }}</span>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="data-row">
+                            <div class="info-group">
+                                <span class="label">Cantidad</span>
+                                <span class="value highlight" [class]="m.tipo | lowercase">
+                                    {{ m.tipo === 'SALIDA' ? '-' : '+' }}{{ m.cantidad }}
+                                </span>
+                            </div>
+                            <div class="info-group">
+                                <span class="label">Stock (Ant → Sig)</span>
+                                <span class="value stock-flow-mobile">
+                                    <span class="old">{{ m.stockAnterior }}</span>
+                                    <ion-icon name="arrow-forward-outline"></ion-icon>
+                                    <span class="actual">{{ m.stockNuevo }}</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="data-footer">
+                            <div class="meta">
+                                <ion-icon name="time-outline"></ion-icon>
+                                <span>{{ m.fecha | date:'dd MMM, HH:mm' }}</span>
+                            </div>
+                            <div class="meta">
+                                <ion-icon name="person-outline"></ion-icon>
+                                <span>{{ m.usuario?.nombre }}</span>
+                            </div>
+                        </div>
+
+                        @if (m.motivo) {
+                        <div class="comment-box">
+                            <ion-icon name="chatbox-ellipses-outline"></ion-icon>
+                            <p>{{ m.motivo }}</p>
+                        </div>
+                        }
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+
+        <!-- Modern Pagination -->
         @if (total > filtros.take) {
-        <div class="pagination">
-            <div class="page-info">
-                Mostrando {{ filtros.skip + 1 }} - {{ mathMin(filtros.skip + filtros.take, total) }} de {{ total }}
+        <footer class="pagination-footer glass">
+            <div class="results-count">
+                Mostrando <strong>{{ filtros.skip + 1 }}-{{ mathMin(filtros.skip + filtros.take, total) }}</strong> de
+                <strong>{{ total }}</strong>
             </div>
-            <div class="btns">
-                <ion-button size="small" fill="outline" [disabled]="filtros.skip === 0" (click)="cambiarPagina(-1)">
-                    Anterior
-                </ion-button>
-                <ion-button size="small" fill="outline" [disabled]="filtros.skip + filtros.take >= total"
-                    (click)="cambiarPagina(1)">
-                    Siguiente
-                </ion-button>
+            <div class="pagination-controls">
+                <button class="nav-btn" [disabled]="filtros.skip === 0" (click)="cambiarPagina(-1)">
+                    <ion-icon name="chevron-back-sharp"></ion-icon>
+                </button>
+                <div class="page-indicator">
+                    {{ (filtros.skip / filtros.take) + 1 }}
+                </div>
+                <button class="nav-btn" [disabled]="filtros.skip + filtros.take >= total" (click)="cambiarPagina(1)">
+                    <ion-icon name="chevron-forward-sharp"></ion-icon>
+                </button>
             </div>
+        </footer>
+        }
+
+        } @else {
+        <div class="empty-placeholder">
+            <div class="empty-icon">
+                <ion-icon name="document-text-outline"></ion-icon>
+            </div>
+            <h3>No hay movimientos</h3>
+            <p>Ajusta los filtros o realiza un nuevo movimiento de stock.</p>
+            <button class="btn-neo success" (click)="limpiarFiltros()">Limpiar Filtros</button>
         </div>
         }
-    </div>
+    </main>
 </div>

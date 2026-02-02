@@ -110,7 +110,7 @@ export class HomePage implements OnInit {
     } else if (view === 'productos') {
       this.pageTitle = 'Productos';
     } else if (view === 'inventario') {
-      this.pageTitle = 'Movimientos de Inventario';
+      this.pageTitle = 'Mov. de Inventario';
     } else if (view === 'clientes') {
       this.pageTitle = 'Gestión de Clientes';
     } else if (view === 'modulos') {

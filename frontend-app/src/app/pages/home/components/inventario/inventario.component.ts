@@ -80,6 +80,16 @@ export class InventarioComponent implements OnInit {
         return Math.min(a, b);
     }
 
+    getIconForTipo(tipo: string): string {
+        switch (tipo) {
+            case 'ENTRADA': return 'arrow-down-circle';
+            case 'SALIDA': return 'arrow-up-circle';
+            case 'AJUSTE': return 'options';
+            case 'DEVOLUCION': return 'arrow-undo';
+            default: return 'help-circle';
+        }
+    }
+
     async abrirModalAjuste() {
         const modal = await this.modalCtrl.create({
             component: ModalAjusteInventarioComponent,
