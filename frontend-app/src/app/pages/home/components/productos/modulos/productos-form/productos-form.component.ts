@@ -1,12 +1,14 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnInit } from '@angular/core';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, AlertController, ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { camera, trash, shuffleOutline } from 'ionicons/icons';
+import { camera, trash, shuffleOutline, addCircleOutline } from 'ionicons/icons';
 import { Producto } from 'src/app/core/models/producto';
 import { ProductosServices } from 'src/app/core/services/producto.service';
 import { AlertService } from 'src/app/shared/services/alert.service';
+import { CategoriaService } from 'src/app/core/services/categoria.service';
+import { Categoria } from 'src/app/core/models/categoria';
 
 import { FormularioRopaComponent } from '../formulario-ropa/formulario-ropa.component';
 import { FormularioAlimentosComponent } from '../formulario-alimentos/formulario-alimentos.component';
@@ -15,6 +17,7 @@ import { FormularioFarmaciaComponent } from '../formulario-farmacia/formulario-f
 import { FormularioPapeleriaComponent } from '../formulario-papeleria/formulario-papeleria.component';
 import { FormularioRestauranteComponent } from '../formulario-restaurante/formulario-restaurante.component';
 import { NumericFormatDirective } from 'src/app/shared/directives/numeric-format.directive';
+import { CategoriaCrudComponent } from '../categoria-crud/categoria-crud.component';
 
 function stockValidator(group: AbstractControl): ValidationErrors | null {
   const stock = Number(group.get('stock')?.value || 0);
@@ -32,7 +35,7 @@ function stockValidator(group: AbstractControl): ValidationErrors | null {
   styleUrls: ['./productos-form.component.scss'],
   standalone: false
 })
-export class ProductosFormComponent implements OnChanges {
+export class ProductosFormComponent implements OnChanges, OnInit {
   @Input() product: Producto | null = null;
   @Input() modulosActivos: Set<string> = new Set();
   @Output() save = new EventEmitter<any>();
@@ -40,30 +43,72 @@ export class ProductosFormComponent implements OnChanges {
 
   productForm: FormGroup;
   isEditing: boolean = false;
+  categorias: Categoria[] = [];
 
   constructor(
-    private fb: FormBuilder, 
+    private fb: FormBuilder,
     private productoService: ProductosServices,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private categoriaService: CategoriaService,
+    private alertController: AlertController,
+    private modalController: ModalController
   ) {
     this.productForm = this.initForm();
-    addIcons({ camera, trash, 'shuffle-outline': shuffleOutline });
+    addIcons({ camera, trash, 'shuffle-outline': shuffleOutline, 'add-circle-outline': addCircleOutline });
     this.setupMarginCalculation();
     this.setupSkuGeneration();
   }
 
+  ngOnInit() {
+    this.cargarCategorias();
+  }
+
+  cargarCategorias() {
+    this.categoriaService.listarCategorias().subscribe({
+      next: (cats) => this.categorias = cats,
+      error: (err) => console.error('Error cargando categorias', err)
+    });
+  }
+
+  async crearNuevaCategoria() {
+    const modal = await this.modalController.create({
+      component: CategoriaCrudComponent,
+      breakpoints: [0, 0.6, 0.9],
+      initialBreakpoint: 0.6,
+      handle: true,
+      cssClass: 'modal-categoria-crud'
+    });
+
+    await modal.present();
+
+    // When modal closes, reload categories to refresh the list
+    await modal.onWillDismiss();
+    this.cargarCategorias();
+  }
+
   setupSkuGeneration() {
+    // Escuchar cambios en categoriaId (Select)
+    this.productForm.get('categoriaId')?.valueChanges.pipe(
+      distinctUntilChanged()
+    ).subscribe(catId => {
+      const cat = this.categorias.find(c => c.id === catId);
+      if (cat) {
+        // Actualizar texto categoria tambien
+        this.productForm.patchValue({ categoria: cat.nombre }, { emitEvent: false });
+        this.generarSkuAutomatico(cat.nombre);
+      }
+    });
+
+    // Mantener compatibilidad si cambia el texto manual (aunque intentaremos ocultarlo)
     this.productForm.get('categoria')?.valueChanges.pipe(
       debounceTime(500),
       distinctUntilChanged()
     ).subscribe(categoria => {
-      // Si el usuario no ha modificado manualmente el SKU (pristine)
-      // o si es un producto nuevo y el SKU está vacío
       const skuControl = this.productForm.get('sku');
       if (categoria && categoria.length >= 3) {
-         if (skuControl?.pristine || !skuControl?.value) {
-            this.generarSkuAutomatico(categoria);
-         }
+        if (skuControl?.pristine || !skuControl?.value) {
+          this.generarSkuAutomatico(categoria);
+        }
       }
     });
   }
@@ -111,6 +156,7 @@ export class ProductosFormComponent implements OnChanges {
       imagen: [''],
 
       // Categorización
+      categoriaId: [null],
       categoria: [''],
       subcategoria: [''],
       marca: [''],
@@ -190,6 +236,7 @@ export class ProductosFormComponent implements OnChanges {
       sku: product.sku || '',
       descripcion: product.descripcion || '',
       imagen: product.imagen || '',
+      categoriaId: product.categoriaId || null,
       categoria: product.categoria || '',
       subcategoria: product.subcategoria || '',
       marca: product.marca || '',
@@ -222,6 +269,7 @@ export class ProductosFormComponent implements OnChanges {
       sku: '',
       descripcion: '',
       imagen: '',
+      categoriaId: null,
       categoria: '',
       subcategoria: '',
       marca: '',

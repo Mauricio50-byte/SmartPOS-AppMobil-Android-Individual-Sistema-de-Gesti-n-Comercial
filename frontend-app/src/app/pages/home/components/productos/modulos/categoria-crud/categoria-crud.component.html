@@ -1,0 +1,95 @@
+<ion-header class="ion-no-border">
+    <ion-toolbar color="light">
+        <ion-title>Categorías</ion-title>
+        <ion-buttons slot="end">
+            <ion-button (click)="cancel()" color="medium">
+                <ion-icon name="close-circle" slot="icon-only"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding-top">
+
+    <!-- New / Edit Form -->
+    <div class="form-container ion-padding-horizontal ion-margin-bottom">
+        <form [formGroup]="form" (ngSubmit)="saveCategory()">
+            <div class="input-group">
+                <ion-input formControlName="nombre" label="Nombre" label-placement="floating" fill="outline" mode="md"
+                    placeholder="Ej. Bebidas" errorText="Requerido">
+                </ion-input>
+
+                <ion-input class="ion-margin-top" formControlName="descripcion" label="Descripción (Opcional)"
+                    label-placement="floating" fill="outline" mode="md" placeholder="Breve descripción">
+                </ion-input>
+            </div>
+
+            <div class="actions ion-margin-top">
+                <ion-button expand="block" type="submit" [disabled]="form.invalid" shape="round">
+                    <ion-icon [name]="editingId ? 'save-outline' : 'add-circle-outline'" slot="start"></ion-icon>
+                    {{ editingId ? 'Actualizar' : 'Agregar' }}
+                </ion-button>
+
+                @if (editingId) {
+                <ion-button expand="block" fill="clear" color="medium" (click)="cancelEdit()">
+                    Cancelar Edición
+                </ion-button>
+                }
+            </div>
+        </form>
+    </div>
+
+    <!-- Category List -->
+    <div class="list-container">
+        <div class="section-title ion-padding-horizontal">
+            <ion-text color="medium">
+                <small>EXISTENTES ({{ categorias.length }})</small>
+            </ion-text>
+        </div>
+
+        <ion-list lines="none">
+            @for (cat of categorias; track cat.id) {
+            <ion-item-sliding>
+                <ion-item button detail="false" class="category-item">
+                    <div class="category-info">
+                        <ion-text color="dark">
+                            <h3 class="category-name">{{ cat.nombre }}</h3>
+                        </ion-text>
+                        @if (cat.descripcion) {
+                        <ion-text color="medium">
+                            <p class="category-desc">{{ cat.descripcion }}</p>
+                        </ion-text>
+                        }
+                    </div>
+
+                    <div class="item-actions" slot="end">
+                        <ion-button fill="clear" size="small" color="primary" (click)="editCategory(cat)">
+                            <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+                        </ion-button>
+                        <ion-button fill="clear" size="small" color="medium" (click)="confirmDelete(cat)">
+                            <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                        </ion-button>
+                    </div>
+                </ion-item>
+
+                <ion-item-options side="end">
+                    <ion-item-option color="primary" (click)="editCategory(cat)">
+                        <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+                    </ion-item-option>
+                    <ion-item-option color="danger" (click)="confirmDelete(cat)">
+                        <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                    </ion-item-option>
+                </ion-item-options>
+            </ion-item-sliding>
+            }
+
+            @if (categorias.length === 0) {
+            <div class="empty-state ion-text-center ion-padding">
+                <ion-icon name="file-tray-outline" size="large" color="medium"></ion-icon>
+                <p>No hay categorías registradas</p>
+            </div>
+            }
+        </ion-list>
+    </div>
+
+</ion-content>

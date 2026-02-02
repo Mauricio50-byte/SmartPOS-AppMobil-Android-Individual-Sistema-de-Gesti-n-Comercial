@@ -66,7 +66,10 @@ export interface Producto {
 
   // Categorización
   categoria?: string;
+  categoriaId?: number;
+  categoriaRel?: any; // Avoiding circular dependency or import issues for now, or use Categoria interface if imported
   subcategoria?: string;
+
   marca?: string;
 
   // Precios

@@ -9,3 +9,4 @@ export * from './rol';
 export * from './permiso';
 export * from './deuda';
 export * from './gasto';
+export * from './categoria';

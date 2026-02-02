@@ -50,11 +50,20 @@
             }
           </ion-col>
 
-          <ion-col size="12" size-sm="6">
+          <ion-col size="10" size-sm="5">
             <ion-item class="input-item">
               <ion-label position="stacked">Categoría</ion-label>
-              <ion-input formControlName="categoria" placeholder="Ej. Ropa, Flores"></ion-input>
+              <ion-select formControlName="categoriaId" placeholder="Seleccionar" interface="popover">
+                @for (cat of categorias; track cat.id) {
+                <ion-select-option [value]="cat.id">{{ cat.nombre }}</ion-select-option>
+                }
+              </ion-select>
             </ion-item>
+          </ion-col>
+          <ion-col size="2" size-sm="1" class="ion-align-self-center">
+            <ion-button fill="clear" (click)="crearNuevaCategoria()" title="Crear Categoría">
+              <ion-icon name="add-circle-outline" slot="icon-only" size="large"></ion-icon>
+            </ion-button>
           </ion-col>
 
           <ion-col size="12" size-sm="6">
@@ -211,7 +220,8 @@
               <ion-label position="stacked">Stock Mínimo</ion-label>
               <ion-input type="text" inputmode="numeric" formControlName="stockMinimo" appNumericFormat></ion-input>
             </ion-item>
-            @if (productForm.errors?.['minStockGreaterThanStock'] && (productForm.get('stockMinimo')?.touched || productForm.get('stock')?.touched)) {
+            @if (productForm.errors?.['minStockGreaterThanStock'] && (productForm.get('stockMinimo')?.touched ||
+            productForm.get('stock')?.touched)) {
             <div class="error-msg">
               El stock mínimo no puede ser mayor al stock actual.
             </div>
@@ -220,7 +230,7 @@
           <ion-col size="12" size-sm="4">
             <ion-item class="input-item">
               <ion-label position="stacked">Unidad de Medida</ion-label>
-              <ion-input formControlName="unidadMedida" placeholder="Ej. Unidad, Kg"></ion-input>
+              <ion-input formControlName="unidadMedida" placeholder="Ej. Unidad, Kg, Paquete, Litro"></ion-input>
             </ion-item>
           </ion-col>
         </ion-row>

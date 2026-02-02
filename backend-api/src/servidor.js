@@ -21,6 +21,7 @@ const { registrarRutasDashboard } = require('./modulos/dashboard/dashboard.rutas
 const { registrarRutasReportes } = require('./modulos/reportes/reportes.rutas')
 const { registrarRutasReportesContables } = require('./modulos/reportes-contables/reportes-contables.rutas')
 const { registrarRutasInventario } = require('./modulos/inventario/inventario.rutas')
+const { registrarRutasCategoria } = require('./modulos/categorias/categoria.rutas')
 const { asegurarPermisosYAdmin } = require('./infraestructura/bootstrap')
 const { prisma } = require('./infraestructura/bd')
 
@@ -155,6 +156,7 @@ async function iniciar() {
   await registrarRutasReportes(app)
   await registrarRutasReportesContables(app)
   await registrarRutasInventario(app)
+  await registrarRutasCategoria(app)
 
   try {
     const address = await app.listen({ port: Number(PUERTO), host: '0.0.0.0' })

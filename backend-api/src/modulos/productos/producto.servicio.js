@@ -7,7 +7,8 @@ const baseInclude = {
   detalleServicio: true,
   detalleFarmacia: true,
   detallePapeleria: true,
-  detalleRestaurante: true
+  detalleRestaurante: true,
+  categoriaRel: true
 }
 
 async function listarProductos() {
@@ -28,10 +29,21 @@ async function crearProducto(datos) {
   const {
     nombre, sku, descripcion, imagen, categoria, subcategoria, marca,
     precioCosto, precioVenta, descuento, stock, stockMinimo, unidadMedida,
-
+    categoriaId, // Nuevo campo
     margenGanancia, proveedor, activo, tipo,
     ...restoDatos // Datos específicos del plugin
   } = datos
+
+  let categoriaTexto = categoria
+  let catId = categoriaId ? Number(categoriaId) : null
+
+  // Si envían ID, aseguramos consistencia con el texto
+  if (catId) {
+    const catDb = await prisma.categoria.findUnique({ where: { id: catId } })
+    if (catDb) {
+      categoriaTexto = catDb.nombre
+    }
+  }
 
   return prisma.$transaction(async (tx) => {
     // 1. Crear el producto base
@@ -41,7 +53,8 @@ async function crearProducto(datos) {
         sku,
         descripcion,
         imagen,
-        categoria,
+        categoria: categoriaTexto,
+        categoriaId: catId,
         subcategoria,
         marca,
         precioCosto,
@@ -75,10 +88,21 @@ async function actualizarProducto(id, datos) {
   const {
     nombre, sku, descripcion, imagen, categoria, subcategoria, marca,
     precioCosto, precioVenta, descuento, stock, stockMinimo, unidadMedida,
-
+    categoriaId,
     margenGanancia, proveedor, activo, tipo,
     ...restoDatos
   } = datos
+
+  let categoriaTexto = categoria
+  let catId = categoriaId !== undefined ? Number(categoriaId) : undefined
+
+  // Si se envía un ID explícito (aunque sea null)
+  if (catId) {
+    const catDb = await prisma.categoria.findUnique({ where: { id: catId } })
+    if (catDb) {
+      categoriaTexto = catDb.nombre
+    }
+  }
 
   return prisma.$transaction(async (tx) => {
     // 1. Actualizar datos base
@@ -89,7 +113,8 @@ async function actualizarProducto(id, datos) {
         sku,
         descripcion,
         imagen,
-        categoria,
+        categoria: categoriaTexto,
+        categoriaId: catId,
         subcategoria,
         marca,
         precioCosto,
