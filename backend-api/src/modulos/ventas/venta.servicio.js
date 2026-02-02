@@ -187,17 +187,19 @@ async function crearVenta(payload) {
       data: ventaData
     })
 
-    // Crear detalles y actualizar stock
+    // Crear detalles de forma masiva para mayor eficiencia
+    await tx.detalleVenta.createMany({
+      data: detalles.map(d => ({
+        ventaId: venta.id,
+        productoId: d.productoId,
+        cantidad: d.cantidad,
+        precioUnitario: d.precioUnitario,
+        subtotal: d.subtotal
+      }))
+    })
+
+    // Actualizar stocks y generar notificaciones
     for (const d of detalles) {
-      await tx.detalleVenta.create({
-        data: {
-          ventaId: venta.id,
-          productoId: d.productoId,
-          cantidad: d.cantidad,
-          precioUnitario: d.precioUnitario,
-          subtotal: d.subtotal
-        }
-      })
       const prodActualizado = await tx.producto.update({
         where: { id: d.productoId },
         data: { stock: { decrement: d.cantidad } }
@@ -323,6 +325,8 @@ async function crearVenta(payload) {
 
     // Retornar solo el ID de la venta creada para salir de la transacción
     return venta.id
+  }, {
+    timeout: 15000 // 15 segundos para evitar timeouts en ventas grandes
   })
 
   // Una vez confirmada la transacción, obtener la venta completa

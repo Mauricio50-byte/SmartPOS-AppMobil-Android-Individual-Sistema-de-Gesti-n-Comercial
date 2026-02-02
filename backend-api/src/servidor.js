@@ -18,6 +18,7 @@ const { registrarRutasCaja } = require('./modulos/caja/caja.rutas')
 const { registrarRutasModulos } = require('./modulos/sistema/modulo.rutas')
 const { registrarRutasNotificaciones } = require('./modulos/notificaciones/notificacion.rutas')
 const { registrarRutasDashboard } = require('./modulos/dashboard/dashboard.rutas')
+const { registrarRutasReportes } = require('./modulos/reportes/reportes.rutas')
 const { asegurarPermisosYAdmin } = require('./infraestructura/bootstrap')
 const { prisma } = require('./infraestructura/bd')
 
@@ -73,6 +74,7 @@ async function iniciar() {
         !req.raw.url.startsWith('/caja') &&
         !req.raw.url.startsWith('/notificaciones') &&
         !req.raw.url.startsWith('/dashboard') &&
+        !req.raw.url.startsWith('/reportes') &&
         !req.raw.url.startsWith('/gastos')) {
         return res.sendFile('index.html')
       }
@@ -147,6 +149,7 @@ async function iniciar() {
   await registrarRutasModulos(app)
   await registrarRutasNotificaciones(app)
   await registrarRutasDashboard(app)
+  await registrarRutasReportes(app)
 
   try {
     const address = await app.listen({ port: Number(PUERTO), host: '0.0.0.0' })

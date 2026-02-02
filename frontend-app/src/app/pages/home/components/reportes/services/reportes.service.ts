@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { forkJoin, Observable, map } from 'rxjs';
-import { VentaServices } from '../../../../../core/services/venta.service';
-import { ProductosServices } from '../../../../../core/services/producto.service';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -50,210 +50,21 @@ export interface ReportData {
   providedIn: 'root'
 })
 export class ReportesService {
-  private ventaService = inject(VentaServices);
-  private productoService = inject(ProductosServices);
+  private http = inject(HttpClient);
+  private apiUrl = environment.apiUrl + '/reportes';
 
   constructor() { }
 
+  /**
+   * Obtiene el reporte general desde el backend.
+   * La lógica de cálculo se ha migrado al backend para mayor eficiencia.
+   */
   getGeneralReport(period: ReportPeriod = 'month', groupBy: GroupByOption = 'category'): Observable<ReportData> {
-    const { startDate, endDate } = this.getDateRange(period);
-    console.log('[DEBUG Frontend] Requesting report for period:', period, 'Group by:', groupBy);
-    console.log('[DEBUG Frontend] Date Range:', { startDate, endDate });
+    console.log('[DEBUG Frontend] Requesting report from backend:', { period, groupBy });
 
-    return forkJoin({
-      ventas: this.ventaService.listarVentas({ startDate, endDate }),
-      productos: this.productoService.listarProductos()
-    }).pipe(
-      map(({ ventas, productos }) => this.calculateMetrics(ventas, productos, groupBy))
-    );
-  }
-
-  private getDateRange(period: ReportPeriod): { startDate?: string, endDate?: string } {
-    if (period === 'all') return {};
-
-    const now = new Date();
-    const end = new Date(now);
-    end.setHours(23, 59, 59, 999);
-    
-    let start = new Date(now);
-    start.setHours(0, 0, 0, 0);
-
-    switch (period) {
-      case 'day':
-        // Start is already today 00:00
-        break;
-      case 'week':
-        const day = start.getDay();
-        // Calculate Monday of current week
-        const diff = start.getDate() - day + (day === 0 ? -6 : 1); 
-        start.setDate(diff);
-        break;
-      case 'month':
-        start.setDate(1);
-        break;
-      case 'year':
-        start.setMonth(0, 1);
-        break;
-    }
-
-    return { 
-      startDate: start.toISOString(), 
-      endDate: end.toISOString() 
-    };
-  }
-
-  private calculateMetrics(ventas: any[], productos: any[], groupBy: GroupByOption): ReportData {
-    const productMap = new Map(productos.map(p => [p.id, p]));
-    const categoryStats: Record<string, {
-      volume: number,
-      revenue: number,
-      cost: number,
-      prevRevenue: number
-    }> = {};
-
-    let totalRevenue = 0;
-    let totalCollected = 0; 
-    let totalPending = 0;   
-    let totalCost = 0;
-    let totalVolume = 0;
-
-    let revenueCash = 0;
-    let revenueTransfer = 0;
-    let collectedCash = 0;
-    let collectedTransfer = 0;
-    let pendingCash = 0;
-    let pendingTransfer = 0;
-    let volumeContado = 0;
-    let volumeFiado = 0;
-    let transactionsContado = 0;
-    let transactionsFiado = 0;
-
-    ventas.forEach(v => {
-      // Since we filter at API level, we assume all returned sales are relevant for the current period
-      
-      // Use Number() to ensure safety
-      const pagado = Number(v.montoPagado) || 0;
-      const pendiente = Number(v.saldoPendiente) || 0;
-      const totalVenta = Number(v.total) || 0;
-      const metodo = (v.metodoPago || 'EFECTIVO').toUpperCase();
-      const estado = (v.estadoPago || 'PAGADO').toUpperCase();
-      
-      // Transaction breakdown
-      if (estado === 'PAGADO') {
-        transactionsContado++;
-      } else {
-        transactionsFiado++;
-      }
-
-      totalCollected += pagado;
-      totalPending += pendiente;
-
-      // Revenue breakdown (by sale payment method)
-      if (metodo === 'EFECTIVO') {
-        revenueCash += totalVenta;
-      } else {
-        revenueTransfer += totalVenta;
-      }
-
-      // Collected breakdown (by sale payment method)
-      if (metodo === 'EFECTIVO') {
-        collectedCash += pagado;
-      } else {
-        collectedTransfer += pagado;
-      }
-
-      // Pending breakdown (by sale payment method)
-      if (metodo === 'EFECTIVO') {
-        pendingCash += pendiente;
-      } else {
-        pendingTransfer += pendiente;
-      }
-      
-      const items = v.detalles || v.items || [];
-      items.forEach((item: any) => {
-        const pId = item.producto?.id || item.productoId;
-        const product = productMap.get(pId);
-        if (!product) return;
-
-        let key = '';
-        if (groupBy === 'category') {
-           key = (product.categoria || product.tipo || 'General').trim();
-        } else {
-           // Agrupar por nombre de producto
-           // Opcional: concatenar SKU si se desea diferenciar variantes: `${product.nombre} (${product.sku || 'Sin SKU'})`
-           key = product.nombre.trim();
-        }
-        
-        const qty = Number(item.cantidad) || 0;
-
-        // Prioritize subtotal, then calculated, then unit * qty
-        const itemRevenue = Number(item.subtotal) || Number(item.total) || (Number(item.precioUnitario) * qty) || 0;
-        const unitCost = Number(product.precioCosto) || 0;
-        const itemCost = unitCost * qty;
-
-        if (!categoryStats[key]) {
-          categoryStats[key] = { volume: 0, revenue: 0, cost: 0, prevRevenue: 0 };
-        }
-
-        categoryStats[key].volume += qty;
-        categoryStats[key].revenue += itemRevenue;
-        categoryStats[key].cost += itemCost;
-        
-        totalRevenue += itemRevenue;
-        totalCost += itemCost;
-        totalVolume += qty;
-
-        // Volume breakdown
-        if (estado === 'PAGADO') {
-            volumeContado += qty;
-        } else {
-            volumeFiado += qty;
-        }
-      });
+    return this.http.get<ReportData>(`${this.apiUrl}/general`, {
+      params: { period, groupBy }
     });
-
-    const metrics = Object.entries(categoryStats).map(([name, stats]) => {
-      const margin = stats.revenue > 0 ? ((stats.revenue - stats.cost) / stats.revenue) * 100 : 0;
-
-      // Growth calculation is disabled/reset because we don't fetch previous period data anymore
-      const growth = 0; 
-
-      const share = totalRevenue > 0 ? (stats.revenue / totalRevenue) * 100 : 0;
-
-      return {
-        name,
-        salesVolume: stats.volume,
-        revenue: stats.revenue,
-        cost: stats.cost,
-        margin,
-        growth,
-        share
-      };
-    });
-
-    const totalTransactions = ventas.length;
-    const averageTicket = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
-
-    return { 
-      metrics, 
-      totalRevenue, 
-      totalCost, 
-      totalVolume, 
-      totalCollected, 
-      totalPending,
-      totalTransactions,
-      averageTicket,
-      revenueCash,
-      revenueTransfer,
-      collectedCash,
-      collectedTransfer,
-      pendingCash,
-      pendingTransfer,
-      volumeContado,
-      volumeFiado,
-      transactionsContado,
-      transactionsFiado
-    };
   }
 
   exportToPDF(data: ReportMetric[], title: string = 'Reporte de Categorías') {
@@ -300,7 +111,7 @@ export class ReportesService {
   exportToExcel(data: ReportMetric[], fileName: string = 'reporte') {
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = { Sheets: { 'data': worksheet }, SheetNames: ['data'] };
-    
+
     const fullFileName = `${fileName}_export_${new Date().getTime()}.xlsx`;
 
     if (Capacitor.isNativePlatform()) {
