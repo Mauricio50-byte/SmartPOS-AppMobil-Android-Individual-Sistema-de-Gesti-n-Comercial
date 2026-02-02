@@ -1,0 +1,99 @@
+<div class="modal-container">
+    <div class="modal-header">
+        <div class="header-content">
+            <ion-icon name="receipt-outline" class="header-icon"></ion-icon>
+            <div class="title-group">
+                <h2>Detalle de Venta</h2>
+                <span class="sale-id" *ngIf="venta">#{{ venta.id }}</span>
+            </div>
+        </div>
+        <ion-button fill="clear" color="medium" (click)="cerrar()">
+            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+    </div>
+
+    <div class="modal-content">
+        @if (isLoading) {
+        <div class="loading-state">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>Cargando información...</p>
+        </div>
+        } @else if (venta) {
+        <!-- Información General -->
+        <div class="info-section">
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Fecha y Hora</label>
+                    <span>{{ venta.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                <div class="info-item">
+                    <label>Estado de Pago</label>
+                    <span class="badge" [ngClass]="getBadgeClass(venta.estadoPago)">
+                        {{ venta.estadoPago }}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <label>Método de Pago</label>
+                    <span>{{ venta.metodoPago }}</span>
+                </div>
+                <div class="info-item">
+                    <label>Cliente</label>
+                    <span>{{ venta.cliente?.nombre || 'General' }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Productos -->
+        <div class="products-section">
+            <h3>Productos ({{ venta.detalles?.length || 0 }})</h3>
+            <div class="products-list">
+                @for (item of venta.detalles; track item.id) {
+                <div class="product-card">
+                    <div class="product-info">
+                        <span class="product-name">{{ item.producto?.nombre }}</span>
+                        <span class="product-sku" *ngIf="item.producto?.sku">SKU: {{ item.producto.sku }}</span>
+                    </div>
+                    <div class="product-pricing">
+                        <div class="price-calc">
+                            {{ item.cantidad }} x {{ item.precioUnitario | currency:'USD' }}
+                        </div>
+                        <div class="total-price">
+                            {{ (item.cantidad * item.precioUnitario) | currency:'USD' }}
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+
+        <!-- Resumen de Totales -->
+        <div class="summary-section">
+            <div class="summary-row subtotal">
+                <span>Subtotal</span>
+                <span>{{ venta.total | currency:'USD' }}</span>
+            </div>
+            <!-- Aquí podrías agregar impuestos o descuentos si existieran -->
+            <div class="summary-row total">
+                <span>Total General</span>
+                <span>{{ venta.total | currency:'USD' }}</span>
+            </div>
+        </div>
+
+        <div class="footer-info" *ngIf="venta.usuario">
+            <ion-icon name="person-outline"></ion-icon>
+            <span>Vendido por: <strong>{{ venta.usuario.nombre }}</strong></span>
+        </div>
+        } @else {
+        <div class="error-state">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <p>No se pudo encontrar la información de la venta.</p>
+        </div>
+        }
+    </div>
+
+    <div class="modal-footer">
+        <ion-button expand="block" shape="round" color="primary" class="close-btn" (click)="cerrar()">
+            Cerrar Ventana
+        </ion-button>
+    </div>
+</div>

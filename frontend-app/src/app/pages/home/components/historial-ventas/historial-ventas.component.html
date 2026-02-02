@@ -1,0 +1,102 @@
+<div class="historial-container">
+    <div class="header-section">
+        <h2>
+            <ion-icon name="time-outline"></ion-icon>
+            Historial de Ventas
+        </h2>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card primary">
+            <span class="label">Total Vendido</span>
+            <span class="value">{{ estadisticas.totalVendido | currency:'USD':'symbol':'1.0-0' }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="label">Transacciones</span>
+            <span class="value">{{ estadisticas.totalTransacciones }}</span>
+        </div>
+        <div class="stat-card success">
+            <span class="label">Ticket Promedio</span>
+            <span class="value">{{ estadisticas.promedioVenta | currency:'USD':'symbol':'1.0-0' }}</span>
+        </div>
+    </div>
+
+    <div class="filters-card">
+        <div class="filter-item">
+            <label>Buscar</label>
+            <input type="text" placeholder="ID, Cliente o Vendedor..." [(ngModel)]="filtros.busqueda"
+                (input)="aplicarFiltrosLocales()">
+        </div>
+        <div class="filter-item">
+            <label>Fecha Inicio</label>
+            <input type="date" [(ngModel)]="filtros.fechaInicio" (change)="cargarVentas()">
+        </div>
+        <div class="filter-item">
+            <label>Fecha Fin</label>
+            <input type="date" [(ngModel)]="filtros.fechaFin" (change)="cargarVentas()">
+        </div>
+        <div class="filter-item" style="flex: 0 0 auto;">
+            <ion-button color="medium" fill="outline" (click)="limpiarFiltros()">
+                <ion-icon name="refresh-outline"></ion-icon>
+            </ion-button>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-wrapper">
+            @if (isLoading) {
+            <div style="padding: 2rem; text-align: center;">
+                <ion-spinner></ion-spinner>
+                <p>Cargando ventas...</p>
+            </div>
+            } @else if (filteredVentas.length > 0) {
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Total</th>
+                        <th>M. Pago</th>
+                        <th>Estado</th>
+                        <th>Vendedor</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (v of filteredVentas; track v.id) {
+                    <tr>
+                        <td>#{{ v.id }}</td>
+                        <td>{{ v.fecha | date:'dd/MM/yy HH:mm' }}</td>
+                        <td>{{ v.cliente?.nombre || 'General' }}</td>
+                        <td style="font-weight: 600;">{{ v.total | currency:'USD':'symbol':'1.0-0' }}</td>
+                        <td>{{ v.metodoPago }}</td>
+                        <td>
+                            <span class="badge" [class.pagado]="v.estadoPago === 'PAGADO'"
+                                [class.pendiente]="v.estadoPago === 'FIADO'">
+                                {{ v.estadoPago }}
+                            </span>
+                        </td>
+                        <td>{{ v.usuario?.nombre }}</td>
+                        <td>
+                            <ion-button size="small" fill="clear" (click)="verDetalleVenta(v)" title="Ver Detalle">
+                                <ion-icon name="eye-outline" slot="icon-only"></ion-icon>
+                            </ion-button>
+                            <ion-button size="small" fill="clear" color="danger" (click)="iniciarDevolucion(v)"
+                                title="Devolución">
+                                <ion-icon name="arrow-undo-outline" slot="icon-only"></ion-icon>
+                            </ion-button>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+            } @else {
+            <div style="padding: 2rem; text-align: center; color: #64748b;">
+                <ion-icon name="search-outline" style="font-size: 2rem;"></ion-icon>
+                <p>No se encontraron ventas</p>
+            </div>
+            }
+        </div>
+    </div>
+</div>

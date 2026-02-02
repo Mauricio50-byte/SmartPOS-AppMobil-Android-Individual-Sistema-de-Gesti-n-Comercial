@@ -3,7 +3,7 @@ import { InventarioService, MovimientoInventario } from 'src/app/core/services/i
 import { AlertService } from 'src/app/shared/services/alert.service';
 import { ModalController } from '@ionic/angular';
 import { ModalAjusteInventarioComponent } from './components/modal-ajuste-inventario/modal-ajuste-inventario.component';
-import { ModalDevolucionComponent } from '../ventas/components/modal-devolucion/modal-devolucion.component';
+import { ModalDevolucionComponent } from './components/modal-devolucion/modal-devolucion.component';
 
 @Component({
     standalone: false,

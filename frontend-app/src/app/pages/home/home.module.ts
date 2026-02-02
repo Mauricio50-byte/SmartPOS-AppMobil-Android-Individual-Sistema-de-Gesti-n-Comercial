@@ -16,7 +16,9 @@ import { PermissionsModalComponent } from '../../shared/components/permissions-m
 import { ClientSelectorComponent } from './components/ventas/components/client-selector/client-selector.component';
 import { ClientRegistrationFormComponent } from './components/ventas/components/client-registration-form/client-registration-form.component';
 import { SalesCartComponent } from './components/ventas/components/sales-cart/sales-cart.component';
-import { ModalDevolucionComponent } from './components/ventas/components/modal-devolucion/modal-devolucion.component';
+import { HistorialVentasComponent } from './components/historial-ventas/historial-ventas.component';
+import { ModalDevolucionComponent } from './components/inventario/components/modal-devolucion/modal-devolucion.component';
+import { ModalDetalleVentaComponent } from './components/historial-ventas/components/modal-detalle-venta/modal-detalle-venta.component';
 import { ModulosComponent } from './components/modulos/modulos.component';
 import { ProductosListaComponent } from './components/productos/modulos/productos-lista/productos-lista.component';
 import { ProductosFormComponent } from './components/productos/modulos/productos-form/productos-form.component';
@@ -62,6 +64,7 @@ import { ClientEditModalComponent } from './components/clientes/components/clien
     ClientSelectorComponent,
     ClientRegistrationFormComponent,
     SalesCartComponent,
+    HistorialVentasComponent,
     ModalDevolucionComponent,
     ModulosComponent,
     CategoryDistributionComponent,
@@ -85,7 +88,8 @@ import { ClientEditModalComponent } from './components/clientes/components/clien
     TransactionModalComponent,
     ClientEditModalComponent,
     InventarioComponent,
-    ModalAjusteInventarioComponent
+    ModalAjusteInventarioComponent,
+    ModalDetalleVentaComponent
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

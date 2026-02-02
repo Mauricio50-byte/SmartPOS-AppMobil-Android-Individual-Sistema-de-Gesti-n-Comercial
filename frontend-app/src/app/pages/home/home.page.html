@@ -40,6 +40,14 @@
         </ion-item>
         }
 
+        @if (hasModule('ventas') || hasPermission('VER_VENTAS')) {
+        <ion-item button [class.active]="currentView === 'historial'" (click)="setView('historial')"
+          title="Historial Ventas" aria-label="Historial Ventas">
+          <ion-icon slot="start" name="time-outline"></ion-icon>
+          <ion-label>Historial Ventas</ion-label>
+        </ion-item>
+        }
+
         @if (hasModule('usuarios') || hasPermission('VER_USUARIOS')) {
         <ion-item button [class.active]="currentView === 'users'" (click)="setView('users')" title="Usuarios"
           aria-label="Usuarios">
@@ -202,6 +210,9 @@
         }
         @if (currentView === 'ventas') {
         <app-ventas></app-ventas>
+        }
+        @if (currentView === 'historial') {
+        <app-historial-ventas></app-historial-ventas>
         }
         @if (currentView === 'productos') {
         <app-productos></app-productos>
