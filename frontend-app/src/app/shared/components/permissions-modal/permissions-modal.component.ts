@@ -232,6 +232,7 @@ export class PermissionsModalComponent implements OnInit {
         if (!this.selectedModules.includes('dashboard')) {
           this.selectedModules.push('dashboard');
         }
+        this.calculateGroupedPermissions();
       },
       error: () => {
         this.availableModules = [];
@@ -262,7 +263,9 @@ export class PermissionsModalComponent implements OnInit {
     return this.selectedModules.includes(moduloId);
   }
 
-  get groupedPermissions(): { module: string, permissions: string[] }[] {
+  groupedPermissions: { module: string, permissions: string[] }[] = [];
+
+  calculateGroupedPermissions() {
     const groups: { [key: string]: string[] } = {};
     const miscKey = 'Otros / General';
 
@@ -270,6 +273,7 @@ export class PermissionsModalComponent implements OnInit {
       const permData = this.allPermissionsData.find(p => p.clave === permKey);
       let modName = miscKey;
       if (permData?.moduloId) {
+        // Try to find the module name, otherwise format the ID
         const mod = this.availableModules.find(m => m.id === permData.moduloId);
         modName = mod ? mod.nombre : (permData.moduloId.charAt(0).toUpperCase() + permData.moduloId.slice(1));
       }
@@ -281,7 +285,7 @@ export class PermissionsModalComponent implements OnInit {
     });
 
     // Sort: put 'Otros' at the end, others alphabetically
-    return Object.keys(groups).sort((a, b) => {
+    this.groupedPermissions = Object.keys(groups).sort((a, b) => {
       if (a === miscKey) return 1;
       if (b === miscKey) return -1;
       return a.localeCompare(b);
@@ -294,9 +298,10 @@ export class PermissionsModalComponent implements OnInit {
   private updateVisiblePermissions() {
     if (this.actorEsAdmin) {
       this.visiblePermissions = [...this.availablePermissions];
-      return;
+    } else {
+      this.visiblePermissions = ['VENDER', 'GESTION_INVENTARIO', 'GESTION_CLIENTES', 'VER_REPORTES', 'GESTION_FINANZAS'];
     }
-    this.visiblePermissions = ['VENDER', 'GESTION_INVENTARIO', 'GESTION_CLIENTES', 'VER_REPORTES', 'GESTION_FINANZAS'];
+    this.calculateGroupedPermissions();
   }
 
   getPermissionDescription(permiso: string): string {
