@@ -122,7 +122,7 @@ export class HomePage implements OnInit {
     } else if (view === 'reportes_contables') {
       this.pageTitle = 'Reportes Contables';
     } else if (view === 'configuracion') {
-      this.pageTitle = 'Configuración del Sistema';
+      this.pageTitle = 'Config. del Sistema';
     }
   }
 

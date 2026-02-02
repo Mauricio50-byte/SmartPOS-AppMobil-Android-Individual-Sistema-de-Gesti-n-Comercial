@@ -332,6 +332,7 @@ model DetalleVenta {
   productoId     Int
   cantidad       Int
   precioUnitario Float
+  precioCosto    Float    @default(0)
   subtotal       Float
   producto       Producto @relation(fields: [productoId], references: [id])
   venta          Venta    @relation(fields: [ventaId], references: [id])

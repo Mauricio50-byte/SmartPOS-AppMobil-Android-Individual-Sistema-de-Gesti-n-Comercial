@@ -29,6 +29,7 @@ async function validarYDescontarStock(tx, items, usuarioId, ventaId) {
             productoId: p.id,
             cantidad,
             precioUnitario,
+            precioCosto: Number(p.precioCosto || 0),
             subtotal,
             productoOriginal: p // Para uso posterior en notificaciones o kardex
         });

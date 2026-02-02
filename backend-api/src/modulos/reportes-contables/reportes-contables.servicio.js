@@ -8,19 +8,45 @@ async function obtenerEstadoResultados(fechaInicio, fechaFin) {
     const fFin = new Date(fechaFin);
     fFin.setHours(23, 59, 59, 999);
 
-    // 1. Ingresos (Ventas)
+    // 1. Ingresos Brutos (Ventas)
     const ventas = await prisma.venta.aggregate({
         where: {
             fecha: { gte: fInicio, lte: fFin }
         },
         _sum: { total: true }
     });
-    const ingresos = ventas._sum.total || 0;
+    const ingresosBrutos = ventas._sum.total || 0;
 
-    // 2. Costos de Ventas (Basado en el precio de costo de los productos vendidos)
-    const detallesVentas = await prisma.detalleVenta.findMany({
+    // 2. Devoluciones (Restamos del ingreso)
+    const devoluciones = await prisma.devolucion.aggregate({
+        where: {
+            fecha: { gte: fInicio, lte: fFin }
+        },
+        _sum: { totalDevuelto: true }
+    });
+    const totalDevoluciones = devoluciones._sum.totalDevuelto || 0;
+
+    // Ingresos Netos
+    const ingresos = ingresosBrutos - totalDevoluciones;
+
+    // 3. Costos de Ventas (Basado en el precio de costo HISTÓRICO guardado en DetalleVenta)
+    const todosLosDetalles = await prisma.detalleVenta.findMany({
         where: {
             venta: {
+                fecha: { gte: fInicio, lte: fFin }
+            }
+        }
+    });
+
+    let costosVentas = 0;
+    todosLosDetalles.forEach(d => {
+        costosVentas += (d.precioCosto || 0) * d.cantidad;
+    });
+
+    // 3b. Restar costo de lo devuelto (si el producto vuelve al inventario, su costo ya no es 'pérdida')
+    const detallesDevoluciones = await prisma.detalleDevolucion.findMany({
+        where: {
+            devolucion: {
                 fecha: { gte: fInicio, lte: fFin }
             }
         },
@@ -29,16 +55,19 @@ async function obtenerEstadoResultados(fechaInicio, fechaFin) {
         }
     });
 
-    let costos = 0;
-    detallesVentas.forEach(detalle => {
-        const precioCosto = detalle.producto?.precioCosto || 0;
-        costos += precioCosto * detalle.cantidad;
+    let costoDevoluciones = 0;
+    detallesDevoluciones.forEach(dd => {
+        // Aquí usamos el costo actual del producto o podríamos guardar el costo en DetalleDevolucion también.
+        // Por ahora usamos el del producto.
+        costoDevoluciones += (dd.producto?.precioCosto || 0) * dd.cantidad;
     });
 
-    // 3. Utilidad Bruta
+    const costos = costosVentas - costoDevoluciones;
+
+    // 4. Utilidad Bruta
     const utilidadBruta = ingresos - costos;
 
-    // 4. Gastos (Registrados en el módulo de gastos)
+    // 5. Gastos (Registrados en el módulo de gastos)
     const gastosData = await prisma.gasto.aggregate({
         where: {
             fechaRegistro: { gte: fInicio, lte: fFin }
@@ -47,7 +76,7 @@ async function obtenerEstadoResultados(fechaInicio, fechaFin) {
     });
     const gastos = gastosData._sum.montoTotal || 0;
 
-    // 5. Utilidad Neta
+    // 6. Utilidad Neta
     const utilidadNeta = utilidadBruta - gastos;
 
     return {
@@ -58,7 +87,7 @@ async function obtenerEstadoResultados(fechaInicio, fechaFin) {
         utilidadNeta,
         fechaInicio,
         fechaFin,
-        moneda: 'USD' // Opcional: podrías traerlo de configuración
+        moneda: 'USD'
     };
 }
 
@@ -77,9 +106,10 @@ async function obtenerFlujoCaja(fechaInicio, fechaFin) {
 
     let saldoInicial = 0;
     movsPrevios.forEach(m => {
-        if (['INGRESO', 'VENTA', 'ABONO_VENTA'].includes(m.tipo)) {
+        const tipoNorm = m.tipo.toUpperCase();
+        if (['INGRESO', 'VENTA', 'ABONO_VENTA'].includes(tipoNorm)) {
             saldoInicial += m.monto;
-        } else if (['EGRESO', 'PAGO_GASTO'].includes(m.tipo)) {
+        } else if (['EGRESO', 'PAGO_GASTO'].includes(tipoNorm)) {
             saldoInicial -= m.monto;
         }
     });
@@ -94,9 +124,10 @@ async function obtenerFlujoCaja(fechaInicio, fechaFin) {
     let entradas = 0;
     let salidas = 0;
     movimientosPeriodo.forEach(m => {
-        if (['INGRESO', 'VENTA', 'ABONO_VENTA'].includes(m.tipo.toUpperCase())) {
+        const tipoNorm = m.tipo.toUpperCase();
+        if (['INGRESO', 'VENTA', 'ABONO_VENTA'].includes(tipoNorm)) {
             entradas += m.monto;
-        } else if (['EGRESO', 'PAGO_GASTO'].includes(m.tipo.toUpperCase())) {
+        } else if (['EGRESO', 'PAGO_GASTO'].includes(tipoNorm)) {
             salidas += m.monto;
         }
     });

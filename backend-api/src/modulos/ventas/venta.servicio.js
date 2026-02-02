@@ -138,6 +138,7 @@ async function crearVenta(payload) {
           productoId: d.productoId,
           cantidad: d.cantidad,
           precioUnitario: d.precioUnitario,
+          precioCosto: d.precioCosto,
           subtotal: d.subtotal
         }))
       });
