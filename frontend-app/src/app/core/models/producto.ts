@@ -84,6 +84,7 @@ export interface Producto {
 
   // Impuestos y Proveedor
   margenGanancia?: number;
+  porcentajeIva?: number;
   proveedor?: string;
 
   // Estado

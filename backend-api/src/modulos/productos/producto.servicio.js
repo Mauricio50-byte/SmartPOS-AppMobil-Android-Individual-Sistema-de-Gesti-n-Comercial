@@ -30,7 +30,7 @@ async function crearProducto(datos) {
     nombre, sku, descripcion, imagen, categoria, subcategoria, marca,
     precioCosto, precioVenta, descuento, stock, stockMinimo, unidadMedida,
     categoriaId, // Nuevo campo
-    margenGanancia, proveedor, activo, tipo,
+    margenGanancia, porcentajeIva, proveedor, activo, tipo,
     ...restoDatos // Datos específicos del plugin
   } = datos
 
@@ -64,6 +64,7 @@ async function crearProducto(datos) {
         stockMinimo,
         unidadMedida,
         margenGanancia,
+        porcentajeIva,
         proveedor,
         activo: activo !== undefined ? activo : true,
         tipo: tipo || 'GENERAL'
@@ -89,7 +90,7 @@ async function actualizarProducto(id, datos) {
     nombre, sku, descripcion, imagen, categoria, subcategoria, marca,
     precioCosto, precioVenta, descuento, stock, stockMinimo, unidadMedida,
     categoriaId,
-    margenGanancia, proveedor, activo, tipo,
+    margenGanancia, porcentajeIva, proveedor, activo, tipo,
     ...restoDatos
   } = datos
 
@@ -124,6 +125,7 @@ async function actualizarProducto(id, datos) {
         stockMinimo,
         unidadMedida,
         margenGanancia,
+        porcentajeIva,
         proveedor,
         activo,
         // No permitimos cambiar el tipo fácilmente por ahora, pero si se requiere:

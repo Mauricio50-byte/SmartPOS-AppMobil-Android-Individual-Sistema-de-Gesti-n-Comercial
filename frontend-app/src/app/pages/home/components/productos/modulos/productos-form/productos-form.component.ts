@@ -165,6 +165,7 @@ export class ProductosFormComponent implements OnChanges, OnInit {
       precioCosto: [0, [Validators.min(0)]],
       precioVenta: [0, [Validators.required, Validators.min(0)]],
       descuento: [0, [Validators.min(0), Validators.max(100)]],
+      porcentajeIva: [0, [Validators.min(0), Validators.max(100)]],
 
       // Inventario
       stock: [0, [Validators.required, Validators.min(0)]],
@@ -243,11 +244,13 @@ export class ProductosFormComponent implements OnChanges, OnInit {
       precioCosto: product.precioCosto || 0,
       precioVenta: product.precioVenta,
       descuento: product.descuento || 0,
+      porcentajeIva: product.porcentajeIva || 0,
       stock: product.stock,
       stockMinimo: product.stockMinimo || 0,
       unidadMedida: product.unidadMedida || '',
       margenGanancia: product.margenGanancia || 0,
       proveedor: product.proveedor || '',
+      notas: '', // Assuming notas is not in Producto interface or handled elsewhere, initializing empty
       activo: product.activo
     };
 
@@ -276,6 +279,7 @@ export class ProductosFormComponent implements OnChanges, OnInit {
       precioCosto: 0,
       precioVenta: 0,
       descuento: 0,
+      porcentajeIva: 0,
       stock: 0,
       stockMinimo: 0,
       unidadMedida: '',
