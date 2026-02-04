@@ -1,0 +1,16 @@
+:host {
+  --ion-background-color: #f8f9fa;
+}
+
+ion-toolbar {
+  --background: #ffffff;
+  --color: #1a1a1a;
+  --border-style: none;
+  font-weight: 600;
+}
+
+ion-content {
+  --background: #f8f9fa;
+}
+
+/* Podríamos añadir estilos específicos para el modal si fuera necesario */

@@ -5,177 +5,188 @@
   </div>
 
   <div class="toolbar">
-    <ion-searchbar placeholder="Buscar cliente..." (ionInput)="onSearchChange($event)" class="search-bar"></ion-searchbar>
-    <div class="filter-container">
-      <ion-select [value]="filtroEstado" (ionChange)="onFilterChange($event)" interface="popover">
-        <ion-select-option value="TODOS">Todos</ion-select-option>
-        <ion-select-option value="CON_DEUDA">Con deuda</ion-select-option>
-        <ion-select-option value="SIN_DEUDA">Sin deuda</ion-select-option>
-      </ion-select>
+    <ion-searchbar placeholder="Buscar cliente..." (ionInput)="onSearchChange($event)"
+      class="search-bar"></ion-searchbar>
+    <div class="actions-container">
+      <div class="filter-container">
+        <ion-select [value]="filtroEstado" (ionChange)="onFilterChange($event)" interface="popover">
+          <ion-select-option value="TODOS">Todos</ion-select-option>
+          <ion-select-option value="CON_DEUDA">Con deuda</ion-select-option>
+          <ion-select-option value="SIN_DEUDA">Sin deuda</ion-select-option>
+        </ion-select>
+      </div>
+      <ion-button (click)="nuevoCliente()" color="primary" class="add-button">
+        <ion-icon slot="start" name="person-add-outline"></ion-icon>
+        Nuevo Cliente
+      </ion-button>
     </div>
   </div>
 
   @if (!loading) {
-    <div class="table-container">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Cliente</th>
-            <th>Teléfono</th>
-            <th>Cédula</th>
-            <th>Crédito Disp.</th>
-            <th>Saldo Deuda</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (c of filtrados; track c) {
-            <tr>
-              <td data-label="Cliente">
-                <div class="client-info"><span class="name">{{ c.nombre }}</span></div>
-              </td>
-              <td data-label="Teléfono">{{ c.telefono || '-' }}</td>
-              <td data-label="Cédula">{{ c.cedula || '-' }}</td>
-              <td data-label="Crédito Disp.">{{ creditoDisponible(c) | currency:'USD' }}</td>
-              <td data-label="Saldo Deuda" class="amount-pending">{{ c.saldoDeuda || 0 | currency:'USD' }}</td>
-              <td data-label="Estado">
-                <ion-badge [color]="(c.saldoDeuda || 0) > 0 ? 'warning' : 'success'">
-                  {{ (c.saldoDeuda || 0) > 0 ? 'Con deuda' : 'Sin deuda' }}
-                </ion-badge>
-                @if (c.activo === false) {
-                  <ion-badge color="medium" style="margin-left: 5px;">Inactivo</ion-badge>
-                }
-              </td>
-              <td data-label="Acciones">
-                <ion-button size="small" (click)="verEstado(c)" fill="clear" title="Ver Estado">
-                  <ion-icon slot="icon-only" name="document-text-outline"></ion-icon>
-                </ion-button>
-                <ion-button size="small" (click)="editarCliente(c)" color="secondary" fill="clear" title="Editar">
-                  <ion-icon slot="icon-only" name="create-outline"></ion-icon>
-                </ion-button>
-                <ion-button size="small" (click)="toggleActivo(c)" [color]="c.activo === false ? 'success' : 'medium'" fill="clear" [title]="c.activo === false ? 'Activar' : 'Desactivar'">
-                  <ion-icon slot="icon-only" name="power-outline"></ion-icon>
-                </ion-button>
-              </td>
-            </tr>
-          }
-          @if (filtrados.length === 0) {
-            <tr>
-              <td colspan="7" class="empty-state">No se encontraron clientes.</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  } @else {
-    <div class="skeleton-container" style="padding: 20px;">
-      <div class="table-header-skeleton" style="display: flex; gap: 15px; margin-bottom: 20px;">
-        <ion-skeleton-text animated style="width: 20%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
-        <ion-skeleton-text animated style="width: 15%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
-        <ion-skeleton-text animated style="width: 15%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
-        <ion-skeleton-text animated style="width: 15%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
-        <ion-skeleton-text animated style="width: 15%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
-        <ion-skeleton-text animated style="width: 10%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
-      </div>
-      <ion-list>
-        @for (i of [1,2,3,4,5,6,7,8]; track i) {
-          <ion-item lines="none" style="--padding-start: 0; --inner-padding-end: 0; margin-bottom: 10px;">
-            <ion-label>
-              <div style="display: flex; gap: 15px; align-items: center;">
-                <div style="width: 20%; display: flex; align-items: center; gap: 10px;">
-                  <ion-skeleton-text animated style="width: 32px; height: 32px; border-radius: 50%;"></ion-skeleton-text>
-                  <ion-skeleton-text animated style="width: 60%; height: 20px;"></ion-skeleton-text>
-                </div>
-                <ion-skeleton-text animated style="width: 15%; height: 20px;"></ion-skeleton-text>
-                <ion-skeleton-text animated style="width: 15%; height: 20px;"></ion-skeleton-text>
-                <ion-skeleton-text animated style="width: 15%; height: 20px;"></ion-skeleton-text>
-                <ion-skeleton-text animated style="width: 15%; height: 20px;"></ion-skeleton-text>
-                <ion-skeleton-text animated style="width: 10%; height: 20px; border-radius: 10px;"></ion-skeleton-text>
-              </div>
-            </ion-label>
-          </ion-item>
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Teléfono</th>
+          <th>Cédula</th>
+          <th>Crédito Disp.</th>
+          <th>Saldo Deuda</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of filtrados; track c) {
+        <tr>
+          <td data-label="Cliente">
+            <div class="client-info"><span class="name">{{ c.nombre }}</span></div>
+          </td>
+          <td data-label="Teléfono">{{ c.telefono || '-' }}</td>
+          <td data-label="Cédula">{{ c.cedula || '-' }}</td>
+          <td data-label="Crédito Disp.">{{ creditoDisponible(c) | currency:'USD' }}</td>
+          <td data-label="Saldo Deuda" class="amount-pending">{{ c.saldoDeuda || 0 | currency:'USD' }}</td>
+          <td data-label="Estado">
+            <ion-badge [color]="(c.saldoDeuda || 0) > 0 ? 'warning' : 'success'">
+              {{ (c.saldoDeuda || 0) > 0 ? 'Con deuda' : 'Sin deuda' }}
+            </ion-badge>
+            @if (c.activo === false) {
+            <ion-badge color="medium" style="margin-left: 5px;">Inactivo</ion-badge>
+            }
+          </td>
+          <td data-label="Acciones">
+            <ion-button size="small" (click)="verEstado(c)" fill="clear" title="Ver Estado">
+              <ion-icon slot="icon-only" name="document-text-outline"></ion-icon>
+            </ion-button>
+            <ion-button size="small" (click)="editarCliente(c)" color="secondary" fill="clear" title="Editar">
+              <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+            </ion-button>
+            <ion-button size="small" (click)="toggleActivo(c)" [color]="c.activo === false ? 'success' : 'medium'"
+              fill="clear" [title]="c.activo === false ? 'Activar' : 'Desactivar'">
+              <ion-icon slot="icon-only" name="power-outline"></ion-icon>
+            </ion-button>
+          </td>
+        </tr>
         }
-      </ion-list>
+        @if (filtrados.length === 0) {
+        <tr>
+          <td colspan="7" class="empty-state">No se encontraron clientes.</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  } @else {
+  <div class="skeleton-container" style="padding: 20px;">
+    <div class="table-header-skeleton" style="display: flex; gap: 15px; margin-bottom: 20px;">
+      <ion-skeleton-text animated style="width: 20%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 15%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 15%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 15%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 15%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 10%; height: 24px; border-radius: 4px;"></ion-skeleton-text>
     </div>
+    <ion-list>
+      @for (i of [1,2,3,4,5,6,7,8]; track i) {
+      <ion-item lines="none" style="--padding-start: 0; --inner-padding-end: 0; margin-bottom: 10px;">
+        <ion-label>
+          <div style="display: flex; gap: 15px; align-items: center;">
+            <div style="width: 20%; display: flex; align-items: center; gap: 10px;">
+              <ion-skeleton-text animated style="width: 32px; height: 32px; border-radius: 50%;"></ion-skeleton-text>
+              <ion-skeleton-text animated style="width: 60%; height: 20px;"></ion-skeleton-text>
+            </div>
+            <ion-skeleton-text animated style="width: 15%; height: 20px;"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 15%; height: 20px;"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 15%; height: 20px;"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 15%; height: 20px;"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 10%; height: 20px; border-radius: 10px;"></ion-skeleton-text>
+          </div>
+        </ion-label>
+      </ion-item>
+      }
+    </ion-list>
+  </div>
   }
 
 
   @if (seleccionado) {
-    <ion-modal [isOpen]="!!seleccionado" (didDismiss)="cerrarDetalle()" [initialBreakpoint]="0.85" [breakpoints]="[0, 0.5, 0.85, 1]">
-      <ng-template>
-        <div class="modal-wrapper">
-          <ion-header class="ion-no-border">
-            <ion-toolbar>
-              <ion-title>
-                <div class="client-title-wrapper">
-                  <ion-icon name="person-circle-outline"></ion-icon>
-                  <span>{{ seleccionado.nombre }}</span>
-                </div>
-              </ion-title>
-              <ion-buttons slot="end">
-                <ion-button (click)="cerrarDetalle()" color="medium">
-                  <ion-icon name="close-outline" slot="icon-only"></ion-icon>
-                </ion-button>
-              </ion-buttons>
-            </ion-toolbar>
-          </ion-header>
-
-          <ion-content class="ion-padding">
-            @if (estadoCuenta) {
-              <div class="detalle-content">
-                <div class="resumen-card">
-                  <div class="kpi-item">
-                    <span class="label">Crédito Máximo</span>
-                    <span class="value">{{ estadoCuenta.cliente.creditoMaximo | currency:'USD':'symbol':'1.0-0' }}</span>
-                  </div>
-                  <div class="kpi-item warning">
-                    <span class="label">Saldo Deuda</span>
-                    <span class="value">{{ estadoCuenta.cliente.saldoDeuda | currency:'USD':'symbol':'1.0-0' }}</span>
-                  </div>
-                  <div class="kpi-item success">
-                    <span class="label">Disponible</span>
-                    <span class="value">{{ estadoCuenta.creditoDisponible | currency:'USD':'symbol':'1.0-0' }}</span>
-                  </div>
-                </div>
-
-                <div class="deudas-section">
-                  <h3>Historial de Deudas</h3>
-                  
-                  @if (estadoCuenta.deudas.length > 0) {
-                    <div class="deudas-list">
-                      @for (d of estadoCuenta.deudas; track d.id) {
-                        <div class="deuda-item">
-                          <div class="deuda-main">
-                            <span class="date">{{ d.fechaCreacion | date:'shortDate' }}</span>
-                            <span class="amount">{{ d.montoTotal | currency:'USD':'symbol':'1.0-0' }}</span>
-                          </div>
-                          <div class="deuda-sub">
-                            <span class="pending">Saldo: {{ d.saldoPendiente | currency:'USD':'symbol':'1.0-0' }}</span>
-                            <ion-badge [color]="d.estado === 'PAGADO' ? 'success' : (d.estado === 'VENCIDO' ? 'danger' : 'warning')" mode="ios">
-                              {{ d.estado }}
-                            </ion-badge>
-                          </div>
-                        </div>
-                      }
-                    </div>
-                  } @else {
-                    <div class="empty-state-small">
-                      <ion-icon name="checkmark-circle-outline"></ion-icon>
-                      <p>Este cliente no tiene deudas registradas.</p>
-                    </div>
-                  }
-                </div>
+  <ion-modal [isOpen]="!!seleccionado" (didDismiss)="cerrarDetalle()" [initialBreakpoint]="0.85"
+    [breakpoints]="[0, 0.5, 0.85, 1]">
+    <ng-template>
+      <div class="modal-wrapper">
+        <ion-header class="ion-no-border">
+          <ion-toolbar>
+            <ion-title>
+              <div class="client-title-wrapper">
+                <ion-icon name="person-circle-outline"></ion-icon>
+                <span>{{ seleccionado.nombre }}</span>
               </div>
-            } @else {
-              <div class="loading-state">
-                <ion-spinner name="crescent" color="primary"></ion-spinner>
-                <p>Cargando estado de cuenta...</p>
+            </ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="cerrarDetalle()" color="medium">
+                <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+
+        <ion-content class="ion-padding">
+          @if (estadoCuenta) {
+          <div class="detalle-content">
+            <div class="resumen-card">
+              <div class="kpi-item">
+                <span class="label">Crédito Máximo</span>
+                <span class="value">{{ estadoCuenta.cliente.creditoMaximo | currency:'USD':'symbol':'1.0-0' }}</span>
               </div>
-            }
-          </ion-content>
-        </div>
-      </ng-template>
-    </ion-modal>
+              <div class="kpi-item warning">
+                <span class="label">Saldo Deuda</span>
+                <span class="value">{{ estadoCuenta.cliente.saldoDeuda | currency:'USD':'symbol':'1.0-0' }}</span>
+              </div>
+              <div class="kpi-item success">
+                <span class="label">Disponible</span>
+                <span class="value">{{ estadoCuenta.creditoDisponible | currency:'USD':'symbol':'1.0-0' }}</span>
+              </div>
+            </div>
+
+            <div class="deudas-section">
+              <h3>Historial de Deudas</h3>
+
+              @if (estadoCuenta.deudas.length > 0) {
+              <div class="deudas-list">
+                @for (d of estadoCuenta.deudas; track d.id) {
+                <div class="deuda-item">
+                  <div class="deuda-main">
+                    <span class="date">{{ d.fechaCreacion | date:'shortDate' }}</span>
+                    <span class="amount">{{ d.montoTotal | currency:'USD':'symbol':'1.0-0' }}</span>
+                  </div>
+                  <div class="deuda-sub">
+                    <span class="pending">Saldo: {{ d.saldoPendiente | currency:'USD':'symbol':'1.0-0' }}</span>
+                    <ion-badge
+                      [color]="d.estado === 'PAGADO' ? 'success' : (d.estado === 'VENCIDO' ? 'danger' : 'warning')"
+                      mode="ios">
+                      {{ d.estado }}
+                    </ion-badge>
+                  </div>
+                </div>
+                }
+              </div>
+              } @else {
+              <div class="empty-state-small">
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+                <p>Este cliente no tiene deudas registradas.</p>
+              </div>
+              }
+            </div>
+          </div>
+          } @else {
+          <div class="loading-state">
+            <ion-spinner name="crescent" color="primary"></ion-spinner>
+            <p>Cargando estado de cuenta...</p>
+          </div>
+          }
+        </ion-content>
+      </div>
+    </ng-template>
+  </ion-modal>
   }
 </div>

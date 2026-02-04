@@ -5,8 +5,9 @@ import { Cliente } from 'src/app/core/models/cliente';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { ClientEditModalComponent } from './components/client-edit-modal/client-edit-modal.component';
+import { ClientCreateModalComponent } from './components/client-create-modal/client-create-modal.component';
 import { addIcons } from 'ionicons';
-import { createOutline, powerOutline, documentTextOutline, closeOutline, personOutline, searchOutline, filterOutline } from 'ionicons/icons';
+import { createOutline, powerOutline, documentTextOutline, closeOutline, personOutline, searchOutline, filterOutline, personAddOutline } from 'ionicons/icons';
 import { AlertService } from 'src/app/shared/services/alert.service';
 
 type FiltroEstado = 'TODOS' | 'CON_DEUDA' | 'SIN_DEUDA' | 'CON_FIADOS' | 'SIN_FIADOS';
@@ -33,7 +34,7 @@ export class ClientesComponent implements OnInit {
     private modalController: ModalController,
     private alertService: AlertService
   ) {
-    addIcons({ createOutline, powerOutline, documentTextOutline, closeOutline, personOutline, searchOutline, filterOutline });
+    addIcons({ createOutline, powerOutline, documentTextOutline, closeOutline, personOutline, searchOutline, filterOutline, personAddOutline });
   }
 
   ngOnInit() {
@@ -132,13 +133,39 @@ export class ClientesComponent implements OnInit {
           // Actualizar lista local
           this.clientes = this.clientes.map(c => c.id === actualizado.id ? actualizado : c);
           this.aplicarFiltros();
-          
+
           this.alertService.success('Cliente actualizado correctamente');
         },
         error: async (err) => {
           this.loading = false;
           console.error(err);
           this.alertService.error('No se pudo actualizar el cliente');
+        }
+      });
+    }
+  }
+
+  async nuevoCliente() {
+    const modal = await this.modalController.create({
+      component: ClientCreateModalComponent
+    });
+
+    await modal.present();
+
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm') {
+      this.loading = true;
+      this.clientesService.crearCliente(data).subscribe({
+        next: async (nuevo) => {
+          this.loading = false;
+          // El observable clienteCreado$ en ngOnInit ya se encarga de agregarlo a la lista
+          this.alertService.success('Cliente registrado correctamente');
+        },
+        error: async (err) => {
+          this.loading = false;
+          console.error(err);
+          this.alertService.error('No se pudo registrar el cliente');
         }
       });
     }

@@ -1,0 +1,16 @@
+<ion-header class="ion-no-border">
+    <ion-toolbar>
+        <ion-title>Registrar Nuevo Cliente</ion-title>
+        <ion-buttons slot="end">
+            <ion-button (click)="cancelar()" color="medium">
+                <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <app-client-registration-form [datosClienteGroup]="datosClienteGroup" (cancelar)="cancelar()"
+        (guardar)="guardar($event)">
+    </app-client-registration-form>
+</ion-content>

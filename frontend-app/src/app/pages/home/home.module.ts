@@ -42,6 +42,7 @@ import { CuentasPorCobrarComponent } from './components/finanzas/components/cuen
 import { CajaComponent } from './components/caja/caja.component';
 import { TransactionModalComponent } from './components/caja/components/transaction-modal/transaction-modal.component';
 import { ClientEditModalComponent } from './components/clientes/components/client-edit-modal/client-edit-modal.component';
+import { ClientCreateModalComponent } from './components/clientes/components/client-create-modal/client-create-modal.component';
 import { CategoriaCrudComponent } from './components/productos/modulos/categoria-crud/categoria-crud.component';
 
 @NgModule({
@@ -88,6 +89,7 @@ import { CategoriaCrudComponent } from './components/productos/modulos/categoria
     CajaComponent,
     TransactionModalComponent,
     ClientEditModalComponent,
+    ClientCreateModalComponent,
     InventarioComponent,
     ModalAjusteInventarioComponent,
     ModalDetalleVentaComponent,
