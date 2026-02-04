@@ -10,6 +10,7 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { environment } from '../environments/environment';
 import { JwtInterceptor } from './core/interceptors/jwt.interceptor';
+import { ErrorInterceptor } from './core/interceptors/error.interceptor';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 @NgModule({
@@ -24,6 +25,7 @@ import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
     provideCharts(withDefaultRegisterables())
   ],
   bootstrap: [AppComponent],

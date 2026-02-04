@@ -3,6 +3,7 @@ import { AuthService } from './core/services/auth.service';
 import { Router } from '@angular/router';
 import { PushService } from './core/services/push.service';
 import { Platform } from '@ionic/angular';
+import { NetworkService } from './core/services/network.service';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +16,8 @@ export class AppComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private pushService: PushService,
-    private platform: Platform
+    private platform: Platform,
+    private networkService: NetworkService
   ) { }
 
   ngOnInit() {
