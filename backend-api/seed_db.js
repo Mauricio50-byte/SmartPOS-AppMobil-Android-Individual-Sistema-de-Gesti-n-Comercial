@@ -66,7 +66,7 @@ async function main() {
                 if (tipo === 'SERVICIOS') await tx.productoServicio.upsert({ where: { productoId: p.id }, update: detalle, create: { productoId: p.id, ...detalle } });
             }
             return p;
-        });
+        }, { timeout: 30000 });
     };
 
     const generales = [
@@ -126,19 +126,19 @@ async function main() {
     ];
 
     const restaurante = [
-        { tipo: 'RESTAURANTE', nombre: 'Bandeja Paisa', sku: 'RES-101', categoriaNombre: 'Restaurante', precioCosto: 15000, precioVenta: 28000, stock: 0, unidadMedida: 'PLATO', marca: 'Propia', detalle: { tiempoPreparacion: 20, calorias: 1200 } },
-        { tipo: 'RESTAURANTE', nombre: 'Limonada de Coco', sku: 'RES-102', categoriaNombre: 'Restaurante', precioCosto: 3500, precioVenta: 12000, stock: 0, unidadMedida: 'VASO', marca: 'Propia', detalle: { tiempoPreparacion: 5, esVegano: true } },
-        { tipo: 'RESTAURANTE', nombre: 'Parrillada Mixta', sku: 'RES-103', categoriaNombre: 'Restaurante', precioCosto: 35000, precioVenta: 65000, stock: 0, unidadMedida: 'PLATO', marca: 'Propia', detalle: { tiempoPreparacion: 30 } },
-        { tipo: 'RESTAURANTE', nombre: 'Ensalada César', sku: 'RES-104', categoriaNombre: 'Restaurante', precioCosto: 8500, precioVenta: 18500, stock: 0, unidadMedida: 'PLATO', marca: 'Propia', detalle: { tiempoPreparacion: 10, esVegetariano: false } },
+        { tipo: 'RESTAURANTE', nombre: 'Bandeja Paisa', sku: 'RES-101', categoriaNombre: 'Restaurante', precioCosto: 15000, precioVenta: 28000, stock: 10, unidadMedida: 'PLATO', marca: 'Propia', detalle: { tiempoPreparacion: 20, calorias: 1200 } },
+        { tipo: 'RESTAURANTE', nombre: 'Limonada de Coco', sku: 'RES-102', categoriaNombre: 'Restaurante', precioCosto: 3500, precioVenta: 12000, stock: 20, unidadMedida: 'VASO', marca: 'Propia', detalle: { tiempoPreparacion: 5, esVegano: true } },
+        { tipo: 'RESTAURANTE', nombre: 'Parrillada Mixta', sku: 'RES-103', categoriaNombre: 'Restaurante', precioCosto: 35000, precioVenta: 65000, stock: 30, unidadMedida: 'PLATO', marca: 'Propia', detalle: { tiempoPreparacion: 30 } },
+        { tipo: 'RESTAURANTE', nombre: 'Ensalada César', sku: 'RES-104', categoriaNombre: 'Restaurante', precioCosto: 8500, precioVenta: 18500, stock: 40, unidadMedida: 'PLATO', marca: 'Propia', detalle: { tiempoPreparacion: 10, esVegetariano: false } },
         { tipo: 'RESTAURANTE', nombre: 'Cerveza Club Colombia', sku: 'RES-105', categoriaNombre: 'Restaurante', precioCosto: 3500, precioVenta: 8000, stock: 48, unidadMedida: 'BOTELLA', marca: 'Bavaria', detalle: { tieneAlcohol: true } },
     ];
 
     const servicios = [
-        { tipo: 'SERVICIOS', nombre: 'Mantenimiento PC', sku: 'SER-101', categoriaNombre: 'Servicios', precioCosto: 45000, precioVenta: 95000, stock: 0, unidadMedida: 'SERVICIO', marca: 'IT Support', detalle: { duracion: 120, responsable: 'Técnico Senior' } },
-        { tipo: 'SERVICIOS', nombre: 'Consultoría Financiera', sku: 'SER-102', categoriaNombre: 'Servicios', precioCosto: 0, precioVenta: 150000, stock: 0, unidadMedida: 'HORA', marca: 'Finanzas OK', detalle: { duracion: 60, responsable: 'Consultor' } },
-        { tipo: 'SERVICIOS', nombre: 'Instalación Software', sku: 'SER-103', categoriaNombre: 'Servicios', precioCosto: 10000, precioVenta: 45000, stock: 0, unidadMedida: 'SERVICIO', marca: 'IT Support', detalle: { duracion: 45 } },
-        { tipo: 'SERVICIOS', nombre: 'Soporte Remoto 1h', sku: 'SER-104', categoriaNombre: 'Servicios', precioCosto: 0, precioVenta: 60000, stock: 0, unidadMedida: 'HORA', marca: 'IT Support', detalle: { duracion: 60, requiereCita: true } },
-        { tipo: 'SERVICIOS', nombre: 'Diseño Flyer Publicitario', sku: 'SER-105', categoriaNombre: 'Servicios', precioCosto: 5000, precioVenta: 85000, stock: 0, unidadMedida: 'DISEÑO', marca: 'Creative Studio', detalle: { duracion: 180, responsable: 'Diseñador' } },
+        { tipo: 'SERVICIOS', nombre: 'Mantenimiento PC', sku: 'SER-101', categoriaNombre: 'Servicios', precioCosto: 45000, precioVenta: 95000, stock: 27, unidadMedida: 'SERVICIO', marca: 'IT Support', detalle: { duracion: 120, responsable: 'Técnico Senior' } },
+        { tipo: 'SERVICIOS', nombre: 'Consultoría Financiera', sku: 'SER-102', categoriaNombre: 'Servicios', precioCosto: 0, precioVenta: 150000, stock: 20, unidadMedida: 'HORA', marca: 'Finanzas OK', detalle: { duracion: 60, responsable: 'Consultor' } },
+        { tipo: 'SERVICIOS', nombre: 'Instalación Software', sku: 'SER-103', categoriaNombre: 'Servicios', precioCosto: 10000, precioVenta: 45000, stock: 30, unidadMedida: 'SERVICIO', marca: 'IT Support', detalle: { duracion: 45 } },
+        { tipo: 'SERVICIOS', nombre: 'Soporte Remoto 1h', sku: 'SER-104', categoriaNombre: 'Servicios', precioCosto: 0, precioVenta: 60000, stock: 40, unidadMedida: 'HORA', marca: 'IT Support', detalle: { duracion: 60, requiereCita: true } },
+        { tipo: 'SERVICIOS', nombre: 'Diseño Flyer Publicitario', sku: 'SER-105', categoriaNombre: 'Servicios', precioCosto: 5000, precioVenta: 85000, stock: 50, unidadMedida: 'DISEÑO', marca: 'Creative Studio', detalle: { duracion: 180, responsable: 'Diseñador' } },
     ];
 
     const totalProds = [...generales, ...ropa, ...farmacia, ...alimentos, ...papeleria, ...restaurante, ...servicios];
