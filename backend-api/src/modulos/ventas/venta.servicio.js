@@ -134,18 +134,21 @@ async function crearVenta(payload) {
         }
       });
 
-      await tx.detalleVenta.createMany({
-        data: detalles.map(d => ({
-          ventaId: ventaPrevia.id,
-          productoId: d.productoId,
-          cantidad: d.cantidad,
-          precioUnitario: d.precioUnitario,
-          precioCosto: d.precioCosto,
-          porcentajeIva: d.porcentajeIva,
-          montoIva: d.montoIva,
-          subtotal: d.subtotal
-        }))
-      });
+      // Insertar detalles uno por uno dentro de la transacción para mayor compatibilidad
+      for (const d of detalles) {
+        await tx.detalleVenta.create({
+          data: {
+            ventaId: ventaPrevia.id,
+            productoId: d.productoId,
+            cantidad: d.cantidad,
+            precioUnitario: d.precioUnitario,
+            precioCosto: d.precioCosto,
+            porcentajeIva: d.porcentajeIva,
+            montoIva: d.montoIva,
+            subtotal: d.subtotal
+          }
+        });
+      }
 
       return ventaPrevia.id;
     }, {

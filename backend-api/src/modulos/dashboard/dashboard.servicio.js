@@ -5,41 +5,44 @@ const { prisma } = require('../../infraestructura/bd')
  */
 function getPeriodRanges(period = 'month') {
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     let start, end, prevStart, prevEnd;
 
+    // Foto actual (Hoy UTC)
+    const todayStart = new Date(now);
+    todayStart.setUTCHours(0, 0, 0, 0);
+
     if (period === 'week') {
-        // Lunes a Domingo de la semana actual
-        const day = today.getDay(); // 0 (Dom) a 6 (Sáb)
-        const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-        start = new Date(today);
-        start.setDate(diff);
-        start.setHours(0, 0, 0, 0);
+        // Lunes a Domingo UTC
+        const day = now.getUTCDay(); // 0 (Dom) a 6 (Sáb)
+        const diff = now.getUTCDate() - day + (day === 0 ? -6 : 1);
+
+        start = new Date(now);
+        start.setUTCDate(diff);
+        start.setUTCHours(0, 0, 0, 0);
 
         end = new Date(start);
-        end.setDate(start.getDate() + 6);
-        end.setHours(23, 59, 59, 999);
+        end.setUTCDate(start.getUTCDate() + 6);
+        end.setUTCHours(23, 59, 59, 999);
 
         prevStart = new Date(start);
-        prevStart.setDate(start.getDate() - 7);
+        prevStart.setUTCDate(start.getUTCDate() - 7);
         prevEnd = new Date(end);
-        prevEnd.setDate(end.getDate() - 7);
+        prevEnd.setUTCDate(end.getUTCDate() - 7);
+        prevEnd.setUTCHours(23, 59, 59, 999);
 
     } else if (period === 'year') {
-        // Años: Desde el año actual hacia adelante (5 años en total)
-        start = new Date(now.getFullYear(), 0, 1);
-        end = new Date(now.getFullYear() + 4, 11, 31, 23, 59, 59, 999);
+        start = new Date(Date.UTC(now.getUTCFullYear(), 0, 1, 0, 0, 0, 0));
+        end = new Date(Date.UTC(now.getUTCFullYear() + 4, 11, 31, 23, 59, 59, 999));
 
-        // Previos: Los 5 años anteriores al actual (para comparación de tendencias)
-        prevStart = new Date(now.getFullYear() - 5, 0, 1);
-        prevEnd = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59, 999);
+        prevStart = new Date(Date.UTC(now.getUTCFullYear() - 5, 0, 1, 0, 0, 0, 0));
+        prevEnd = new Date(Date.UTC(now.getUTCFullYear() - 1, 11, 31, 23, 59, 59, 999));
     } else {
-        // 'month' (Meses) -> Muestra los meses del año actual
-        start = new Date(now.getFullYear(), 0, 1);
-        end = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+        // 'month' (Meses del año actual UTC)
+        start = new Date(Date.UTC(now.getUTCFullYear(), 0, 1, 0, 0, 0, 0));
+        end = new Date(Date.UTC(now.getUTCFullYear(), 11, 31, 23, 59, 59, 999));
 
-        prevStart = new Date(now.getFullYear() - 1, 0, 1);
-        prevEnd = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59, 999);
+        prevStart = new Date(Date.UTC(now.getUTCFullYear() - 1, 0, 1, 0, 0, 0, 0));
+        prevEnd = new Date(Date.UTC(now.getUTCFullYear() - 1, 11, 31, 23, 59, 59, 999));
     }
 
     return { start, end, prevStart, prevEnd };

@@ -259,10 +259,10 @@ function getFechaRango(periodo) {
 
     const now = new Date();
     const end = new Date(now);
-    end.setHours(23, 59, 59, 999);
+    end.setUTCHours(23, 59, 59, 999);
 
     let start = new Date(now);
-    start.setHours(0, 0, 0, 0);
+    start.setUTCHours(0, 0, 0, 0);
 
     let prevStart = new Date(start);
     let prevEnd = new Date(end);

@@ -12,11 +12,34 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-    console.log('Iniciando limpieza de base de datos...');
+    console.log('--- INICIANDO LIMPIEZA TOTAL DE LA BASE DE DATOS ---');
 
     try {
-        // El orden es importante para evitar errores de llaves foráneas
-        // Primero tablas de detalles (plugins)
+        // Ejecutamos en orden inverso de dependencias para evitar errores de llaves foráneas
+
+        console.log('1. Limpiando notificaciones...');
+        await prisma.notificacion.deleteMany();
+
+        console.log('2. Limpiando finanzas (Abonos, CxC, CxP)...');
+        await prisma.abono.deleteMany();
+        await prisma.deuda.deleteMany();
+        await prisma.pagoGasto.deleteMany();
+        await prisma.gasto.deleteMany();
+
+        console.log('3. Limpiando movimientos de caja...');
+        await prisma.movimientoCaja.deleteMany();
+        await prisma.caja.deleteMany();
+
+        console.log('4. Limpiando devoluciones...');
+        await prisma.detalleDevolucion.deleteMany();
+        await prisma.devolucion.deleteMany();
+
+        console.log('5. Limpiando ventas e inventario...');
+        await prisma.detalleVenta.deleteMany();
+        await prisma.venta.deleteMany();
+        await prisma.movimientoInventario.deleteMany();
+
+        console.log('6. Limpiando detalles específicos de productos...');
         await prisma.productoRopa.deleteMany();
         await prisma.productoAlimento.deleteMany();
         await prisma.productoFarmacia.deleteMany();
@@ -24,20 +47,20 @@ async function main() {
         await prisma.productoRestaurante.deleteMany();
         await prisma.productoServicio.deleteMany();
 
-        // Luego detalles de ventas e inventario
-        await prisma.detalleVenta.deleteMany();
-        await prisma.movimientoInventario.deleteMany();
-        await prisma.detalleDevolucion.deleteMany();
-
-        // Luego productos
+        console.log('7. Limpiando productos y categorías...');
         await prisma.producto.deleteMany();
-
-        // Finalmente categorías
         await prisma.categoria.deleteMany();
 
-        console.log('--- Base de datos de productos y categorías limpiada con éxito ---');
+        console.log('8. Limpiando clientes...');
+        await prisma.cliente.deleteMany();
+
+        // Nota: No limpiamos Usuario, Rol, Permiso ni Modulo por seguridad 
+        // para no perder el acceso a la cuenta administradora.
+
+        console.log('\n--- BASE DE DATOS LIMPIADA CON ÉXITO ---');
+        console.log('Se han conservado las cuentas de usuario y configuraciones de sistema.');
     } catch (error) {
-        console.error('Error al limpiar la base de datos:', error);
+        console.error('\nERROR DURANTE LA LIMPIEZA:', error);
     }
 }
 
