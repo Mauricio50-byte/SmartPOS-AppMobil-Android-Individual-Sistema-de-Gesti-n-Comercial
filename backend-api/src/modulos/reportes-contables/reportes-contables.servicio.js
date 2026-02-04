@@ -4,9 +4,11 @@ const { prisma } = require('../../infraestructura/bd')
  * Calcula el Estado de Resultados (Ingresos, Costos, Gastos, Utilidad)
  */
 async function obtenerEstadoResultados(fechaInicio, fechaFin) {
+    // Al recibir YYYY-MM-DD, new Date() lo interpreta como UTC 00:00
     const fInicio = new Date(fechaInicio);
     const fFin = new Date(fechaFin);
-    fFin.setHours(23, 59, 59, 999);
+    // Para incluir todo el día final, usamos setUTCHours ya que Prisma/DB usa UTC
+    fFin.setUTCHours(23, 59, 59, 999);
 
     // 1. Ingresos (Ventas)
     const ventas = await prisma.venta.aggregate({
@@ -91,7 +93,7 @@ async function obtenerEstadoResultados(fechaInicio, fechaFin) {
     const utilidadNeta = utilidadBruta - gastos;
 
     return {
-        ingresosBrutos: ingresosTotales,
+        ingresos: ingresosTotales,
         ingresosNetos: ingresosNetosVentas,
         impuestosRecaudados: totalIVA,
         costos,
@@ -110,24 +112,39 @@ async function obtenerEstadoResultados(fechaInicio, fechaFin) {
 async function obtenerFlujoCaja(fechaInicio, fechaFin) {
     const fInicio = new Date(fechaInicio);
     const fFin = new Date(fechaFin);
-    fFin.setHours(23, 59, 59, 999);
+    fFin.setUTCHours(23, 59, 59, 999);
 
-    // Saldo Inicial: Calculado sumando todos los movimientos antes de la fecha de inicio
+    // Saldo Inicial: Suma de montos iniciales de cajas + movimientos previos
+    const cajasPrevias = await prisma.caja.findMany({
+        where: { fechaApertura: { lt: fInicio } }
+    });
+
     const movsPrevios = await prisma.movimientoCaja.findMany({
         where: { fecha: { lt: fInicio } }
     });
 
     let saldoInicial = 0;
+
+    // 1. Sumar bases de cajas anteriores y sus movimientos (Saldo histórico)
+    cajasPrevias.forEach(c => saldoInicial += (c.montoInicial || 0));
     movsPrevios.forEach(m => {
         const tipoNorm = m.tipo.toUpperCase();
-        if (['INGRESO', 'VENTA', 'ABONO_VENTA'].includes(tipoNorm)) {
+        if (['INGRESO', 'VENTA', 'ABONO_VENTA', 'ABONO_DEUDA'].includes(tipoNorm)) {
             saldoInicial += m.monto;
-        } else if (['EGRESO', 'PAGO_GASTO'].includes(tipoNorm)) {
+        } else if (['EGRESO', 'PAGO_GASTO', 'RETIRO'].includes(tipoNorm)) {
             saldoInicial -= m.monto;
         }
     });
 
-    // Entradas y Salidas en el periodo actual
+    // 2. Sumar bases de las cajas abiertas EN EL PERIODO actual al saldo inicial
+    const cajasPeriodo = await prisma.caja.findMany({
+        where: {
+            fechaApertura: { gte: fInicio, lte: fFin }
+        }
+    });
+    cajasPeriodo.forEach(c => saldoInicial += (c.montoInicial || 0));
+
+    // 3. Entradas y Salidas Operativas (Ventas, Gastos, etc)
     const movimientosPeriodo = await prisma.movimientoCaja.findMany({
         where: {
             fecha: { gte: fInicio, lte: fFin }
@@ -136,11 +153,12 @@ async function obtenerFlujoCaja(fechaInicio, fechaFin) {
 
     let entradas = 0;
     let salidas = 0;
+
     movimientosPeriodo.forEach(m => {
         const tipoNorm = m.tipo.toUpperCase();
-        if (['INGRESO', 'VENTA', 'ABONO_VENTA'].includes(tipoNorm)) {
+        if (['INGRESO', 'VENTA', 'ABONO_VENTA', 'ABONO_DEUDA'].includes(tipoNorm)) {
             entradas += m.monto;
-        } else if (['EGRESO', 'PAGO_GASTO'].includes(tipoNorm)) {
+        } else if (['EGRESO', 'PAGO_GASTO', 'RETIRO'].includes(tipoNorm)) {
             salidas += m.monto;
         }
     });
