@@ -59,11 +59,11 @@ async function main() {
             if (detalle) {
                 const tipo = datos.tipo;
                 if (tipo === 'ROPA') await tx.productoRopa.upsert({ where: { productoId: p.id }, update: detalle, create: { productoId: p.id, ...detalle } });
-                if (tipo === 'ALIMENTO') await tx.productoAlimento.upsert({ where: { productoId: p.id }, update: detalle, create: { productoId: p.id, ...detalle } });
+                if (tipo === 'ALIMENTOS') await tx.productoAlimento.upsert({ where: { productoId: p.id }, update: detalle, create: { productoId: p.id, ...detalle } });
                 if (tipo === 'FARMACIA') await tx.productoFarmacia.upsert({ where: { productoId: p.id }, update: detalle, create: { productoId: p.id, ...detalle } });
                 if (tipo === 'PAPELERIA') await tx.productoPapeleria.upsert({ where: { productoId: p.id }, update: detalle, create: { productoId: p.id, ...detalle } });
                 if (tipo === 'RESTAURANTE') await tx.productoRestaurante.upsert({ where: { productoId: p.id }, update: detalle, create: { productoId: p.id, ...detalle } });
-                if (tipo === 'SERVICIO') await tx.productoServicio.upsert({ where: { productoId: p.id }, update: detalle, create: { productoId: p.id, ...detalle } });
+                if (tipo === 'SERVICIOS') await tx.productoServicio.upsert({ where: { productoId: p.id }, update: detalle, create: { productoId: p.id, ...detalle } });
             }
             return p;
         });
@@ -110,11 +110,11 @@ async function main() {
     ];
 
     const alimentos = [
-        { tipo: 'ALIMENTO', nombre: 'Arroz Diana 5kg', sku: 'ALM-101', categoriaNombre: 'Alimentos', precioCosto: 18500, precioVenta: 24500, stock: 20, unidadMedida: 'BULTO', marca: 'Diana', detalle: { esPerecedero: true } },
-        { tipo: 'ALIMENTO', nombre: 'Aceite Girasol 3L', sku: 'ALM-102', categoriaNombre: 'Alimentos', precioCosto: 22000, precioVenta: 32000, stock: 12, unidadMedida: 'UNIDAD', marca: 'Girasol', detalle: { esPerecedero: true } },
-        { tipo: 'ALIMENTO', nombre: 'Café Sello Rojo 500g', sku: 'ALM-103', categoriaNombre: 'Alimentos', precioCosto: 13500, precioVenta: 18000, stock: 30, unidadMedida: 'UNIDAD', marca: 'Sello Rojo', detalle: { esPerecedero: true } },
-        { tipo: 'ALIMENTO', nombre: 'Leche Alpina 1L (Sixpack)', sku: 'ALM-104', categoriaNombre: 'Alimentos', precioCosto: 21000, precioVenta: 29500, stock: 15, unidadMedida: 'PAQUETE', marca: 'Alpina', detalle: { esPerecedero: true } },
-        { tipo: 'ALIMENTO', nombre: 'Sal Refisal 1kg', sku: 'ALM-105', categoriaNombre: 'Alimentos', precioCosto: 1200, precioVenta: 2500, stock: 50, unidadMedida: 'UNIDAD', marca: 'Refisal', detalle: { esPerecedero: false } },
+        { tipo: 'ALIMENTOS', nombre: 'Arroz Diana 5kg', sku: 'ALM-101', categoriaNombre: 'Alimentos', precioCosto: 18500, precioVenta: 24500, stock: 20, unidadMedida: 'BULTO', marca: 'Diana', detalle: { esPerecedero: true } },
+        { tipo: 'ALIMENTOS', nombre: 'Aceite Girasol 3L', sku: 'ALM-102', categoriaNombre: 'Alimentos', precioCosto: 22000, precioVenta: 32000, stock: 12, unidadMedida: 'UNIDAD', marca: 'Girasol', detalle: { esPerecedero: true } },
+        { tipo: 'ALIMENTOS', nombre: 'Café Sello Rojo 500g', sku: 'ALM-103', categoriaNombre: 'Alimentos', precioCosto: 13500, precioVenta: 18000, stock: 30, unidadMedida: 'UNIDAD', marca: 'Sello Rojo', detalle: { esPerecedero: true } },
+        { tipo: 'ALIMENTOS', nombre: 'Leche Alpina 1L (Sixpack)', sku: 'ALM-104', categoriaNombre: 'Alimentos', precioCosto: 2100, precioVenta: 29500, stock: 15, unidadMedida: 'PAQUETE', marca: 'Alpina', detalle: { esPerecedero: true } },
+        { tipo: 'ALIMENTOS', nombre: 'Sal Refisal 1kg', sku: 'ALM-105', categoriaNombre: 'Alimentos', precioCosto: 1200, precioVenta: 2500, stock: 50, unidadMedida: 'UNIDAD', marca: 'Refisal', detalle: { esPerecedero: false } },
     ];
 
     const papeleria = [
@@ -134,11 +134,11 @@ async function main() {
     ];
 
     const servicios = [
-        { tipo: 'SERVICIO', nombre: 'Mantenimiento PC', sku: 'SER-101', categoriaNombre: 'Servicios', precioCosto: 45000, precioVenta: 95000, stock: 0, unidadMedida: 'SERVICIO', marca: 'IT Support', detalle: { duracion: 120, responsable: 'Técnico Senior' } },
-        { tipo: 'SERVICIO', nombre: 'Consultoría Financiera', sku: 'SER-102', categoriaNombre: 'Servicios', precioCosto: 0, precioVenta: 150000, stock: 0, unidadMedida: 'HORA', marca: 'Finanzas OK', detalle: { duracion: 60, responsable: 'Consultor' } },
-        { tipo: 'SERVICIO', nombre: 'Instalación Software', sku: 'SER-103', categoriaNombre: 'Servicios', precioCosto: 10000, precioVenta: 45000, stock: 0, unidadMedida: 'SERVICIO', marca: 'IT Support', detalle: { duracion: 45 } },
-        { tipo: 'SERVICIO', nombre: 'Soporte Remoto 1h', sku: 'SER-104', categoriaNombre: 'Servicios', precioCosto: 0, precioVenta: 60000, stock: 0, unidadMedida: 'HORA', marca: 'IT Support', detalle: { duracion: 60, requiereCita: true } },
-        { tipo: 'SERVICIO', nombre: 'Diseño Flyer Publicitario', sku: 'SER-105', categoriaNombre: 'Servicios', precioCosto: 5000, precioVenta: 85000, stock: 0, unidadMedida: 'DISEÑO', marca: 'Creative Studio', detalle: { duracion: 180, responsable: 'Diseñador' } },
+        { tipo: 'SERVICIOS', nombre: 'Mantenimiento PC', sku: 'SER-101', categoriaNombre: 'Servicios', precioCosto: 45000, precioVenta: 95000, stock: 0, unidadMedida: 'SERVICIO', marca: 'IT Support', detalle: { duracion: 120, responsable: 'Técnico Senior' } },
+        { tipo: 'SERVICIOS', nombre: 'Consultoría Financiera', sku: 'SER-102', categoriaNombre: 'Servicios', precioCosto: 0, precioVenta: 150000, stock: 0, unidadMedida: 'HORA', marca: 'Finanzas OK', detalle: { duracion: 60, responsable: 'Consultor' } },
+        { tipo: 'SERVICIOS', nombre: 'Instalación Software', sku: 'SER-103', categoriaNombre: 'Servicios', precioCosto: 10000, precioVenta: 45000, stock: 0, unidadMedida: 'SERVICIO', marca: 'IT Support', detalle: { duracion: 45 } },
+        { tipo: 'SERVICIOS', nombre: 'Soporte Remoto 1h', sku: 'SER-104', categoriaNombre: 'Servicios', precioCosto: 0, precioVenta: 60000, stock: 0, unidadMedida: 'HORA', marca: 'IT Support', detalle: { duracion: 60, requiereCita: true } },
+        { tipo: 'SERVICIOS', nombre: 'Diseño Flyer Publicitario', sku: 'SER-105', categoriaNombre: 'Servicios', precioCosto: 5000, precioVenta: 85000, stock: 0, unidadMedida: 'DISEÑO', marca: 'Creative Studio', detalle: { duracion: 180, responsable: 'Diseñador' } },
     ];
 
     const totalProds = [...generales, ...ropa, ...farmacia, ...alimentos, ...papeleria, ...restaurante, ...servicios];

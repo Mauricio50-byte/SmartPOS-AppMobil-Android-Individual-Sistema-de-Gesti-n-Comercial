@@ -59,11 +59,11 @@ export class ProductosListaComponent implements OnChanges, OnInit {
       { key: 'color', label: 'Color', path: 'detalleRopa.color', type: 'text' },
       { key: 'marca', label: 'Marca', type: 'text' }
     ],
-    'ALIMENTO': [
+    'ALIMENTOS': [
       { key: 'fechaVencimiento', label: 'Vence', path: 'detalleAlimento.fechaVencimiento', type: 'date' },
       { key: 'lote', label: 'Lote', path: 'detalleAlimento.lote', type: 'text' }
     ],
-    'SERVICIO': [
+    'SERVICIOS': [
       { key: 'duracion', label: 'Duración (min)', path: 'detalleServicio.duracion', type: 'text' },
       { key: 'responsable', label: 'Responsable', path: 'detalleServicio.responsable', type: 'text' }
     ],
@@ -86,8 +86,8 @@ export class ProductosListaComponent implements OnChanges, OnInit {
     { id: 'TODOS', label: 'Todos los Productos' },
     { id: 'GENERAL', label: 'General' },
     { id: 'ROPA', label: 'Ropa y Accesorios' },
-    { id: 'ALIMENTO', label: 'Alimentos' },
-    { id: 'SERVICIO', label: 'Servicios' },
+    { id: 'ALIMENTOS', label: 'Alimentos' },
+    { id: 'SERVICIOS', label: 'Servicios' },
     { id: 'FARMACIA', label: 'Farmacia' },
     { id: 'PAPELERIA', label: 'Papelería' },
     { id: 'RESTAURANTE', label: 'Restaurante' }
