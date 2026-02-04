@@ -11,7 +11,7 @@ async function registrarRutasProducto(app) {
   app.get('/productos/siguiente-sku', { preHandler: [app.requiereModulo('productos')] }, async (req, res) => {
     const { categoria } = req.query
     if (!categoria) return { sku: '' }
-    
+
     const sku = await generarSiguienteSku(categoria)
     return { sku: sku || '' }
   })
@@ -32,23 +32,41 @@ async function registrarRutasProducto(app) {
   })
 
   app.post('/productos', { preHandler: [app.requiereModulo('productos'), app.requierePermiso('CREAR_PRODUCTO')] }, async (req, res) => {
-    const cuerpo = req.body
-    const creado = await crearProducto(cuerpo)
-    res.code(201)
-    return creado
+    try {
+      const cuerpo = req.body
+      const creado = await crearProducto(cuerpo)
+      res.code(201)
+      return creado
+    } catch (error) {
+      console.error('Error al crear producto:', error)
+      res.code(400)
+      return { mensaje: error.message }
+    }
   })
 
   app.put('/productos/:id', { preHandler: [app.requiereModulo('productos'), app.requierePermiso('EDITAR_PRODUCTO')] }, async (req, res) => {
-    const id = Number(req.params.id)
-    const cuerpo = req.body
-    const actualizado = await actualizarProducto(id, cuerpo)
-    return actualizado
+    try {
+      const id = Number(req.params.id)
+      const cuerpo = req.body
+      const actualizado = await actualizarProducto(id, cuerpo)
+      return actualizado
+    } catch (error) {
+      console.error('Error al actualizar producto:', error)
+      res.code(400)
+      return { mensaje: error.message }
+    }
   })
 
   app.delete('/productos/:id', { preHandler: [app.requiereModulo('productos'), app.requierePermiso('ELIMINAR_PRODUCTO')] }, async (req, res) => {
-    const id = Number(req.params.id)
-    const eliminado = await eliminarProducto(id)
-    return eliminado
+    try {
+      const id = Number(req.params.id)
+      const eliminado = await eliminarProducto(id)
+      return eliminado
+    } catch (error) {
+      console.error('Error al eliminar producto:', error)
+      res.code(400)
+      return { mensaje: error.message }
+    }
   })
 }
 

@@ -27,8 +27,7 @@ export class AlertService {
       },
       customClass: {
         popup: 'colored-toast'
-      },
-      heightAuto: false
+      }
     });
 
     Toast.fire({

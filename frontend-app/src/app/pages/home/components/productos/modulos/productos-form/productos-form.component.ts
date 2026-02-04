@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, OnInit } from '@angular/core';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { merge } from 'rxjs';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { IonicModule, AlertController, ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -114,19 +115,31 @@ export class ProductosFormComponent implements OnChanges, OnInit {
   }
 
   setupMarginCalculation() {
-    // Escuchar cambios en precioCosto y precioVenta
-    this.productForm.get('precioCosto')?.valueChanges.subscribe(() => this.calculateMargin());
-    this.productForm.get('precioVenta')?.valueChanges.subscribe(() => this.calculateMargin());
+    // Escuchar cambios en precioCosto y precioVenta de forma combinada
+    if (this.productForm.get('precioCosto') && this.productForm.get('precioVenta')) {
+      merge(
+        this.productForm.get('precioCosto')!.valueChanges,
+        this.productForm.get('precioVenta')!.valueChanges
+      ).pipe(
+        debounceTime(100)
+      ).subscribe(() => this.calculateMargin());
+    }
   }
 
   calculateMargin() {
-    const costo = this.productForm.get('precioCosto')?.value || 0;
-    const venta = this.productForm.get('precioVenta')?.value || 0;
+    // Asegurar que leemos números puros
+    const costo = Number(this.productForm.get('precioCosto')?.value || 0);
+    const venta = Number(this.productForm.get('precioVenta')?.value || 0);
 
-    if (costo > 0 && venta > 0) {
-      const margen = ((venta - costo) / costo) * 100;
-      // Redondear a 2 decimales
-      this.productForm.patchValue({ margenGanancia: parseFloat(margen.toFixed(2)) }, { emitEvent: false });
+    if (venta > 0) {
+      // Fórmula de Margen de Utilidad Bruta: ((Venta - Costo) / Venta) * 100
+      const utilidad = venta - costo;
+      const margen = (utilidad / venta) * 100;
+
+      // Redondear a 2 decimales y limitar rango 0-100 para limpieza visual
+      const margenFinal = Math.max(0, Math.min(parseFloat(margen.toFixed(2)), 100));
+
+      this.productForm.patchValue({ margenGanancia: margenFinal }, { emitEvent: false });
     } else {
       this.productForm.patchValue({ margenGanancia: 0 }, { emitEvent: false });
     }
