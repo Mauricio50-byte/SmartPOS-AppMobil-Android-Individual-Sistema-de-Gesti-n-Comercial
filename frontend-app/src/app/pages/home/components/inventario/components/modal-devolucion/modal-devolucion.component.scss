@@ -29,6 +29,7 @@ $shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0
 // Header
 .fancy-header {
     padding: 1.25rem 1.5rem;
+    padding-top: calc(1.25rem + env(safe-area-inset-top));
     background: white;
     border-bottom: 1px solid #f1f5f9;
 
@@ -367,6 +368,7 @@ $shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0
 // Footer
 .modal-footer {
     padding: 1.5rem;
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
     background: white;
     border-top: 1px solid #f1f5f9;
 

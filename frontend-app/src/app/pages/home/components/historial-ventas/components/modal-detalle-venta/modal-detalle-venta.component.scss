@@ -7,6 +7,7 @@
 
 .modal-header {
     padding: 1.5rem;
+    padding-top: calc(1.5rem + env(safe-area-inset-top));
     background: white;
     display: flex;
     justify-content: space-between;
@@ -244,6 +245,7 @@
 
 .modal-footer {
     padding: 1.25rem 1.5rem;
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
     background: white;
     border-top: 1px solid #e2e8f0;
 

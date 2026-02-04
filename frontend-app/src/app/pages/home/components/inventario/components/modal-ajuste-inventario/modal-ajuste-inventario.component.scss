@@ -1,5 +1,7 @@
 .modal-container {
     padding: 1.5rem;
+    padding-top: calc(1.5rem + env(safe-area-inset-top));
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
     background: white;
     border-radius: 20px;
     max-width: 500px;
