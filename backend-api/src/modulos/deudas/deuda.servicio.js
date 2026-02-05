@@ -165,6 +165,14 @@ async function registrarAbono(datos) {
             }
         })
 
+        // --- FIDELIZACIÓN: Acumular puntos por abono ---
+        const FidelizacionDom = require('../ventas/servicios/fidelizacion.dominio');
+        await FidelizacionDom.procesarFidelizacion(tx, {
+            clienteId: deuda.clienteId,
+            totalVenta: monto, // Se acumulan puntos sobre el valor del abono
+            estadoPago: 'PAGADO' // Forzamos estado para que la función procese
+        });
+
         // --- INTEGRACIÓN CAJA ---
         // Si hay un usuario responsable y tiene caja abierta, registrar el ingreso
         if (usuarioId) {
@@ -176,7 +184,7 @@ async function registrarAbono(datos) {
                 // CORRECCIÓN SOLICITADA POR USUARIO:
                 // Si el pago es en EFECTIVO y se recibe un monto mayor (para dar cambio),
                 // registramos el INGRESO por el total recibido y luego el EGRESO por el cambio.
-                
+
                 let montoIngresoReal = monto;
                 if (metodoPago === 'EFECTIVO' && montoRecibido > monto) {
                     montoIngresoReal = montoRecibido;

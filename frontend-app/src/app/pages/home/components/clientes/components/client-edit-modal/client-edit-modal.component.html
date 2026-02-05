@@ -51,10 +51,11 @@
         </div>
         <div class="card-value">
           <span class="currency">$</span>
-          <ion-input type="text" inputmode="numeric" formControlName="creditoMaximo" appNumericFormat placeholder="0"></ion-input>
+          <ion-input type="text" inputmode="numeric" formControlName="creditoMaximo" appNumericFormat
+            placeholder="0"></ion-input>
         </div>
       </div>
-      
+
       <div class="financial-card" [class.readonly]="editForm.get('saldoDeuda')?.disabled">
         <div class="card-header">
           <span class="card-label">Deuda Actual</span>
@@ -62,12 +63,31 @@
         </div>
         <div class="card-value">
           <span class="currency">$</span>
-          <ion-input type="text" inputmode="numeric" formControlName="saldoDeuda" appNumericFormat placeholder="0"></ion-input>
-          
+          <ion-input type="text" inputmode="numeric" formControlName="saldoDeuda" appNumericFormat
+            placeholder="0"></ion-input>
+
           @if (editForm.get('saldoDeuda')?.disabled) {
-            <ion-button fill="clear" class="unlock-btn" (click)="intentarEditarDeuda()">
-              <ion-icon slot="icon-only" name="lock-closed-outline"></ion-icon>
-            </ion-button>
+          <ion-button fill="clear" class="unlock-btn" (click)="intentarEditarDeuda()">
+            <ion-icon slot="icon-only" name="lock-closed-outline"></ion-icon>
+          </ion-button>
+          }
+        </div>
+      </div>
+
+      <div class="financial-card" [class.readonly]="editForm.get('puntos')?.disabled">
+        <div class="card-header">
+          <span class="card-label">Puntos Acumulados</span>
+          <ion-icon name="star-outline" class="card-icon"></ion-icon>
+        </div>
+        <div class="card-value">
+          <span class="currency">★</span>
+          <ion-input type="text" inputmode="numeric" formControlName="puntos" appNumericFormat
+            placeholder="0"></ion-input>
+
+          @if (editForm.get('puntos')?.disabled) {
+          <ion-button fill="clear" class="unlock-btn" (click)="intentarEditarPuntos()">
+            <ion-icon slot="icon-only" name="lock-closed-outline"></ion-icon>
+          </ion-button>
           }
         </div>
       </div>

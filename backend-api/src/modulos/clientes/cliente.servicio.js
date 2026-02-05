@@ -98,6 +98,7 @@ async function actualizarCliente(id, datos) {
   if (typeof datos.creditoMaximo === 'number') campos.creditoMaximo = datos.creditoMaximo
   if (typeof datos.diasCredito === 'number') campos.diasCredito = datos.diasCredito
   if (typeof datos.saldoDeuda === 'number') campos.saldoDeuda = datos.saldoDeuda
+  if (typeof datos.puntos === 'number') campos.puntos = datos.puntos
 
   return prisma.cliente.update({ where: { id }, data: campos })
 }

@@ -32,6 +32,7 @@
           <th>Cédula</th>
           <th>Crédito Disp.</th>
           <th>Saldo Deuda</th>
+          <th>Puntos</th>
           <th>Estado</th>
           <th>Acciones</th>
         </tr>
@@ -46,6 +47,12 @@
           <td data-label="Cédula">{{ c.cedula || '-' }}</td>
           <td data-label="Crédito Disp.">{{ creditoDisponible(c) | currency:'USD' }}</td>
           <td data-label="Saldo Deuda" class="amount-pending">{{ c.saldoDeuda || 0 | currency:'USD' }}</td>
+          <td data-label="Puntos">
+            <div class="points-cell">
+              <ion-icon name="star" color="warning"></ion-icon>
+              <span>{{ c.puntos || 0 | number }}</span>
+            </div>
+          </td>
           <td data-label="Estado">
             <ion-badge [color]="(c.saldoDeuda || 0) > 0 ? 'warning' : 'success'">
               {{ (c.saldoDeuda || 0) > 0 ? 'Con deuda' : 'Sin deuda' }}
