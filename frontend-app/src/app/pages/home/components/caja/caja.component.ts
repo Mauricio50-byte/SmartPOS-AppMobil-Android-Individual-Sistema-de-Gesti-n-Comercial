@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { LoadingController, ModalController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { CajaService } from 'src/app/core/services/caja.service';
 import { AuthService } from 'src/app/core/services/auth.service';
 import { Caja, MovimientoCaja } from 'src/app/core/models/caja';
@@ -24,7 +24,6 @@ export class CajaComponent implements OnInit {
     private cajaService: CajaService,
     private authService: AuthService,
     private modalController: ModalController,
-    private loadingController: LoadingController,
     private alertService: AlertService
   ) { }
 
@@ -104,17 +103,16 @@ export class CajaComponent implements OnInit {
   }
 
   async ejecutarAbrirCaja(montoInicial: number, observaciones: string) {
-    const loading = await this.loadingController.create({ message: 'Abriendo caja...' });
-    await loading.present();
+    this.alertService.showLoading('Abriendo caja...', 'Iniciando turno y registrando saldo inicial.');
 
     this.cajaService.abrirCaja(montoInicial, observaciones).subscribe({
       next: (caja) => {
-        loading.dismiss();
+        this.alertService.closeLoading();
         this.mostrarToast('Caja abierta exitosamente', 'success');
         this.cargarEstadoCaja();
       },
       error: (err) => {
-        loading.dismiss();
+        this.alertService.closeLoading();
         this.mostrarToast(err.error?.mensaje || 'Error al abrir caja', 'danger');
       }
     });
@@ -155,19 +153,18 @@ export class CajaComponent implements OnInit {
   }
 
   async ejecutarCerrarCaja(montoFinal: number, observaciones: string) {
-    const loading = await this.loadingController.create({ message: 'Cerrando caja...' });
-    await loading.present();
+    this.alertService.showLoading('Cerrando caja...', 'Procesando arqueo y finalizando turno.');
 
     this.cajaService.cerrarCaja(montoFinal, observaciones).subscribe({
       next: (caja) => {
-        loading.dismiss();
+        this.alertService.closeLoading();
         this.mostrarToast('Caja cerrada exitosamente', 'success');
         this.caja = null; // Limpiar estado local
         this.movimientos = [];
         this.cargarEstadoCaja(); // Recargar para confirmar estado
       },
       error: (err) => {
-        loading.dismiss();
+        this.alertService.closeLoading();
         this.mostrarToast(err.error?.mensaje || 'Error al cerrar caja', 'danger');
       }
     });
@@ -201,19 +198,18 @@ export class CajaComponent implements OnInit {
   }
 
   async ejecutarMovimiento(tipo: 'INGRESO' | 'EGRESO', monto: number, descripcion: string) {
-    const loading = await this.loadingController.create({ message: 'Registrando...' });
-    await loading.present();
+    this.alertService.showLoading('Registrando...', 'Por favor espere.');
 
     // Movimientos manuales por defecto son EFECTIVO en este flujo simple
     // Podríamos agregar un selector de método de pago si fuera necesario
     this.cajaService.registrarMovimiento(tipo, monto, descripcion).subscribe({
       next: () => {
-        loading.dismiss();
+        this.alertService.closeLoading();
         this.mostrarToast('Movimiento registrado', 'success');
         this.cargarEstadoCaja();
       },
       error: (err) => {
-        loading.dismiss();
+        this.alertService.closeLoading();
         this.mostrarToast(err.error?.mensaje || 'Error al registrar movimiento', 'danger');
       }
     });

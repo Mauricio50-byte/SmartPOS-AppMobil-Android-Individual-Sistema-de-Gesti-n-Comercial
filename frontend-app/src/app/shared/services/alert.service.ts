@@ -102,4 +102,32 @@ export class AlertService {
       ...options
     });
   }
+
+  /**
+   * Muestra una alerta de carga
+   */
+  showLoading(title: string = 'Procesando...', text: string = 'Por favor espere.') {
+    Swal.fire({
+      title,
+      text,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      allowEnterKey: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+      heightAuto: false,
+      customClass: {
+        container: 'swal2-container'
+      }
+    });
+  }
+
+  /**
+   * Cierra cualquier alerta o loader abierto
+   */
+  closeLoading() {
+    Swal.close();
+  }
 }

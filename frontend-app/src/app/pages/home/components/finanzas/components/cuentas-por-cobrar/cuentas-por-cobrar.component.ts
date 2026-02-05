@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ModalController, LoadingController } from '@ionic/angular';
+import { IonicModule, ModalController } from '@ionic/angular';
 import { DeudaService } from 'src/app/core/services/deuda.service';
 import { CajaService } from 'src/app/core/services/caja.service';
 import { Deuda } from 'src/app/core/models/deuda';
@@ -29,10 +29,10 @@ export class CuentasPorCobrarComponent implements OnInit {
   deudas: Deuda[] = [];
   clientesConDeuda: ClienteDeudaSummary[] = [];
   filteredClientes: ClienteDeudaSummary[] = [];
-  
+
   searchTerm: string = '';
   loading: boolean = false;
-  
+
   // Modal state
   selectedCliente: ClienteDeudaSummary | null = null;
   isModalOpen: boolean = false;
@@ -41,7 +41,6 @@ export class CuentasPorCobrarComponent implements OnInit {
     private deudaService: DeudaService,
     private cajaService: CajaService,
     private modalController: ModalController,
-    private loadingController: LoadingController,
     private alertService: AlertService
   ) {
     addIcons({ searchOutline, filterOutline, cashOutline, alertCircleOutline, checkmarkCircleOutline, fileTrayOutline, eyeOutline, chevronForwardOutline, closeOutline, personCircleOutline, walletOutline });
@@ -55,18 +54,18 @@ export class CuentasPorCobrarComponent implements OnInit {
     this.loading = true;
     // We fetch ALL pending debts to group them correctly
     this.deudaService.listarDeudas({ estado: 'PENDIENTE' })
-    .subscribe({
-      next: (data) => {
-        this.deudas = data;
-        this.agruparPorCliente();
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error(err);
-        this.mostrarToast('Error al cargar deudas', 'danger');
-        this.loading = false;
-      }
-    });
+      .subscribe({
+        next: (data) => {
+          this.deudas = data;
+          this.agruparPorCliente();
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error(err);
+          this.mostrarToast('Error al cargar deudas', 'danger');
+          this.loading = false;
+        }
+      });
   }
 
   agruparPorCliente() {
@@ -105,8 +104,8 @@ export class CuentasPorCobrarComponent implements OnInit {
       return;
     }
     const term = this.searchTerm.toLowerCase();
-    this.filteredClientes = this.clientesConDeuda.filter(c => 
-      c.nombre.toLowerCase().includes(term) || 
+    this.filteredClientes = this.clientesConDeuda.filter(c =>
+      c.nombre.toLowerCase().includes(term) ||
       c.telefono.includes(term)
     );
   }
@@ -154,7 +153,7 @@ export class CuentasPorCobrarComponent implements OnInit {
 
   async mostrarFormularioAbono(deuda: Deuda, metodo: string) {
     const showCashFields = metodo === 'EFECTIVO';
-    
+
     const modal = await this.modalController.create({
       component: TransactionModalComponent,
       cssClass: 'transaction-modal',
@@ -181,7 +180,7 @@ export class CuentasPorCobrarComponent implements OnInit {
       }
 
       const montoRecibido = showCashFields ? Number(data.montoRecibido) : undefined;
-      
+
       if (showCashFields && montoRecibido && montoRecibido > monto) {
         const cambio = montoRecibido - monto;
         await this.mostrarAlertaCambio(cambio);
@@ -201,6 +200,8 @@ export class CuentasPorCobrarComponent implements OnInit {
   }
 
   procesarAbono(deudaId: number, monto: number, nota: string, metodoPago: string, montoRecibido?: number) {
+    this.alertService.showLoading('Registrando abono...', 'Por favor espere.');
+
     this.deudaService.registrarAbono(deudaId, {
       monto,
       montoRecibido,
@@ -208,22 +209,12 @@ export class CuentasPorCobrarComponent implements OnInit {
       nota
     }).subscribe({
       next: () => {
+        this.alertService.closeLoading();
         this.mostrarToast('Abono registrado exitosamente', 'success');
-        this.cargarDeudas(); // Reload to update totals and remove paid debts if necessary
-        
-        // If inside modal, we might want to update the selected client view or close it if no debts left
-        // For simplicity, we just reload everything. If the modal is open, the user will see the update
-        // because we are reloading 'deudas' but we also need to re-group.
-        // NOTE: If we re-group, the object reference in selectedCliente might be lost or stale.
-        // We should update selectedCliente as well.
-        if (this.selectedCliente) {
-             // We need to wait for cargarDeudas to finish. 
-             // Ideally we should chain this logic in the subscription of cargarDeudas
-             // But since cargarDeudas is async and we just called it, we rely on its subscription.
-             // A better way is to update local state manually.
-        }
+        this.cargarDeudas();
       },
       error: (err) => {
+        this.alertService.closeLoading();
         console.error(err);
         this.mostrarToast('Error al registrar abono', 'danger');
       }
@@ -232,13 +223,19 @@ export class CuentasPorCobrarComponent implements OnInit {
 
   // ... helper methods ...
   async verificarCajaAbierta(): Promise<boolean> {
-      // (Keep existing implementation)
-      return new Promise((resolve) => {
-        this.cajaService.obtenerEstadoCaja().subscribe({
-          next: (caja) => resolve(caja && caja.estado === 'ABIERTA'),
-          error: () => resolve(false)
-        });
+    this.alertService.showLoading('Verificando caja...', 'Comprobando estado actual.');
+    return new Promise((resolve) => {
+      this.cajaService.obtenerEstadoCaja().subscribe({
+        next: (caja) => {
+          this.alertService.closeLoading();
+          resolve(caja && caja.estado === 'ABIERTA');
+        },
+        error: () => {
+          this.alertService.closeLoading();
+          resolve(false);
+        }
       });
+    });
   }
 
   async mostrarToast(mensaje: string, color: string) {
@@ -288,16 +285,16 @@ export class CuentasPorCobrarComponent implements OnInit {
 
     if (role === 'confirm' && data) {
       const montoAbonar = Number(data.monto);
-      
+
       if (montoAbonar <= 0) {
         this.alertService.alert('Monto inválido', 'El monto debe ser mayor a 0', 'warning');
         return;
       }
-      
+
       if (montoAbonar > cliente.totalDeuda) {
-         // Opcional: Permitir abonar más? Generalmente no en "abono a deuda".
-         // Pero dejemos que pague todo y sobre cambio si es efectivo.
-         // Simplemente ajustamos el pago máximo a la deuda total.
+        // Opcional: Permitir abonar más? Generalmente no en "abono a deuda".
+        // Pero dejemos que pague todo y sobre cambio si es efectivo.
+        // Simplemente ajustamos el pago máximo a la deuda total.
       }
 
       const montoRecibido = showCashFields ? Number(data.montoRecibido) : undefined;
@@ -312,12 +309,11 @@ export class CuentasPorCobrarComponent implements OnInit {
   }
 
   async procesarAbonoGeneral(cliente: ClienteDeudaSummary, montoTotal: number, metodo: string, nota: string, montoRecibidoTotal?: number) {
-    const loading = await this.loadingController.create({ message: 'Procesando pagos...' });
-    await loading.present();
+    this.alertService.showLoading('Procesando pagos...', 'Aplicando abonos a múltiples facturas.');
 
     try {
       // Ordenar deudas por fecha (más antiguas primero)
-      const deudasOrdenadas = [...cliente.deudas].sort((a, b) => 
+      const deudasOrdenadas = [...cliente.deudas].sort((a, b) =>
         new Date(a.fechaCreacion).getTime() - new Date(b.fechaCreacion).getTime()
       );
 
@@ -330,37 +326,27 @@ export class CuentasPorCobrarComponent implements OnInit {
         const saldoDeuda = deuda.saldoPendiente;
         const montoPagar = Math.min(saldoDeuda, montoRestante);
 
-        // Si es efectivo, el monto recibido se registra proporcionalmente o solo en el primer pago?
-        // Para simplificar y mantener trazabilidad, registramos el montoRecibido real solo en la transacción 
-        // que completa el pago o en la primera. Pero la API espera montoRecibido por transacción.
-        // Lo mejor es no enviar montoRecibido en las transacciones internas automáticas para no afectar arqueos duplicados,
-        // pero necesitamos que sume en caja.
-        // Asumiremos: El monto recibido se envía tal cual en el primer pago (si cubre) o dividido? 
-        // Modificación: Enviamos el montoRecibido completo en el primer pago para registrar el ingreso del billete real.
-        // En los siguientes pagos, enviamos undefined (asumiendo pago exacto) para no duplicar ingresos masivos visuales,
-        // aunque matemáticamente el cambio del primero cubriría los siguientes.
-        
         const montoRecibidoParaTransaccion = (pagosRealizados === 0 && montoRecibidoTotal) ? montoRecibidoTotal : undefined;
 
         await firstValueFrom(this.deudaService.registrarAbono(deuda.id, {
           monto: montoPagar,
           metodoPago: metodo,
           nota: `Abono General: ${nota || ''}`,
-          montoRecibido: montoRecibidoParaTransaccion 
+          montoRecibido: montoRecibidoParaTransaccion
         }));
 
         montoRestante -= montoPagar;
         pagosRealizados++;
       }
 
-      await loading.dismiss();
+      this.alertService.closeLoading();
       this.mostrarToast(`Se abonaron $${(montoTotal - montoRestante).toLocaleString('es-CO')} a ${pagosRealizados} facturas.`, 'success');
       this.cargarDeudas();
-      this.cerrarModal(); // Si estaba abierto el detalle
+      this.cerrarModal();
 
     } catch (error) {
       console.error(error);
-      await loading.dismiss();
+      this.alertService.closeLoading();
       this.mostrarToast('Error al procesar algunos pagos. Por favor verifique.', 'danger');
       this.cargarDeudas();
     }

@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ProductosServices } from 'src/app/core/services/producto.service';
 import { Producto } from 'src/app/core/models/producto';
-import { LoadingController } from '@ionic/angular';
 import { ModuloService } from 'src/app/core/services/modulo.service';
 import { AlertService } from 'src/app/shared/services/alert.service';
 
@@ -21,9 +20,8 @@ export class ProductosComponent implements OnInit {
   constructor(
     private productoService: ProductosServices,
     private moduloService: ModuloService,
-    private loadingController: LoadingController,
     private alertService: AlertService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.loadProducts();
@@ -85,12 +83,15 @@ export class ProductosComponent implements OnInit {
   }
 
   deleteProduct(id: number) {
+    this.alertService.showLoading('Eliminando producto...', 'Por favor espere.');
     this.productoService.eliminarProductos(id).subscribe({
       next: () => {
+        this.alertService.closeLoading();
         this.alertService.success('Producto eliminado');
         this.loadProducts();
       },
       error: (err) => {
+        this.alertService.closeLoading();
         console.error(err);
         this.alertService.error('Error al eliminar producto');
       }
@@ -98,20 +99,19 @@ export class ProductosComponent implements OnInit {
   }
 
   async onSave(productData: any) {
-    const loading = await this.loadingController.create({ message: 'Guardando...' });
-    await loading.present();
+    this.alertService.showLoading('Guardando cambios...', 'Subiendo información al servidor.');
 
     if (this.selectedProduct) {
       this.productoService.actualizarProductos(productData, this.selectedProduct.id).subscribe({
         next: async () => {
-          await loading.dismiss();
+          this.alertService.closeLoading();
           this.alertService.success('Producto actualizado correctamente');
           this.selectedProduct = null;
           this.segment = 'info';
           this.loadProducts();
         },
         error: async (err) => {
-          await loading.dismiss();
+          this.alertService.closeLoading();
           console.error(err);
           this.alertService.error('Error al actualizar producto');
         }
@@ -119,13 +119,13 @@ export class ProductosComponent implements OnInit {
     } else {
       this.productoService.crearProductos(productData).subscribe({
         next: async () => {
-          await loading.dismiss();
+          this.alertService.closeLoading();
           this.alertService.success('Producto creado correctamente');
           this.segment = 'info';
           this.loadProducts();
         },
         error: async (err) => {
-          await loading.dismiss();
+          this.alertService.closeLoading();
           console.error(err);
           this.alertService.error('Error al crear producto');
         }

@@ -1,6 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators, AbstractControl } from '@angular/forms';
-import { LoadingController } from '@ionic/angular';
 import { VentaServices } from 'src/app/core/services/venta.service';
 import { ClientesServices } from 'src/app/core/services/cliente.service';
 import { CajaService } from 'src/app/core/services/caja.service';
@@ -33,7 +32,6 @@ export class SalesCartComponent implements OnInit {
     private clienteService: ClientesServices,
     private cajaService: CajaService,
     private authService: AuthService,
-    private loadingController: LoadingController,
     private alertService: AlertService
   ) {
     this.ventaForm = this.fb.group({
@@ -326,14 +324,11 @@ export class SalesCartComponent implements OnInit {
   }
 
   async registrarNuevoCliente(datos: any) {
-    const loading = await this.loadingController.create({
-      message: 'Registrando cliente...'
-    });
-    await loading.present();
+    this.alertService.showLoading('Registrando cliente...', 'Por favor espere.');
 
     this.clienteService.crearCliente(datos).subscribe({
       next: async (nuevoCliente) => {
-        await loading.dismiss();
+        this.alertService.closeLoading();
         this.datosClienteGroup.reset({
           nombre: '',
           telefono: '',
@@ -348,7 +343,7 @@ export class SalesCartComponent implements OnInit {
         await this.mostrarAlerta('Cliente Registrado', 'El cliente ha sido registrado exitosamente.');
       },
       error: async (err) => {
-        await loading.dismiss();
+        this.alertService.closeLoading();
         console.error('Error al registrar cliente', err);
         await this.mostrarAlerta('Error', 'No se pudo registrar el cliente');
       }
@@ -358,10 +353,7 @@ export class SalesCartComponent implements OnInit {
   async validarCreditoDisponible(): Promise<boolean> {
     if (!this.clienteSeleccionado) return false;
 
-    const loading = await this.loadingController.create({
-      message: 'Validando crédito...'
-    });
-    await loading.present();
+    this.alertService.showLoading('Validando crédito...', 'Verificando saldo disponible.');
 
     return new Promise((resolve) => {
       this.clienteService.validarCredito(
@@ -369,7 +361,7 @@ export class SalesCartComponent implements OnInit {
         this.totalControl.value
       ).subscribe({
         next: async (validacion) => {
-          await loading.dismiss();
+          this.alertService.closeLoading();
 
           if (!validacion.disponible) {
             await this.mostrarAlerta(
@@ -386,7 +378,7 @@ export class SalesCartComponent implements OnInit {
           }
         },
         error: async (err) => {
-          await loading.dismiss();
+          this.alertService.closeLoading();
           console.error('Error validando crédito', err);
           await this.mostrarAlerta('Error', 'No se pudo validar el crédito del cliente');
           resolve(false);
@@ -469,15 +461,12 @@ export class SalesCartComponent implements OnInit {
   }
 
   async verificarCajaAbierta(): Promise<boolean> {
-    const loading = await this.loadingController.create({
-      message: 'Verificando estado de caja...'
-    });
-    await loading.present();
+    this.alertService.showLoading('Verificando caja...', 'Comprobando estado actual.');
 
     return new Promise((resolve) => {
       this.cajaService.obtenerEstadoCaja().subscribe({
         next: async (caja) => {
-          await loading.dismiss();
+          this.alertService.closeLoading();
           if (caja && caja.estado === 'ABIERTA') {
             resolve(true);
           } else {
@@ -485,7 +474,7 @@ export class SalesCartComponent implements OnInit {
           }
         },
         error: async (err) => {
-          await loading.dismiss();
+          this.alertService.closeLoading();
           resolve(false);
         }
       });
@@ -503,23 +492,22 @@ export class SalesCartComponent implements OnInit {
   }
 
   async procesarVentaReal() {
-    let loading: HTMLIonLoadingElement | undefined;
-
     try {
-      // Verificar si hay cambio que entregar antes de procesar
+      this.alertService.showLoading('Procesando venta...', 'Generando factura y aplicando descuentos.');
+
       const ventaData = this.ventaForm.value;
       const montoRecibido = Number(ventaData.montoRecibido || 0);
-      const total = Number(ventaData.total || 0);
+      const total = this.totalConDescuento; // Usar el total con descuento para el cambio
 
+      // Verificar si hay cambio que entregar ANTES de llamar al servicio
       if (ventaData.metodoPago === 'EFECTIVO' && montoRecibido > total) {
         const cambio = montoRecibido - total;
+        // Cerramos el loading momentáneamente para mostrar el cambio
+        this.alertService.closeLoading();
         await this.mostrarAlertaCambio(cambio);
+        // Volvemos a mostrar el loading
+        this.alertService.showLoading('Finalizando proceso...', 'Guardando información de la venta.');
       }
-
-      loading = await this.loadingController.create({
-        message: 'Procesando venta...'
-      });
-      await loading.present();
 
       this.ventaForm.patchValue({ fecha: new Date().toISOString() });
 
@@ -598,7 +586,7 @@ export class SalesCartComponent implements OnInit {
           });
           this.datosClienteGroup.disable();
 
-          if (loading) await loading.dismiss();
+          this.alertService.closeLoading();
 
           let mensaje = `Total: $${venta.total.toLocaleString('es-CO', { maximumFractionDigits: 0 })}\nMetodo: ${venta.metodoPago}`;
           if (venta.estadoPago === 'FIADO') mensaje += `\n\n⚠️ Venta FIADA registrada`;
@@ -616,7 +604,7 @@ export class SalesCartComponent implements OnInit {
         },
         error: async (err) => {
           console.error('Error creating sale:', err);
-          if (loading) await loading.dismiss();
+          this.alertService.closeLoading();
 
           let friendlyMsg = 'Hubo un problema de conexión o con el servidor.';
           if (err.error && err.error.message) {
@@ -634,7 +622,7 @@ export class SalesCartComponent implements OnInit {
       });
     } catch (e) {
       console.error('Error inesperado:', e);
-      if (loading) await loading.dismiss();
+      this.alertService.closeLoading();
       await this.mostrarAlerta('Error Crítico', 'Ocurrió un error inesperado al intentar procesar la venta.');
     }
   }

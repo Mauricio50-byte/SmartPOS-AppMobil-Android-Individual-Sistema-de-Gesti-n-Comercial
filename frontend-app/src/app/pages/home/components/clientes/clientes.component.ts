@@ -126,9 +126,11 @@ export class ClientesComponent implements OnInit {
     const { data, role } = await modal.onWillDismiss();
 
     if (role === 'confirm') {
+      this.alertService.showLoading('Actualizando cliente...', 'Guardando cambios en el servidor.');
       this.loading = true;
       this.clientesService.actualizarCliente(data, cliente.id).subscribe({
         next: async (actualizado) => {
+          this.alertService.closeLoading();
           this.loading = false;
           // Actualizar lista local
           this.clientes = this.clientes.map(c => c.id === actualizado.id ? actualizado : c);
@@ -137,6 +139,7 @@ export class ClientesComponent implements OnInit {
           this.alertService.success('Cliente actualizado correctamente');
         },
         error: async (err) => {
+          this.alertService.closeLoading();
           this.loading = false;
           console.error(err);
           this.alertService.error('No se pudo actualizar el cliente');
@@ -155,14 +158,17 @@ export class ClientesComponent implements OnInit {
     const { data, role } = await modal.onWillDismiss();
 
     if (role === 'confirm') {
+      this.alertService.showLoading('Registrando cliente...', 'Por favor espere.');
       this.loading = true;
       this.clientesService.crearCliente(data).subscribe({
         next: async (nuevo) => {
+          this.alertService.closeLoading();
           this.loading = false;
           // El observable clienteCreado$ en ngOnInit ya se encarga de agregarlo a la lista
           this.alertService.success('Cliente registrado correctamente');
         },
         error: async (err) => {
+          this.alertService.closeLoading();
           this.loading = false;
           console.error(err);
           this.alertService.error('No se pudo registrar el cliente');
@@ -183,15 +189,18 @@ export class ClientesComponent implements OnInit {
     );
 
     if (confirmed) {
+      this.alertService.showLoading(`${nuevoEstado ? 'Activando' : 'Desactivando'} cliente...`, 'Por favor espere.');
       this.loading = true;
       this.clientesService.actualizarCliente({ activo: nuevoEstado }, cliente.id).subscribe({
         next: async (actualizado) => {
+          this.alertService.closeLoading();
           this.loading = false;
           this.clientes = this.clientes.map(c => c.id === actualizado.id ? actualizado : c);
           this.aplicarFiltros();
           this.alertService.success(`Cliente ${nuevoEstado ? 'activado' : 'desactivado'} correctamente`);
         },
         error: async () => {
+          this.alertService.closeLoading();
           this.loading = false;
           this.alertService.error('Error al cambiar estado');
         }
