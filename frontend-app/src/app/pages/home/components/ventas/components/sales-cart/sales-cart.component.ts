@@ -54,7 +54,8 @@ export class SalesCartComponent implements OnInit {
         creditoMaximo: [0],
         diasCredito: [30]
       }),
-      detalles: this.fb.array([], Validators.required)
+      detalles: this.fb.array([], Validators.required),
+      puntosARedimir: [0, [Validators.min(0)]]
     });
   }
 
@@ -71,6 +72,25 @@ export class SalesCartComponent implements OnInit {
     });
 
     this.datosClienteGroup.disable();
+
+    // Vigilante de puntos en tiempo real
+    this.ventaForm.get('puntosARedimir')?.valueChanges.subscribe(val => {
+      if (this.clienteSeleccionado && val) {
+        const puntosIngresados = this.puntosARedimirValue;
+        const puntosMaximos = this.clienteSeleccionado.puntos || 0;
+
+        if (puntosIngresados > puntosMaximos) {
+          this.alertService.toast(`El cliente solo cuenta con ${puntosMaximos.toLocaleString()} puntos`, 'warning');
+        }
+
+        // Validar también contra el total de la venta
+        const totalVenta = this.detalles.controls.reduce((acc, ctrl) => acc + ctrl.value.total, 0);
+        const puntosMaximosVenta = Math.ceil(totalVenta / this.valorPunto);
+        if (puntosIngresados > puntosMaximosVenta && puntosIngresados <= puntosMaximos) {
+          this.alertService.toast(`No puede redimir más del total de la venta`, 'info');
+        }
+      }
+    });
   }
 
   loadCurrentUser() {
@@ -118,12 +138,49 @@ export class SalesCartComponent implements OnInit {
   }
 
   get cambio(): number {
-    const cambio = this.montoRecibido - this.totalValue;
+    const cambio = this.montoRecibido - this.totalConDescuento;
     return cambio > 0 ? cambio : 0;
   }
 
   get itemsCount(): number {
     return this.detalles.length;
+  }
+
+  get puntosARedimir(): number {
+    return this.ventaForm.get('puntosARedimir')?.value || 0;
+  }
+
+  get valorPunto(): number {
+    return 10; // 1 punto = $10
+  }
+
+  get puntosARedimirValue(): number {
+    const val = this.ventaForm.get('puntosARedimir')?.value;
+    if (typeof val === 'string') {
+      return Number(val.replace(/\./g, '')) || 0;
+    }
+    return Number(val || 0);
+  }
+
+  get descuentoPuntos(): number {
+    const puntos = this.puntosARedimirValue;
+    const puntosMaximos = this.clienteSeleccionado?.puntos || 0;
+    const totalVenta = this.detalles.controls.reduce((acc, ctrl) => acc + ctrl.value.total, 0);
+    const puntosMaximosVenta = Math.ceil(totalVenta / this.valorPunto);
+
+    // Si los puntos exceden el máximo del cliente o el total de la venta, o si son > 0 pero < 100, no aplicar descuento.
+    // Esto obliga al usuario a corregir el número para ver el beneficio.
+    if (puntos > puntosMaximos || puntos > puntosMaximosVenta || (puntos > 0 && puntos < 100)) {
+      return 0;
+    }
+
+    return puntos * this.valorPunto;
+  }
+
+  get totalConDescuento(): number {
+    const total = this.detalles.controls.reduce((acc, ctrl) => acc + ctrl.value.total, 0);
+    const totalFinal = total - this.descuentoPuntos;
+    return totalFinal > 0 ? totalFinal : 0;
   }
 
   addItem(product: Producto) {
@@ -174,6 +231,8 @@ export class SalesCartComponent implements OnInit {
 
   calculateTotal() {
     const total = this.detalles.controls.reduce((acc, ctrl) => acc + ctrl.value.total, 0);
+    // El total que se muestra y se envía debe ser el total original, 
+    // pero el front debe reflejar el descuento al usuario
     this.ventaForm.patchValue({ total: total });
     this.cartUpdated.emit({ total: total, count: this.detalles.length });
   }
@@ -205,17 +264,31 @@ export class SalesCartComponent implements OnInit {
     if (cliente) {
       this.ventaForm.patchValue({
         clienteId: cliente.id,
-        registrarCliente: false
+        registrarCliente: false,
+        puntosARedimir: 0
       });
       this.datosClienteGroup.disable();
+
+      // Actualizar validadores de puntos
+      const puntosControl = this.ventaForm.get('puntosARedimir');
+      if (puntosControl) {
+        puntosControl.setValidators([
+          Validators.min(0),
+          Validators.max(cliente.puntos || 0)
+        ]);
+        puntosControl.updateValueAndValidity();
+      }
     } else {
       this.ventaForm.patchValue({
-        clienteId: null
+        clienteId: null,
+        puntosARedimir: 0
       });
+      this.ventaForm.get('puntosARedimir')?.setValidators([Validators.min(0)]);
+      this.ventaForm.get('puntosARedimir')?.updateValueAndValidity();
     }
     this.mostrarRegistroCliente = false;
     if (!cliente) {
-       this.datosClienteGroup.disable();
+      this.datosClienteGroup.disable();
     }
   }
 
@@ -370,13 +443,23 @@ export class SalesCartComponent implements OnInit {
     }
 
     if (this.ventaForm.invalid) {
+      const puntosControl = this.ventaForm.get('puntosARedimir');
+      if (puntosControl?.errors?.['max']) {
+        await this.mostrarAlerta('Puntos Insuficientes', `No puede redimir más de ${this.clienteSeleccionado?.puntos} puntos.`);
+        return;
+      }
+      if (puntosControl?.errors?.['min'] || (puntosControl?.value > 0 && puntosControl?.value < 100)) {
+        await this.mostrarAlerta('Mínimo de Puntos', 'El mínimo para redimir son 100 puntos.');
+        return;
+      }
+
       await this.mostrarAlerta('Formulario Inválido', 'Por favor revise los datos de la venta. Asegúrese de que todos los campos requeridos estén completos.');
       return;
     }
 
     const confirmed = await this.alertService.confirm(
       'Confirmar Venta',
-      `¿Confirma procesar la venta por valor de $${this.totalControl.value.toLocaleString('es-CO', { maximumFractionDigits: 0 })}?`,
+      `¿Confirma procesar la venta por valor de $${this.totalConDescuento.toLocaleString('es-CO', { maximumFractionDigits: 0 })}?`,
       'Procesar Venta'
     );
 
@@ -421,13 +504,13 @@ export class SalesCartComponent implements OnInit {
 
   async procesarVentaReal() {
     let loading: HTMLIonLoadingElement | undefined;
-    
+
     try {
       // Verificar si hay cambio que entregar antes de procesar
       const ventaData = this.ventaForm.value;
       const montoRecibido = Number(ventaData.montoRecibido || 0);
       const total = Number(ventaData.total || 0);
-      
+
       if (ventaData.metodoPago === 'EFECTIVO' && montoRecibido > total) {
         const cambio = montoRecibido - total;
         await this.mostrarAlertaCambio(cambio);
@@ -445,6 +528,7 @@ export class SalesCartComponent implements OnInit {
         metodoPago: ventaData.metodoPago,
         estadoPago: ventaData.estadoPago,
         montoRecibido: Number(ventaData.montoRecibido || 0),
+        puntosARedimir: this.puntosARedimirValue,
         items: ventaData.detalles.map((d: any) => ({
           productoId: d.productoId,
           cantidad: d.quantity
@@ -469,7 +553,7 @@ export class SalesCartComponent implements OnInit {
       if (payload.usuarioId) {
         payload.usuarioId = Number(payload.usuarioId);
       }
-      
+
       this.ventaService.crearVenta(payload).subscribe({
         next: async (venta) => {
           if (!venta) {
@@ -501,6 +585,7 @@ export class SalesCartComponent implements OnInit {
             estadoPago: 'PAGADO',
             clienteId: null,
             registrarCliente: false,
+            puntosARedimir: 0,
             montoRecibido: 0 // Limpiar monto recibido
           });
           this.datosClienteGroup.reset({
@@ -524,14 +609,15 @@ export class SalesCartComponent implements OnInit {
             'success'
           );
 
-          if (payload.registrarCliente) {
+          // Siempre recargar para actualizar puntos si hubo un cliente
+          if (payload.clienteId || payload.registrarCliente) {
             this.loadClientes();
           }
         },
         error: async (err) => {
           console.error('Error creating sale:', err);
           if (loading) await loading.dismiss();
-          
+
           let friendlyMsg = 'Hubo un problema de conexión o con el servidor.';
           if (err.error && err.error.message) {
             const serverMsg = err.error.message;

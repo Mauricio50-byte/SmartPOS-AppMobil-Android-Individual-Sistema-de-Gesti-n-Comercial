@@ -100,33 +100,43 @@ async function crearVenta(payload) {
         estadoPago
       });
 
-      // D. Fase de Finanzas (Flujo de Caja)
+      // E. Fase de Fidelización (Redención de Puntos)
+      const descuentoPuntos = await FidelizacionDom.redimirPuntos(tx, {
+        clienteId: idClienteFinal,
+        puntosARedimir: Number(payload.puntosARedimir || 0),
+        totalVenta
+      });
+
+      const totalVentaFinal = totalVenta - descuentoPuntos;
+
+      // F. Fase de Finanzas (Flujo de Caja)
       await FinanzasDom.procesarFlujoCaja(tx, {
         usuarioId,
         ventaId: ventaPrevia.id,
-        montoPagado: estadoPago === 'PAGADO' ? totalVenta : Number(montoPagado),
+        montoPagado: estadoPago === 'PAGADO' ? totalVentaFinal : Number(montoPagado),
         metodoPago,
         montoRecibido
       });
 
-      // E. Fase de Fidelización (Puntos)
+      // G. Fase de Fidelización (Acumulación de Puntos)
+      // Se acumulan puntos sobre el saldo efectivamente pagado
       await FidelizacionDom.procesarFidelizacion(tx, {
         clienteId: idClienteFinal,
-        totalVenta,
+        totalVenta: totalVentaFinal,
         estadoPago
       });
 
-      // F. Fase de Notificaciones (Alertas)
+      // H. Fase de Notificaciones (Alertas)
       await NotificacionDom.dispararAlertasStock(tx, { detalles, usuarioId });
 
-      // G. Finalización del Registro de Venta
-      const saldoPendiente = estadoPago === 'FIADO' ? (totalVenta - Number(montoPagado)) : 0;
-      const montoPagadoFinal = estadoPago === 'PAGADO' ? totalVenta : Number(montoPagado);
+      // I. Finalización del Registro de Venta
+      const saldoPendiente = estadoPago === 'FIADO' ? (totalVentaFinal - Number(montoPagado)) : 0;
+      const montoPagadoFinal = estadoPago === 'PAGADO' ? totalVentaFinal : Number(montoPagado);
 
       await tx.venta.update({
         where: { id: ventaPrevia.id },
         data: {
-          total: totalVenta,
+          total: totalVentaFinal,
           subtotal: totalSubtotalNeto,
           impuestos: totalImpuestos,
           montoPagado: montoPagadoFinal,

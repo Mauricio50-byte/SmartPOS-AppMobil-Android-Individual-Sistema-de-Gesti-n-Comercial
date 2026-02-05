@@ -15,20 +15,15 @@
 
     <!-- Selector de Cliente -->
     <div class="client-section">
-      <app-client-selector
-        [clientes]="clientes"
-        [clienteSeleccionado]="clienteSeleccionado"
-        [mostrarRegistroCliente]="mostrarRegistroCliente"
-        (clienteSeleccionadoChange)="onClienteSeleccionado($event)"
+      <app-client-selector [clientes]="clientes" [clienteSeleccionado]="clienteSeleccionado"
+        [mostrarRegistroCliente]="mostrarRegistroCliente" (clienteSeleccionadoChange)="onClienteSeleccionado($event)"
         (nuevoClienteClick)="mostrarModalRegistroCliente()">
       </app-client-selector>
 
       @if (mostrarRegistroCliente) {
-        <app-client-registration-form
-          [datosClienteGroup]="datosClienteGroup"
-          (cancelar)="cancelarRegistroCliente()"
-          (guardar)="registrarNuevoCliente($event)">
-        </app-client-registration-form>
+      <app-client-registration-form [datosClienteGroup]="datosClienteGroup" (cancelar)="cancelarRegistroCliente()"
+        (guardar)="registrarNuevoCliente($event)">
+      </app-client-registration-form>
       }
     </div>
 
@@ -36,43 +31,71 @@
     <div class="cart-items-header">
       <span>Items ({{ detalles.length }})</span>
       @if (detalles.length > 0) {
-        <ion-button fill="clear" size="small" color="danger" (click)="detalles.clear(); calculateTotal()" mode="ios">
-          Limpiar
-        </ion-button>
+      <ion-button fill="clear" size="small" color="danger" (click)="detalles.clear(); calculateTotal()" mode="ios">
+        Limpiar
+      </ion-button>
       }
     </div>
 
     <div class="cart-list">
       @for (control of detalles.controls; track control; let i = $index) {
-        <app-cart-item
-          [item]="control.value"
-          (remove)="removeFromCart(i)"
-          (updateQuantity)="updateQuantity($event, i)">
-        </app-cart-item>
+      <app-cart-item [item]="control.value" (remove)="removeFromCart(i)" (updateQuantity)="updateQuantity($event, i)">
+      </app-cart-item>
       }
 
       @if (detalles.length === 0) {
-        <div class="empty-cart">
-          <ion-icon name="cart-outline"></ion-icon>
-          <p>Su carrito está vacío</p>
-        </div>
+      <div class="empty-cart">
+        <ion-icon name="cart-outline"></ion-icon>
+        <p>Su carrito está vacío</p>
+      </div>
       }
     </div>
   </div>
 
   <!-- Footer con total y pago -->
   <div class="ticket-footer">
+    <!-- Sección de Puntos (Desktop) -->
+    <div class="loyalty-section"
+      *ngIf="clienteSeleccionado && clienteSeleccionado.puntos && clienteSeleccionado.puntos >= 100"
+      [formGroup]="ventaForm">
+      <div class="points-header">
+        <ion-icon name="star" color="warning"></ion-icon>
+        <span>Puntos: <strong>{{ clienteSeleccionado.puntos | number:'1.0-0' }}</strong></span>
+      </div>
+      <div class="redeem-input">
+        <ion-item lines="none" class="puntos-item" [class.item-invalid]="ventaForm.get('puntosARedimir')?.invalid">
+          <ion-label position="stacked">Redimir Puntos</ion-label>
+          <ion-input type="text" inputmode="numeric" formControlName="puntosARedimir" placeholder="Mín. 100"
+            appNumericFormat [clearInput]="true"></ion-input>
+        </ion-item>
+        <div class="error-msg" *ngIf="ventaForm.get('puntosARedimir')?.errors?.['max']">
+          Máximo {{ clienteSeleccionado.puntos | number }} pts
+        </div>
+        <div class="points-discount" *ngIf="descuentoPuntos > 0">
+          - {{ descuentoPuntos | currency:'USD':'symbol':'1.0-0' }}
+        </div>
+      </div>
+    </div>
+
     <div class="subtotal">
       <span class="label">Total a Pagar</span>
-      <span class="amount">{{ totalControl.value | currency:'USD':'symbol':'1.0-0' }}</span>
+      <div class="total-values">
+        <span class="amount-original" *ngIf="descuentoPuntos > 0">{{ totalControl.value |
+          currency:'USD':'symbol':'1.0-0'
+          }}</span>
+        <span class="amount" [class.discounted]="descuentoPuntos > 0">{{ totalConDescuento |
+          currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
     </div>
 
     <!-- Cálculo de Cambio -->
-    <div class="change-calculation" [formGroup]="ventaForm" *ngIf="paymentMethodControl.value === 'EFECTIVO' && tipoVenta === 'CONTADO'">
+    <div class="change-calculation" [formGroup]="ventaForm"
+      *ngIf="paymentMethodControl.value === 'EFECTIVO' && tipoVenta === 'CONTADO'">
       <div class="input-row">
         <ion-item lines="none" class="monto-recibido-item">
           <ion-label position="stacked">Monto Recibido</ion-label>
-          <ion-input type="text" inputmode="numeric" formControlName="montoRecibido" placeholder="0" [clearInput]="true" appNumericFormat></ion-input>
+          <ion-input type="text" inputmode="numeric" formControlName="montoRecibido" placeholder="0" [clearInput]="true"
+            appNumericFormat></ion-input>
         </ion-item>
       </div>
       <div class="change-row" *ngIf="cambio > 0">
@@ -81,23 +104,17 @@
       </div>
     </div>
 
-    <app-payment-selector
-      [selectedMethod]="paymentMethodControl.value"
+    <app-payment-selector [selectedMethod]="paymentMethodControl.value"
       (selectedMethodChange)="setPaymentMethod($event)">
     </app-payment-selector>
 
-    <ion-button
-      expand="block"
-      [color]="tipoVenta === 'FIADO' ? 'warning' : 'primary'"
-      class="pay-button"
-      (click)="pagar()"
-      [disabled]="detalles.length === 0"
-      mode="ios">
+    <ion-button expand="block" [color]="tipoVenta === 'FIADO' ? 'warning' : 'primary'" class="pay-button"
+      (click)="pagar()" [disabled]="detalles.length === 0" mode="ios">
       <ion-icon slot="start" [name]="tipoVenta === 'FIADO' ? 'time-outline' : 'checkmark-circle-outline'"></ion-icon>
       {{ tipoVenta === 'FIADO' ? 'Registrar Deuda' : 'Confirmar Venta' }}
     </ion-button>
-  </div>
-</div>
+  </div> <!-- Fin ticket-footer -->
+</div> <!-- Fin ticket-panel desktop-view -->
 
 <!-- === MOBILE VIEW === -->
 <div class="mobile-cart-overlay" [class.visible]="cartVisibleMobile">
@@ -117,7 +134,8 @@
     <div class="mobile-content">
       <!-- Top Actions Card -->
       <div class="mobile-card top-card">
-        <ion-segment [(ngModel)]="tipoVenta" (ionChange)="setTipoVenta($event.detail.value)" mode="ios" class="custom-segment">
+        <ion-segment [(ngModel)]="tipoVenta" (ionChange)="setTipoVenta($event.detail.value)" mode="ios"
+          class="custom-segment">
           <ion-segment-button value="CONTADO">
             <ion-label>Contado</ion-label>
           </ion-segment-button>
@@ -127,9 +145,7 @@
         </ion-segment>
 
         <div class="mobile-client-row">
-           <app-client-selector
-            [clientes]="clientes"
-            [clienteSeleccionado]="clienteSeleccionado"
+          <app-client-selector [clientes]="clientes" [clienteSeleccionado]="clienteSeleccionado"
             [mostrarRegistroCliente]="mostrarRegistroCliente"
             (clienteSeleccionadoChange)="onClienteSeleccionado($event)"
             (nuevoClienteClick)="mostrarModalRegistroCliente()">
@@ -138,13 +154,11 @@
       </div>
 
       @if (mostrarRegistroCliente) {
-        <div class="mobile-card registration-card">
-          <app-client-registration-form
-            [datosClienteGroup]="datosClienteGroup"
-            (cancelar)="cancelarRegistroCliente()"
-            (guardar)="registrarNuevoCliente($event)">
-          </app-client-registration-form>
-        </div>
+      <div class="mobile-card registration-card">
+        <app-client-registration-form [datosClienteGroup]="datosClienteGroup" (cancelar)="cancelarRegistroCliente()"
+          (guardar)="registrarNuevoCliente($event)">
+        </app-client-registration-form>
+      </div>
       }
 
       <!-- Items List -->
@@ -152,30 +166,28 @@
         <div class="section-header">
           <h3>Productos ({{ detalles.length }})</h3>
           @if (detalles.length > 0) {
-            <span class="clear-btn" (click)="detalles.clear(); calculateTotal()">Limpiar todo</span>
+          <span class="clear-btn" (click)="detalles.clear(); calculateTotal()">Limpiar todo</span>
           }
         </div>
 
         @if (detalles.length === 0) {
-          <div class="mobile-empty-state">
-            <div class="icon-circle">
-              <ion-icon name="basket-outline"></ion-icon>
-            </div>
-            <p>Tu carrito está vacío</p>
-            <ion-button fill="outline" shape="round" size="small" (click)="toggleCart()">
-              Agregar Productos
-            </ion-button>
+        <div class="mobile-empty-state">
+          <div class="icon-circle">
+            <ion-icon name="basket-outline"></ion-icon>
           </div>
+          <p>Tu carrito está vacío</p>
+          <ion-button fill="outline" shape="round" size="small" (click)="toggleCart()">
+            Agregar Productos
+          </ion-button>
+        </div>
         } @else {
-          <div class="mobile-cart-list">
-             @for (control of detalles.controls; track control; let i = $index) {
-              <app-cart-item
-                [item]="control.value"
-                (remove)="removeFromCart(i)"
-                (updateQuantity)="updateQuantity($event, i)">
-              </app-cart-item>
-            }
-          </div>
+        <div class="mobile-cart-list">
+          @for (control of detalles.controls; track control; let i = $index) {
+          <app-cart-item [item]="control.value" (remove)="removeFromCart(i)"
+            (updateQuantity)="updateQuantity($event, i)">
+          </app-cart-item>
+          }
+        </div>
         }
       </div>
     </div>
@@ -183,32 +195,50 @@
     <!-- Mobile Footer -->
     <div class="mobile-footer">
       <div class="payment-method-scroll">
-        <app-payment-selector
-          [selectedMethod]="paymentMethodControl.value"
+        <app-payment-selector [selectedMethod]="paymentMethodControl.value"
           (selectedMethodChange)="setPaymentMethod($event)">
         </app-payment-selector>
       </div>
 
       <!-- Cálculo de Cambio Mobile -->
-      <div class="change-calculation-mobile" [formGroup]="ventaForm" *ngIf="paymentMethodControl.value === 'EFECTIVO' && tipoVenta === 'CONTADO'">
+      <div class="change-calculation-mobile" [formGroup]="ventaForm"
+        *ngIf="paymentMethodControl.value === 'EFECTIVO' && tipoVenta === 'CONTADO'">
         <ion-item lines="none" class="monto-recibido-item">
           <ion-label position="stacked">Monto Recibido</ion-label>
-          <ion-input type="text" inputmode="numeric" formControlName="montoRecibido" placeholder="0" [clearInput]="true" appNumericFormat></ion-input>
+          <ion-input type="text" inputmode="numeric" formControlName="montoRecibido" placeholder="0" [clearInput]="true"
+            appNumericFormat></ion-input>
         </ion-item>
         <div class="change-info" *ngIf="cambio > 0">
           <span>Cambio: <strong>{{ cambio | currency:'USD':'symbol':'1.0-0' }}</strong></span>
         </div>
       </div>
 
+      <!-- Sección de Puntos (Mobile) -->
+      <div class="mobile-loyalty-section"
+        *ngIf="clienteSeleccionado && clienteSeleccionado.puntos && clienteSeleccionado.puntos >= 100"
+        [formGroup]="ventaForm">
+        <div class="points-badge">
+          <ion-icon name="star" color="warning"></ion-icon>
+          <span>{{ clienteSeleccionado.puntos | number:'1.0-0' }} pts</span>
+        </div>
+        <ion-item lines="none" class="puntos-item-mobile"
+          [class.item-invalid]="ventaForm.get('puntosARedimir')?.invalid">
+          <ion-input type="text" inputmode="numeric" formControlName="puntosARedimir"
+            placeholder="Puntos (Máx. {{clienteSeleccionado.puntos}})" appNumericFormat></ion-input>
+        </ion-item>
+      </div>
+
       <div class="total-row">
         <div class="total-info">
           <span class="label">Total a pagar</span>
-          <span class="value">{{ totalControl.value | currency:'USD':'symbol':'1.0-0' }}</span>
+          <div class="mobile-total-values">
+            <span class="amount-original-mobile" *ngIf="descuentoPuntos > 0">{{ totalControl.value |
+              currency:'USD':'symbol':'1.0-0' }}</span>
+            <span class="value" [class.discounted]="descuentoPuntos > 0">{{ totalConDescuento |
+              currency:'USD':'symbol':'1.0-0' }}</span>
+          </div>
         </div>
-        <ion-button
-          class="mobile-pay-btn"
-          [color]="tipoVenta === 'FIADO' ? 'warning' : 'primary'"
-          (click)="pagar()"
+        <ion-button class="mobile-pay-btn" [color]="tipoVenta === 'FIADO' ? 'warning' : 'primary'" (click)="pagar()"
           [disabled]="detalles.length === 0">
           {{ tipoVenta === 'FIADO' ? 'Fiado' : 'Cobrar' }}
           <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
