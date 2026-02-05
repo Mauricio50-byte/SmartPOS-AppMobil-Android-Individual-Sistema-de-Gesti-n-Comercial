@@ -9,45 +9,49 @@
 
   <!-- Cliente seleccionado (Tarjeta) -->
   @if (clienteSeleccionado && !mostrarRegistroCliente) {
-    <div class="selected-client card-style">
-      <div class="client-info">
-        <div class="avatar-circle" [style.background]="getAvatarColor(clienteSeleccionado.nombre)" [style.color]="'#fff'">
-          {{ clienteSeleccionado.nombre.charAt(0).toUpperCase() }}
-        </div>
-        <div class="info-text">
-          <strong class="name">{{ clienteSeleccionado.nombre }}</strong>
-          <div class="meta-info">
-             @if (clienteSeleccionado.telefono) {
-              <span class="phone"><ion-icon name="call-outline"></ion-icon> {{ clienteSeleccionado.telefono }}</span>
-            }
-            @if (clienteSeleccionado.saldoDeuda && clienteSeleccionado.saldoDeuda > 0) {
-              <span class="badge debt">Deuda: {{ clienteSeleccionado.saldoDeuda | currency:'USD':'symbol':'1.0-0' }}</span>
-            }
-          </div>
+  <div class="selected-client card-style">
+    <div class="client-info">
+      <div class="avatar-circle" [style.background]="getAvatarColor(clienteSeleccionado.nombre)" [style.color]="'#fff'">
+        {{ clienteSeleccionado.nombre.charAt(0).toUpperCase() }}
+      </div>
+      <div class="info-text">
+        <strong class="name">{{ clienteSeleccionado.nombre }}</strong>
+        <div class="meta-info">
+          @if (clienteSeleccionado.telefono) {
+          <span class="phone"><ion-icon name="call-outline"></ion-icon> {{ clienteSeleccionado.telefono }}</span>
+          }
+          @if (clienteSeleccionado.saldoDeuda && clienteSeleccionado.saldoDeuda > 0) {
+          <span class="badge debt">Deuda: {{ clienteSeleccionado.saldoDeuda | currency:'USD':'symbol':'1.0-0' }}</span>
+          }
+          @if (clienteSeleccionado.puntos && clienteSeleccionado.puntos > 0) {
+          <span class="badge points"><ion-icon name="star"></ion-icon> {{ clienteSeleccionado.puntos }} pts</span>
+          }
         </div>
       </div>
-      <ion-button fill="clear" color="medium" (click)="limpiarCliente()" class="remove-btn">
-        <ion-icon name="close-circle" slot="icon-only"></ion-icon>
-      </ion-button>
     </div>
+    <ion-button fill="clear" color="medium" (click)="limpiarCliente()" class="remove-btn">
+      <ion-icon name="close-circle" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
   }
 
   <!-- Trigger de Selección (Input Falso Moderno) -->
   @if (!clienteSeleccionado && !mostrarRegistroCliente) {
-    <div class="client-selector-trigger modern-input" (click)="openModal()">
-      <div class="trigger-content">
-        <ion-icon name="search-outline" class="search-icon"></ion-icon>
-        <span class="placeholder">Buscar o seleccionar cliente...</span>
-      </div>
-      <div class="trigger-action">
-        <ion-icon name="chevron-down-outline"></ion-icon>
-      </div>
+  <div class="client-selector-trigger modern-input" (click)="openModal()">
+    <div class="trigger-content">
+      <ion-icon name="search-outline" class="search-icon"></ion-icon>
+      <span class="placeholder">Buscar o seleccionar cliente...</span>
     </div>
+    <div class="trigger-action">
+      <ion-icon name="chevron-down-outline"></ion-icon>
+    </div>
+  </div>
   }
 </div>
 
 <!-- Modal de Selección de Cliente -->
-<ion-modal [isOpen]="isModalOpen" (didDismiss)="closeModal()" [initialBreakpoint]="0.85" [breakpoints]="[0, 0.5, 0.85, 1]" class="client-selector-modal">
+<ion-modal [isOpen]="isModalOpen" (didDismiss)="closeModal()" [initialBreakpoint]="0.85"
+  [breakpoints]="[0, 0.5, 0.85, 1]" class="client-selector-modal">
   <ng-template>
     <div class="modal-wrapper">
       <ion-header class="ion-no-border">
@@ -60,12 +64,8 @@
           </ion-buttons>
         </ion-toolbar>
         <div class="searchbar-container">
-          <ion-searchbar 
-            placeholder="Nombre, teléfono o cédula" 
-            (ionInput)="onSearch($event)"
-            [debounce]="250"
-            mode="ios"
-            class="custom-searchbar">
+          <ion-searchbar placeholder="Nombre, teléfono o cédula" (ionInput)="onSearch($event)" [debounce]="250"
+            mode="ios" class="custom-searchbar">
           </ion-searchbar>
         </div>
       </ion-header>
@@ -73,44 +73,47 @@
       <ion-content class="ion-padding-top">
         <div class="client-list">
           @for (cliente of filteredClientes; track cliente.id) {
-            <div class="client-item" (click)="seleccionarCliente(cliente)" matRipple>
-              <div class="item-avatar" [style.background]="getAvatarColor(cliente.nombre)">
-                 {{ cliente.nombre.charAt(0).toUpperCase() }}
+          <div class="client-item" (click)="seleccionarCliente(cliente)" matRipple>
+            <div class="item-avatar" [style.background]="getAvatarColor(cliente.nombre)">
+              {{ cliente.nombre.charAt(0).toUpperCase() }}
+            </div>
+            <div class="item-info">
+              <div class="item-main">
+                <span class="item-name">{{ cliente.nombre }}</span>
+                @if (cliente.saldoDeuda && cliente.saldoDeuda > 0) {
+                <span class="mini-badge warning">Debe: {{ cliente.saldoDeuda | currency:'USD':'symbol':'1.0-0' }}</span>
+                }
+                @if (cliente.puntos && cliente.puntos > 0) {
+                <span class="mini-badge points">{{ cliente.puntos }} pts</span>
+                }
               </div>
-              <div class="item-info">
-                <div class="item-main">
-                  <span class="item-name">{{ cliente.nombre }}</span>
-                  @if (cliente.saldoDeuda && cliente.saldoDeuda > 0) {
-                    <span class="mini-badge warning">Debe: {{ cliente.saldoDeuda | currency:'USD':'symbol':'1.0-0' }}</span>
-                  }
-                </div>
-                <div class="item-sub">
-                   <span class="item-phone" *ngIf="cliente.telefono">
-                     <ion-icon name="call-outline"></ion-icon> {{ cliente.telefono }}
-                   </span>
-                   <span class="item-cedula" *ngIf="cliente.cedula">
-                     ID: {{ cliente.cedula }}
-                   </span>
-                </div>
-              </div>
-              <div class="item-arrow">
-                <ion-icon name="chevron-forward-outline"></ion-icon>
+              <div class="item-sub">
+                <span class="item-phone" *ngIf="cliente.telefono">
+                  <ion-icon name="call-outline"></ion-icon> {{ cliente.telefono }}
+                </span>
+                <span class="item-cedula" *ngIf="cliente.cedula">
+                  ID: {{ cliente.cedula }}
+                </span>
               </div>
             </div>
+            <div class="item-arrow">
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+          </div>
           }
 
           @if (filteredClientes.length === 0) {
-            <div class="empty-state-modern">
-              <div class="icon-box">
-                <ion-icon name="person-search-outline"></ion-icon>
-              </div>
-              <h3>No encontramos resultados</h3>
-              <p>Intenta con otro nombre o crea un nuevo cliente.</p>
-              <ion-button fill="solid" shape="round" (click)="abrirRegistroCliente()">
-                <ion-icon name="add-outline" slot="start"></ion-icon>
-                Registrar Nuevo Cliente
-              </ion-button>
+          <div class="empty-state-modern">
+            <div class="icon-box">
+              <ion-icon name="person-search-outline"></ion-icon>
             </div>
+            <h3>No encontramos resultados</h3>
+            <p>Intenta con otro nombre o crea un nuevo cliente.</p>
+            <ion-button fill="solid" shape="round" (click)="abrirRegistroCliente()">
+              <ion-icon name="add-outline" slot="start"></ion-icon>
+              Registrar Nuevo Cliente
+            </ion-button>
+          </div>
           }
         </div>
       </ion-content>

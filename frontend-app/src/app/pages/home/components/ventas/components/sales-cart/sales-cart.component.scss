@@ -182,6 +182,22 @@
                     white-space: nowrap;
                 }
             }
+
+            .points-info-msg {
+                margin-top: 8px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 11px;
+                color: #856404;
+                background: rgba(255, 255, 255, 0.5);
+                padding: 6px;
+                border-radius: 6px;
+
+                ion-icon {
+                    font-size: 16px;
+                }
+            }
         }
 
         .change-calculation {
@@ -590,5 +606,15 @@
             font-size: 13px;
             font-weight: 700;
         }
+    }
+
+    .points-hint {
+        font-size: 11px;
+        color: #856404;
+        font-style: italic;
+        background: white;
+        padding: 4px 10px;
+        border-radius: 6px;
+        border: 1px dashed #ffd966;
     }
 }

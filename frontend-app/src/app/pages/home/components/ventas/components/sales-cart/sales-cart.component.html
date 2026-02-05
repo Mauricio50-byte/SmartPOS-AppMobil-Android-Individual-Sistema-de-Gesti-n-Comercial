@@ -56,15 +56,16 @@
   <div class="ticket-footer">
     <!-- Sección de Puntos (Desktop) -->
     <div class="loyalty-section"
-      *ngIf="clienteSeleccionado && clienteSeleccionado.puntos && clienteSeleccionado.puntos >= 100"
+      *ngIf="clienteSeleccionado && clienteSeleccionado.puntos && clienteSeleccionado.puntos > 0"
       [formGroup]="ventaForm">
       <div class="points-header">
         <ion-icon name="star" color="warning"></ion-icon>
-        <span>Puntos: <strong>{{ clienteSeleccionado.puntos | number:'1.0-0' }}</strong></span>
+        <span>Saldo de Puntos: <strong>{{ clienteSeleccionado.puntos | number:'1.0-0' }}</strong></span>
       </div>
-      <div class="redeem-input">
+
+      <div class="redeem-input" *ngIf="clienteSeleccionado.puntos >= 100">
         <ion-item lines="none" class="puntos-item" [class.item-invalid]="ventaForm.get('puntosARedimir')?.invalid">
-          <ion-label position="stacked">Redimir Puntos</ion-label>
+          <ion-label position="stacked">Redimir Puntos (un punto = $10)</ion-label>
           <ion-input type="text" inputmode="numeric" formControlName="puntosARedimir" placeholder="Mín. 100"
             appNumericFormat [clearInput]="true"></ion-input>
         </ion-item>
@@ -74,6 +75,11 @@
         <div class="points-discount" *ngIf="descuentoPuntos > 0">
           - {{ descuentoPuntos | currency:'USD':'symbol':'1.0-0' }}
         </div>
+      </div>
+
+      <div class="points-info-msg" *ngIf="clienteSeleccionado.puntos < 100">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <span>Te faltan {{ 100 - clienteSeleccionado.puntos }} puntos para empezar a redimir.</span>
       </div>
     </div>
 
@@ -214,18 +220,25 @@
       </div>
 
       <!-- Sección de Puntos (Mobile) -->
-      <div class="mobile-loyalty-section"
-        *ngIf="clienteSeleccionado && clienteSeleccionado.puntos && clienteSeleccionado.puntos >= 100"
+      <div class="mobile-loyalty-section" *ngIf="clienteSeleccionado && (clienteSeleccionado.puntos || 0) > 0"
         [formGroup]="ventaForm">
         <div class="points-badge">
           <ion-icon name="star" color="warning"></ion-icon>
           <span>{{ clienteSeleccionado.puntos | number:'1.0-0' }} pts</span>
         </div>
-        <ion-item lines="none" class="puntos-item-mobile"
-          [class.item-invalid]="ventaForm.get('puntosARedimir')?.invalid">
-          <ion-input type="text" inputmode="numeric" formControlName="puntosARedimir"
-            placeholder="Puntos (Máx. {{clienteSeleccionado.puntos}})" appNumericFormat></ion-input>
-        </ion-item>
+        <div class="loyalty-controls" style="flex: 1;">
+          @if (clienteSeleccionado.puntos && clienteSeleccionado.puntos >= 100) {
+          <ion-item lines="none" class="puntos-item-mobile"
+            [class.item-invalid]="ventaForm.get('puntosARedimir')?.invalid">
+            <ion-input type="text" inputmode="numeric" formControlName="puntosARedimir" placeholder="Redimir (Mín 100)"
+              appNumericFormat></ion-input>
+          </ion-item>
+          } @else {
+          <div class="points-hint">
+            Acumula 100 puntos para redimir
+          </div>
+          }
+        </div>
       </div>
 
       <div class="total-row">
