@@ -1,0 +1,102 @@
+<ion-header class="ion-no-border">
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/login"></ion-back-button>
+        </ion-buttons>
+        <ion-title>¿Cómo me ayuda?</ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+    <div class="intro">
+        <h2>SmartPOS es tu Contador 24/7</h2>
+        <p>Llevar las cuentas de un negocio puede ser agotador. Mira cómo SmartPOS lo hace por ti de forma inteligente.
+        </p>
+    </div>
+
+    <div class="example-card">
+        <div class="card-header">
+            <ion-icon name="calculator-outline"></ion-icon>
+            <h3>Ejemplo: Una Venta de $10.000</h3>
+        </div>
+        <div class="card-body">
+            <div class="step">
+                <span class="dot"></span>
+                <p><strong>Costo:</strong> Compraste el producto por $7.000.</p>
+            </div>
+            <div class="step">
+                <span class="dot"></span>
+                <p><strong>Venta:</strong> Lo vendes a $10.000.</p>
+            </div>
+            <div class="result pulse">
+                <p>SmartPOS calcula automáticamente:</p>
+                <div class="math">
+                    <span class="profit">+$3.000 Ganancia Neta</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="example-card balance-card">
+        <div class="card-header">
+            <ion-icon name="journal-outline"></ion-icon>
+            <h3>Tu Balance Diario Automático</h3>
+        </div>
+        <div class="card-body">
+            <div class="ledger">
+                <div class="ledger-row">
+                    <span>Ventas del día:</span>
+                    <span class="val positive">+$150.000</span>
+                </div>
+                <div class="ledger-row">
+                    <span>Gastos (Compras):</span>
+                    <span class="val negative">-$50.000</span>
+                </div>
+                <div class="ledger-row">
+                    <span>Abonos recibidos:</span>
+                    <span class="val positive">+$20.000</span>
+                </div>
+                <div class="ledger-divider"></div>
+                <div class="ledger-row total">
+                    <span>Efectivo en Caja:</span>
+                    <span class="val">$120.000</span>
+                </div>
+            </div>
+            <p class="ledger-note">SmartPOS suma y resta por ti. Al cerrar el turno, el sistema te dirá exactamente
+                cuánto dinero físico debes tener.</p>
+        </div>
+    </div>
+
+    <div class="help-section">
+        <div class="help-item">
+            <ion-icon name="trending-up-outline" color="success"></ion-icon>
+            <div class="text">
+                <h4>Orden Contable</h4>
+                <p>Cada moneda que entra o sale queda registrada. Al final del día, sabrás exactamente cuánto dinero
+                    debe haber en caja sin descuadres.</p>
+            </div>
+        </div>
+
+        <div class="help-item">
+            <ion-icon name="alert-circle-outline" color="danger"></ion-icon>
+            <div class="text">
+                <h4>Adiós a los Olvidos</h4>
+                <p>¿Un cliente te debe? SmartPOS te recuerda quiénes son tus deudores y cuánto falta por cobrar. ¡No
+                    pierdas ni un centavo!</p>
+            </div>
+        </div>
+
+        <div class="help-item">
+            <ion-icon name="briefcase-outline" color="primary"></ion-icon>
+            <div class="text">
+                <h4>Decisiones Inteligentes</h4>
+                <p>¿Cuál es tu producto más vendido? ¿Qué día vendes más? Con nuestras estadísticas, sabrás dónde
+                    invertir para crecer.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-msg">
+        <p>Tú te encargas de vender, nosotros de los números.</p>
+    </div>
+</ion-content>

@@ -13,52 +13,45 @@
 
         <ion-item class="input-item" lines="none">
           <ion-icon slot="start" name="person-outline"></ion-icon>
-          <ion-input type="email" inputmode="email" autocomplete="email" formControlName="email" aria-required="true" placeholder="Correo"></ion-input>
+          <ion-input type="email" inputmode="email" autocomplete="email" formControlName="email" aria-required="true"
+            placeholder="Correo"></ion-input>
         </ion-item>
         @if (f['email'].touched && f['email'].invalid) {
-          <div class="error">
-            @if (f['email'].errors?.['required']) {
-              <span>El correo es obligatorio.</span>
-            }
-            @if (f['email'].errors?.['email']) {
-              <span>Formato de correo inválido.</span>
-            }
-          </div>
+        <div class="error">
+          @if (f['email'].errors?.['required']) {
+          <span>El correo es obligatorio.</span>
+          }
+          @if (f['email'].errors?.['email']) {
+          <span>Formato de correo inválido.</span>
+          }
+        </div>
         }
 
         <ion-item class="input-item" lines="none">
           <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
-          <ion-input
-            [type]="showPassword ? 'text' : 'password'"
-            autocomplete="current-password"
-            formControlName="password"
-            aria-required="true"
-            placeholder="Contraseña"
-            autocapitalize="off"
-            spellcheck="false"
-            [maxlength]="64"
-            (keydown)="onPasswordKeyEvent($event)"
-            (keyup)="onPasswordKeyEvent($event)"
-          ></ion-input>
+          <ion-input [type]="showPassword ? 'text' : 'password'" autocomplete="current-password"
+            formControlName="password" aria-required="true" placeholder="Contraseña" autocapitalize="off"
+            spellcheck="false" [maxlength]="64" (keydown)="onPasswordKeyEvent($event)"
+            (keyup)="onPasswordKeyEvent($event)"></ion-input>
           <ion-button fill="clear" slot="end" (click)="togglePassword()" aria-label="Mostrar u ocultar contraseña">
             <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
           </ion-button>
         </ion-item>
         @if (f['password'].touched && f['password'].invalid) {
-          <div class="error" aria-live="polite">
-            @if (f['password'].errors?.['required']) {
-              <span>La contraseña es obligatoria.</span>
-            }
-            @if (f['password'].errors?.['minlength']) {
-              <span>Mínimo 6 caracteres.</span>
-            }
-            @if (f['password'].errors?.['invalid']) {
-              <span>Credenciales inválidas.</span>
-            }
-          </div>
+        <div class="error" aria-live="polite">
+          @if (f['password'].errors?.['required']) {
+          <span>La contraseña es obligatoria.</span>
+          }
+          @if (f['password'].errors?.['minlength']) {
+          <span>Mínimo 6 caracteres.</span>
+          }
+          @if (f['password'].errors?.['invalid']) {
+          <span>Credenciales inválidas.</span>
+          }
+        </div>
         }
         @if (capsLockOn) {
-          <div class="error" aria-live="polite">Caps Lock activado.</div>
+        <div class="error" aria-live="polite">Caps Lock activado.</div>
         }
 
         <ion-item lines="none" class="remember-row">
@@ -72,11 +65,22 @@
         </div>
 
         @if ((online$ | async) === false) {
-          <div class="offline" role="status">
-            Sin conexión. El inicio de sesión requiere conexión al servidor.
-          </div>
+        <div class="offline" role="status">
+          Sin conexión. El inicio de sesión requiere conexión al servidor.
+        </div>
         }
       </form>
+
+      <div class="info-buttons">
+        <ion-button fill="clear" expand="block" routerLink="/smartpos/que-es">
+          <ion-icon slot="start" name="help-circle-outline"></ion-icon>
+          ¿Qué es SmartPOS?
+        </ion-button>
+        <ion-button fill="clear" expand="block" routerLink="/smartpos/como-ayuda">
+          <ion-icon slot="start" name="bulb-outline"></ion-icon>
+          ¿Cómo me ayuda SmartPOS?
+        </ion-button>
+      </div>
     </div>
   </div>
 </ion-content>

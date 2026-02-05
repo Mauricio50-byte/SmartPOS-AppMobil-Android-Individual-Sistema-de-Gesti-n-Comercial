@@ -14,11 +14,14 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'smartpos',
+    loadChildren: () => import('./pages/smartpos/smartpos.module').then(m => m.SmartposPageModule)
+  },
+  {
     path: '',
     redirectTo: 'login',
     pathMatch: 'full'
-  },
-
+  }
 ];
 
 @NgModule({

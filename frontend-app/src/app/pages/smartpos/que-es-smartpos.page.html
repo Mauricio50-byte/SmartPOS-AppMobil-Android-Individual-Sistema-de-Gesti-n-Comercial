@@ -1,0 +1,60 @@
+<ion-header class="ion-no-border">
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/login"></ion-back-button>
+        </ion-buttons>
+        <ion-title>¿Qué es SmartPOS?</ion-title>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+    <div class="hero">
+        <div class="brand-icon"><ion-icon name="checkmark-outline"></ion-icon></div>
+        <h1>Tu Negocio en un solo lugar</h1>
+        <p>SmartPOS es el ecosistema digital diseñado para que los dueños de negocios tomen el control total de sus
+            operaciones de forma sencilla y profesional.</p>
+    </div>
+
+    <div class="features">
+        <ion-list lines="none">
+            <ion-item>
+                <ion-icon name="wallet-outline" slot="start" color="primary"></ion-icon>
+                <ion-label>
+                    <h2>Gestión de Ventas</h2>
+                    <p>Registra ventas rápidas, maneja diferentes métodos de pago y emite comprobantes digitales.</p>
+                </ion-label>
+            </ion-item>
+
+            <ion-item>
+                <ion-icon name="cube-outline" slot="start" color="success"></ion-icon>
+                <ion-label>
+                    <h2>Control de Inventario</h2>
+                    <p>Sabe exactamente qué tienes en stock, qué falta y recibe alertas de productos bajos.</p>
+                </ion-label>
+            </ion-item>
+
+            <ion-item>
+                <ion-icon name="people-outline" slot="start" color="warning"></ion-icon>
+                <ion-label>
+                    <h2>Clientes y Deudores</h2>
+                    <p>Lleva un registro de quién te debe, cuánto te debe y facilita el cobro de abonos.</p>
+                </ion-label>
+            </ion-item>
+
+            <ion-item>
+                <ion-icon name="bar-chart-outline" slot="start" color="tertiary"></ion-icon>
+                <ion-label>
+                    <h2>Reportes Inteligentes</h2>
+                    <p>Visualiza tus ganancias reales, gastos y el flujo de caja diario en tiempo real.</p>
+                </ion-label>
+            </ion-item>
+        </ion-list>
+    </div>
+
+    <div class="cta-container">
+        <p class="final-word">Simplifica tu vida, digitaliza tu éxito.</p>
+        <ion-button expand="block" fill="fill" class="main-btn" routerLink="/login">
+            ¡Comenzar ahora!
+        </ion-button>
+    </div>
+</ion-content>
