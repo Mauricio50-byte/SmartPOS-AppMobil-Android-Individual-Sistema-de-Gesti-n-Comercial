@@ -60,6 +60,7 @@ async function registrarRutasDeuda(app) {
             res.code(201)
             return resultado
         } catch (error) {
+            console.error('[ERRO EN RUTAS DEUDA/ABONOS]:', error);
             res.code(400)
             return { mensaje: error.message }
         }

@@ -18,9 +18,11 @@ export class HistorialVentasComponent implements OnInit {
     isLoading: boolean = false;
 
     estadisticas = {
-        totalVendido: 0,
+        totalBruto: 0,
+        totalDevoluciones: 0,
+        totalNeto: 0,
         totalTransacciones: 0,
-        promedioVenta: 0
+        promedioVentaNeto: 0
     };
 
     filtros = {
@@ -77,11 +79,26 @@ export class HistorialVentasComponent implements OnInit {
     }
 
     calcularEstadisticas() {
-        this.estadisticas.totalVendido = this.filteredVentas.reduce((acc, v) => acc + Number(v.total || 0), 0);
+        this.estadisticas.totalBruto = this.filteredVentas.reduce((acc, v) => acc + Number(v.total || 0), 0);
+        this.estadisticas.totalDevoluciones = this.filteredVentas.reduce((acc, v) => {
+            const dev = v.devoluciones?.reduce((sum: number, d: any) => sum + d.totalDevuelto, 0) || 0;
+            return acc + dev;
+        }, 0);
+        this.estadisticas.totalNeto = this.estadisticas.totalBruto - this.estadisticas.totalDevoluciones;
         this.estadisticas.totalTransacciones = this.filteredVentas.length;
-        this.estadisticas.promedioVenta = this.estadisticas.totalTransacciones > 0
-            ? this.estadisticas.totalVendido / this.estadisticas.totalTransacciones
+        this.estadisticas.promedioVentaNeto = this.estadisticas.totalTransacciones > 0
+            ? this.estadisticas.totalNeto / this.estadisticas.totalTransacciones
             : 0;
+    }
+
+    getMontoDevuelto(venta: any): number {
+        return venta.devoluciones?.reduce((acc: number, d: any) => acc + d.totalDevuelto, 0) || 0;
+    }
+
+    getMontoNeto(venta: any): number {
+        const bruto = Number(venta.total || 0);
+        const dev = this.getMontoDevuelto(venta);
+        return bruto - dev;
     }
 
     limpiarFiltros() {

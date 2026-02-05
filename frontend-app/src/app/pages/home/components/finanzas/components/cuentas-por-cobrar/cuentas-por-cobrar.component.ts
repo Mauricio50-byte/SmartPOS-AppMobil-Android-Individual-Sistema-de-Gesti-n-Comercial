@@ -216,7 +216,8 @@ export class CuentasPorCobrarComponent implements OnInit {
       error: (err) => {
         this.alertService.closeLoading();
         console.error(err);
-        this.mostrarToast('Error al registrar abono', 'danger');
+        const msg = err.error?.mensaje || 'Error al registrar abono';
+        this.mostrarToast(msg, 'danger');
       }
     });
   }
@@ -344,10 +345,11 @@ export class CuentasPorCobrarComponent implements OnInit {
       this.cargarDeudas();
       this.cerrarModal();
 
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       this.alertService.closeLoading();
-      this.mostrarToast('Error al procesar algunos pagos. Por favor verifique.', 'danger');
+      const msg = error.error?.mensaje || 'Error al procesar algunos pagos. Por favor verifique.';
+      this.mostrarToast(msg, 'danger');
       this.cargarDeudas();
     }
   }

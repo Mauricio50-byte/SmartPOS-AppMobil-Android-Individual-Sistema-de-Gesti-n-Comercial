@@ -101,7 +101,7 @@ async function crearDevolucion(datos) {
                             tipo: 'EGRESO',
                             metodoPago: venta.metodoPago || 'EFECTIVO',
                             monto: totalDevolucion,
-                            descripcion: `Devolución de Venta #${venta.id}`,
+                            descripcion: `DEVOLUCIÓN: Venta #${venta.id}`,
                             ventaId: venta.id,
                             fecha: new Date()
                         }

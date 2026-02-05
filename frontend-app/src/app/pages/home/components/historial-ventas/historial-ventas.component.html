@@ -14,16 +14,20 @@
 
             <div class="stats-grid">
                 <div class="stat-card glass primary">
-                    <span class="label">Total Vendido</span>
-                    <span class="value">{{ estadisticas.totalVendido | currency:'USD':'symbol':'1.0-0' }}</span>
+                    <span class="label">Total Bruto</span>
+                    <span class="value">{{ estadisticas.totalBruto | currency:'USD':'symbol':'1.0-0' }}</span>
                 </div>
-                <div class="stat-card glass secondary">
-                    <span class="label">Transacciones</span>
-                    <span class="value">{{ estadisticas.totalTransacciones }}</span>
+                <div class="stat-card glass danger" *ngIf="estadisticas.totalDevoluciones > 0">
+                    <span class="label">Devoluciones</span>
+                    <span class="value">-{{ estadisticas.totalDevoluciones | currency:'USD':'symbol':'1.0-0' }}</span>
                 </div>
                 <div class="stat-card glass success">
-                    <span class="label">Ticket Promedio</span>
-                    <span class="value">{{ estadisticas.promedioVenta | currency:'USD':'symbol':'1.0-0' }}</span>
+                    <span class="label">Total Neto</span>
+                    <span class="value">{{ estadisticas.totalNeto | currency:'USD':'symbol':'1.0-0' }}</span>
+                </div>
+                <div class="stat-card glass secondary">
+                    <span class="label">Ticket Prom (Neto)</span>
+                    <span class="value">{{ estadisticas.promedioVentaNeto | currency:'USD':'symbol':'1.0-0' }}</span>
                 </div>
             </div>
         </div>
@@ -78,6 +82,8 @@
                             <th>Fecha/Hora</th>
                             <th>Cliente</th>
                             <th class="text-right">Total</th>
+                            <th class="text-right">Devolución</th>
+                            <th class="text-right">Neto</th>
                             <th>Método</th>
                             <th>Estado</th>
                             <th>Vendedor</th>
@@ -99,6 +105,17 @@
                             </td>
                             <td class="text-right">
                                 <span class="amount-text">{{ v.total | currency:'USD':'symbol':'1.0-0' }}</span>
+                            </td>
+                            <td class="text-right">
+                                <span class="amount-text danger" *ngIf="getMontoDevuelto(v) > 0">
+                                    -{{ getMontoDevuelto(v) | currency:'USD':'symbol':'1.0-0' }}
+                                </span>
+                                <span class="amount-text muted" *ngIf="getMontoDevuelto(v) === 0">$0</span>
+                            </td>
+                            <td class="text-right">
+                                <span class="amount-text success">
+                                    {{ getMontoNeto(v) | currency:'USD':'symbol':'1.0-0' }}
+                                </span>
                             </td>
                             <td>
                                 <div class="payment-method">
@@ -156,11 +173,17 @@
                         <div class="data-row">
                             <div class="info-group">
                                 <span class="label">Total</span>
-                                <span class="value highlight">{{ v.total | currency:'USD':'symbol':'1.0-0' }}</span>
+                                <span class="value">{{ v.total | currency:'USD':'symbol':'1.0-0' }}</span>
+                            </div>
+                            <div class="info-group" *ngIf="getMontoDevuelto(v) > 0">
+                                <span class="label">Devolución</span>
+                                <span class="value danger">-{{ getMontoDevuelto(v) | currency:'USD':'symbol':'1.0-0'
+                                    }}</span>
                             </div>
                             <div class="info-group">
-                                <span class="label">Método</span>
-                                <span class="value">{{ v.metodoPago }}</span>
+                                <span class="label">Neto</span>
+                                <span class="value highlight success">{{ getMontoNeto(v) |
+                                    currency:'USD':'symbol':'1.0-0' }}</span>
                             </div>
                         </div>
 

@@ -1,4 +1,5 @@
 const { prisma } = require('../../infraestructura/bd')
+const ContabilidadDom = require('../ventas/servicios/contabilidad.dominio');
 
 /**
  * Obtiene los rangos de fecha para el periodo solicitado y el periodo anterior (para tendencias)
@@ -51,49 +52,32 @@ function getPeriodRanges(period = 'month') {
 async function obtenerMetricas(periodo = 'month') {
     const { start, end, prevStart, prevEnd } = getPeriodRanges(periodo);
 
-    // Totales actuales
-    const metrics = await prisma.venta.aggregate({
-        where: { fecha: { gte: start, lte: end } },
-        _sum: { total: true },
-        _count: { id: true }
-    });
+    // 1. Obtener Métricas Periodo Actual (Netas)
+    const actuales = await ContabilidadDom.obtenerVentasNetasPeriodo(prisma, { start, end });
 
+    // Clientes nuevos no cambian por devoluciones
     const countClientes = await prisma.cliente.count({
         where: { creadoEn: { gte: start, lte: end } }
     });
 
-    // Totales anteriores
-    const prevMetrics = await prisma.venta.aggregate({
-        where: { fecha: { gte: prevStart, lte: prevEnd } },
-        _sum: { total: true },
-        _count: { id: true }
-    });
+    // 2. Obtener Métricas Periodo Anterior (Netas)
+    const anteriores = await ContabilidadDom.obtenerVentasNetasPeriodo(prisma, { start: prevStart, end: prevEnd });
 
     const prevCountClientes = await prisma.cliente.count({
         where: { creadoEn: { gte: prevStart, lte: prevEnd } }
     });
 
-    const valorIngresos = metrics._sum.total || 0;
-    const valorPrevIngresos = prevMetrics._sum.total || 0;
-    // Si no había ingresos antes pero ahora sí, es un crecimiento del 100%
-    const tendenciaIngresos = valorPrevIngresos === 0 ? (valorIngresos > 0 ? 100 : 0) : ((valorIngresos - valorPrevIngresos) / valorPrevIngresos) * 100;
-
-    const ventasCount = metrics._count.id || 0;
-    const prevVentasCount = prevMetrics._count.id || 0;
-    const tendenciaVentas = prevVentasCount === 0 ? (ventasCount > 0 ? 100 : 0) : ((ventasCount - prevVentasCount) / prevVentasCount) * 100;
-
-    const ticketPromedio = ventasCount === 0 ? 0 : valorIngresos / ventasCount;
-    const prevTicketPromedio = prevVentasCount === 0 ? 0 : valorPrevIngresos / prevVentasCount;
-    // Para ticket promedio, si antes era 0, la tendencia es 100% si ahora es > 0
-    const tendenciaTicket = prevTicketPromedio === 0 ? (ticketPromedio > 0 ? 100 : 0) : ((ticketPromedio - prevTicketPromedio) / prevTicketPromedio) * 100;
-
+    // 3. Calcular Tendencias
+    const tendenciaIngresos = anteriores.ventasNetas === 0 ? (actuales.ventasNetas > 0 ? 100 : 0) : ((actuales.ventasNetas - anteriores.ventasNetas) / anteriores.ventasNetas) * 100;
+    const tendenciaVentas = anteriores.cantidadVentas === 0 ? (actuales.cantidadVentas > 0 ? 100 : 0) : ((actuales.cantidadVentas - anteriores.cantidadVentas) / anteriores.cantidadVentas) * 100;
+    const tendenciaTicket = anteriores.ticketPromedio === 0 ? (actuales.ticketPromedio > 0 ? 100 : 0) : ((actuales.ticketPromedio - anteriores.ticketPromedio) / anteriores.ticketPromedio) * 100;
     const tendenciaClientes = prevCountClientes === 0 ? (countClientes > 0 ? 100 : 0) : ((countClientes - prevCountClientes) / prevCountClientes) * 100;
 
     return {
-        ingresos: { valor: valorIngresos, tendencia: tendenciaIngresos },
-        ventas: { valor: ventasCount, tendencia: tendenciaVentas },
+        ingresos: { valor: actuales.ventasNetas, tendencia: tendenciaIngresos },
+        ventas: { valor: actuales.cantidadVentas, tendencia: tendenciaVentas },
         clientesNuevos: { valor: countClientes, tendencia: tendenciaClientes },
-        ticketPromedio: { valor: ticketPromedio, tendencia: tendenciaTicket }
+        ticketPromedio: { valor: actuales.ticketPromedio, tendencia: tendenciaTicket }
     };
 }
 
@@ -102,6 +86,11 @@ async function obtenerGraficoVentas(periodo = 'month') {
     const ventas = await prisma.venta.findMany({
         where: { fecha: { gte: start, lte: end } },
         select: { fecha: true, total: true }
+    });
+
+    const devoluciones = await prisma.devolucion.findMany({
+        where: { fecha: { gte: start, lte: end } },
+        select: { fecha: true, totalDevuelto: true }
     });
 
     let labels = [];
@@ -115,8 +104,12 @@ async function obtenerGraficoVentas(periodo = 'month') {
             if (dayIndex === -1) dayIndex = 6; // Sunday
             data[dayIndex] += v.total;
         });
+        devoluciones.forEach(d => {
+            let dayIndex = d.fecha.getDay() - 1;
+            if (dayIndex === -1) dayIndex = 6;
+            data[dayIndex] -= d.totalDevuelto;
+        });
     } else if (periodo === 'year') {
-        // Muestra desde el año actual hacia adelante (5 años)
         const currentYear = new Date().getFullYear();
         for (let i = 0; i < 5; i++) {
             labels.push((currentYear + i).toString());
@@ -125,20 +118,26 @@ async function obtenerGraficoVentas(periodo = 'month') {
         ventas.forEach(v => {
             const year = v.fecha.getFullYear();
             const index = labels.indexOf(year.toString());
-            if (index !== -1) {
-                data[index] += v.total;
-            }
+            if (index !== -1) data[index] += v.total;
+        });
+        devoluciones.forEach(d => {
+            const year = d.fecha.getFullYear();
+            const index = labels.indexOf(year.toString());
+            if (index !== -1) data[index] -= d.totalDevuelto;
         });
     } else {
-        // 'month' (Meses) -> Muestra meses del año actual
+        // 'month'
         labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
         data = new Array(12).fill(0);
         ventas.forEach(v => {
             data[v.fecha.getMonth()] += v.total;
         });
+        devoluciones.forEach(d => {
+            data[d.fecha.getMonth()] -= d.totalDevuelto;
+        });
     }
 
-    return { labels, data, label: 'Ventas' };
+    return { labels, data, label: 'Ventas Netas' };
 }
 
 async function obtenerProductosTop(limit = 5, periodo = 'month') {
@@ -267,13 +266,35 @@ async function obtenerDistribucionPagos(periodo = 'month') {
         _sum: { total: true }
     });
 
-    const totalRevenue = ventas.reduce((acc, v) => acc + (v._sum.total || 0), 0);
+    // Restar devoluciones por método de pago
+    // Como las devoluciones tienen ventaId, podemos saber el método de pago original
+    const devoluciones = await prisma.devolucion.findMany({
+        where: { fecha: { gte: start, lte: end } },
+        include: { venta: { select: { metodoPago: true } } }
+    });
+
+    const devByMetodo = {};
+    devoluciones.forEach(d => {
+        const met = d.venta.metodoPago;
+        devByMetodo[met] = (devByMetodo[met] || 0) + d.totalDevuelto;
+    });
+
+    const netStats = ventas.map(v => {
+        const bruto = v._sum.total || 0;
+        const dev = devByMetodo[v.metodoPago] || 0;
+        return {
+            metodoPago: v.metodoPago,
+            neto: bruto - dev
+        };
+    });
+
+    const totalRevenue = netStats.reduce((acc, v) => acc + v.neto, 0);
     const colors = ['#2dd36f', '#3880ff', '#ffc409', '#eb445a'];
 
-    return ventas.map((v, index) => ({
+    return netStats.map((v, index) => ({
         name: v.metodoPago,
-        revenue: v._sum.total || 0,
-        percentage: totalRevenue > 0 ? ((v._sum.total || 0) / totalRevenue) * 100 : 0,
+        revenue: v.neto,
+        percentage: totalRevenue > 0 ? (v.neto / totalRevenue) * 100 : 0,
         color: colors[index % colors.length]
     }));
 }

@@ -17,7 +17,8 @@ async function listarVentas(filtro = {}) {
     include: {
       detalles: { include: { producto: true } },
       cliente: true,
-      usuario: { select: { id: true, nombre: true } }
+      usuario: { select: { id: true, nombre: true } },
+      devoluciones: true
     }
   });
 }

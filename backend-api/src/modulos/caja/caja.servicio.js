@@ -54,24 +54,38 @@ async function cerrarCaja({ usuarioId, montoFinal, observaciones }) {
     throw new Error('El monto final debe ser un número válido.')
   }
 
-  // Tipos que SUMAN al saldo
+  // Tipos que SUMAN al saldo (Ingresos)
   const tiposIngreso = ['INGRESO', 'VENTA', 'ABONO_VENTA', 'ABONO_DEUDA'];
-  // Tipos que RESTAN al saldo
+  // Tipos que RESTAN al saldo (Egresos)
   const tiposEgreso = ['EGRESO', 'PAGO_GASTO', 'RETIRO'];
 
-  // Calcular montoSistema solo para EFECTIVO (Lo que se espera físicamente en el cajón)
+  // Calcular montoSistema solo para EFECTIVO
   const saldoInicialEfectivo = caja.montoInicial;
 
-  const ingresosEfectivo = caja.movimientos
-    .filter(m => tiposIngreso.includes(m.tipo) && m.metodoPago === 'EFECTIVO')
-    .reduce((acc, curr) => acc + curr.monto, 0)
+  let ingresosEfectivoBruto = 0;
+  let devolucionesEfectivo = 0;
+  let egresosEfectivoReal = 0;
 
-  const egresosEfectivo = caja.movimientos
-    .filter(m => tiposEgreso.includes(m.tipo) && m.metodoPago === 'EFECTIVO')
-    .reduce((acc, curr) => acc + curr.monto, 0)
+  caja.movimientos.forEach(m => {
+    if (m.metodoPago !== 'EFECTIVO') return;
 
-  const montoSistema = saldoInicialEfectivo + ingresosEfectivo - egresosEfectivo
-  const diferencia = montoFinalNum - montoSistema
+    const tipo = m.tipo.toUpperCase();
+    const desc = (m.descripcion || '').toLowerCase();
+
+    if (tiposIngreso.includes(tipo)) {
+      ingresosEfectivoBruto += m.monto;
+    } else if (tiposEgreso.includes(tipo)) {
+      if (desc.includes('devolución')) {
+        devolucionesEfectivo += m.monto;
+      } else {
+        egresosEfectivoReal += m.monto;
+      }
+    }
+  });
+
+  const ingresosEfectivoNeto = ingresosEfectivoBruto - devolucionesEfectivo;
+  const montoSistema = saldoInicialEfectivo + ingresosEfectivoNeto - egresosEfectivoReal;
+  const diferencia = montoFinalNum - montoSistema;
 
   const cajaCerrada = await prisma.caja.update({
     where: { id: caja.id },
@@ -83,9 +97,9 @@ async function cerrarCaja({ usuarioId, montoFinal, observaciones }) {
       estado: 'CERRADA',
       observaciones: observaciones ? (caja.observaciones ? caja.observaciones + ' | ' + observaciones : observaciones) : caja.observaciones
     }
-  })
+  });
 
-  return cajaCerrada
+  return cajaCerrada;
 }
 
 async function registrarMovimiento({ usuarioId, cajaId, tipo, monto, descripcion, ventaId, gastoId, abonoId, metodoPago = 'EFECTIVO' }) {
@@ -143,40 +157,52 @@ async function obtenerEstadoCaja(usuarioId) {
 
   if (!caja) return null
 
-  // Tipos para totales globales (lo que el sistema dice que hay en todo lado)
   const tiposIngreso = ['INGRESO', 'VENTA', 'ABONO_VENTA', 'ABONO_DEUDA'];
   const tiposEgreso = ['EGRESO', 'PAGO_GASTO', 'RETIRO'];
 
-  // Calcular totales al vuelo
-  const totalIngresos = caja.movimientos
-    .filter(m => tiposIngreso.includes(m.tipo))
-    .reduce((acc, curr) => acc + curr.monto, 0)
+  let ingresosBrutos = 0;
+  let devoluciones = 0;
+  let egresosReales = 0;
 
-  const totalEgresos = caja.movimientos
-    .filter(m => tiposEgreso.includes(m.tipo))
-    .reduce((acc, curr) => acc + curr.monto, 0)
+  let ingresosEfectivoBruto = 0;
+  let devolucionesEfectivo = 0;
+  let egresosEfectivoReal = 0;
 
-  // Saldo total (incluye bancos/transferencias)
-  const saldoTotal = caja.montoInicial + totalIngresos - totalEgresos
+  caja.movimientos.forEach(m => {
+    const tipo = m.tipo.toUpperCase();
+    const desc = (m.descripcion || '').toLowerCase();
+    const isEfectivo = m.metodoPago === 'EFECTIVO';
+    const monto = Number(m.monto || 0);
 
-  // Saldo solo efectivo (para cuadre/reconciliación física)
-  const ingresosEfectivo = caja.movimientos
-    .filter(m => tiposIngreso.includes(m.tipo) && m.metodoPago === 'EFECTIVO')
-    .reduce((acc, curr) => acc + curr.monto, 0)
+    if (tiposIngreso.includes(tipo)) {
+      ingresosBrutos += monto;
+      if (isEfectivo) ingresosEfectivoBruto += monto;
+    } else if (tiposEgreso.includes(tipo)) {
+      if (desc.includes('devolución')) {
+        devoluciones += monto;
+        if (isEfectivo) devolucionesEfectivo += monto;
+      } else {
+        egresosReales += monto;
+        if (isEfectivo) egresosEfectivoReal += monto;
+      }
+    }
+  });
 
-  const egresosEfectivo = caja.movimientos
-    .filter(m => tiposEgreso.includes(m.tipo) && m.metodoPago === 'EFECTIVO')
-    .reduce((acc, curr) => acc + curr.monto, 0)
-
-  const saldoEfectivo = caja.montoInicial + ingresosEfectivo - egresosEfectivo
+  const totalIngresos = ingresosBrutos;
+  const totalEgresos = egresosReales + devoluciones;
+  const saldoActual = Number(caja.montoInicial || 0) + totalIngresos - totalEgresos;
+  const saldoEfectivo = Number(caja.montoInicial || 0) + (ingresosEfectivoBruto - devolucionesEfectivo) - egresosEfectivoReal;
 
   return {
     ...caja,
     resumen: {
-      totalIngresos,
-      totalEgresos,
-      saldoActual: saldoTotal, // Mostramos el total global
-      saldoEfectivo // Enviamos también el saldo de efectivo para referencia
+      ingresosBrutos: ingresosBrutos,
+      totalIngresos: totalIngresos,
+      devoluciones: devoluciones,
+      totalEgresos: totalEgresos,
+      egresosReales: egresosReales, // Mantener para detalle si es necesario
+      saldoActual: saldoActual,
+      saldoEfectivo: saldoEfectivo
     }
   }
 }

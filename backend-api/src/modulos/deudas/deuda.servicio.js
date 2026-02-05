@@ -107,48 +107,60 @@ async function crearDeuda(datos) {
     return deuda
 }
 
+const FidelizacionDom = require('../ventas/servicios/fidelizacion.dominio');
+
 /**
  * Registrar un abono a una deuda
  */
 async function registrarAbono(datos) {
-    let { deudaId, monto, montoRecibido = 0, metodoPago = 'EFECTIVO', usuarioId, nota } = datos
-    monto = Number(monto)
-    montoRecibido = Number(montoRecibido)
+    let { deudaId, monto, montoRecibido, metodoPago = 'EFECTIVO', usuarioId, nota } = datos
 
-    console.log(`[Abono] Registrando abono: DeudaId=${deudaId}, Monto=${monto}, Recibido=${montoRecibido}, Usuario=${usuarioId}`);
+    // Asegurar que los montos sean números válidos
+    const montoNum = Number(monto || 0);
+    const montoRecibidoNum = Number(montoRecibido || 0);
+    const deudaIdNum = Number(deudaId);
+    const usuarioIdNum = usuarioId ? Number(usuarioId) : null;
+
+    if (isNaN(montoNum) || montoNum <= 0) {
+        throw new Error('El monto del abono debe ser un número mayor a 0');
+    }
+
+    console.log(`[Abono] Iniciando proceso: Deuda#${deudaIdNum}, Monto=$${montoNum}, Recibido=$${montoRecibidoNum}, Usuario=${usuarioIdNum}`);
 
     return prisma.$transaction(async (tx) => {
-        // Obtener la deuda actualizada
-        const deuda = await tx.deuda.findUnique({ where: { id: Number(deudaId) } })
-        if (!deuda) throw new Error('Deuda no encontrada')
-        if (deuda.estado === 'PAGADO') throw new Error('Esta deuda ya está pagada')
+        // 1. Obtener la deuda actualizada
+        const deuda = await tx.deuda.findUnique({
+            where: { id: deudaIdNum },
+            include: { venta: true }
+        })
 
-        console.log(`[Abono] Estado actual deuda: Saldo=${deuda.saldoPendiente}, Total=${deuda.montoTotal}`);
+        if (!deuda) throw new Error('Deuda no encontrada');
+        if (deuda.estado === 'PAGADO') throw new Error('Esta deuda ya está pagada');
 
-        // Validar que el monto no sea mayor al saldo pendiente (con margen para errores de redondeo)
-        if (monto > (deuda.saldoPendiente + 0.01)) {
-            throw new Error(`El monto del abono ($${monto}) no puede ser mayor al saldo pendiente ($${deuda.saldoPendiente})`)
+        // 2. Validar que el monto no sea mayor al saldo pendiente (con margen para errores de redondeo)
+        const saldoActualDeuda = Number(deuda.saldoPendiente || 0);
+        if (montoNum > (saldoActualDeuda + 0.1)) { // Margen de 0.1 para centavos
+            throw new Error(`El monto ($${montoNum}) excede el saldo pendiente ($${saldoActualDeuda})`);
         }
 
-        // Crear el abono
+        // 3. Crear el registro del abono
+        console.log(`[Abono] Creando registro...`);
         const abono = await tx.abono.create({
             data: {
-                deudaId: Number(deudaId),
+                deudaId: deudaIdNum,
                 clienteId: deuda.clienteId,
-                monto,
+                monto: montoNum,
                 metodoPago,
-                usuarioId: usuarioId ? Number(usuarioId) : null,
+                usuarioId: usuarioIdNum,
                 nota
             }
         })
 
-        // Calcular nuevo saldo
-        const nuevoSaldo = Math.max(0, deuda.saldoPendiente - monto)
-        const nuevoEstado = nuevoSaldo <= 0.01 ? 'PAGADO' : deuda.estado
+        // 4. Calcular y actualizar nuevo saldo de la deuda
+        const nuevoSaldo = Math.max(0, saldoActualDeuda - montoNum);
+        const nuevoEstado = nuevoSaldo <= 0.1 ? 'PAGADO' : deuda.estado;
 
-        console.log(`[Abono] Nuevo estado: Saldo=${nuevoSaldo}, Estado=${nuevoEstado}`);
-
-        // Actualizar la deuda
+        console.log(`[Abono] Actualizando deuda. Nuevo saldo: ${nuevoSaldo}`);
         await tx.deuda.update({
             where: { id: deuda.id },
             data: {
@@ -157,98 +169,97 @@ async function registrarAbono(datos) {
             }
         })
 
-        // Actualizar el saldo de deuda del cliente
+        // 5. Actualizar el saldo de deuda del cliente
+        console.log(`[Abono] Actualizando saldo cliente #${deuda.clienteId}...`);
         await tx.cliente.update({
             where: { id: deuda.clienteId },
             data: {
-                saldoDeuda: { decrement: monto }
+                saldoDeuda: { decrement: montoNum }
             }
         })
 
-        // --- FIDELIZACIÓN: Acumular puntos por abono ---
-        const FidelizacionDom = require('../ventas/servicios/fidelizacion.dominio');
-        await FidelizacionDom.procesarFidelizacion(tx, {
-            clienteId: deuda.clienteId,
-            totalVenta: monto, // Se acumulan puntos sobre el valor del abono
-            estadoPago: 'PAGADO' // Forzamos estado para que la función procese
-        });
+        // 6. FIDELIZACIÓN: Acumular puntos
+        console.log(`[Abono] Procesando fidelización...`);
+        try {
+            await FidelizacionDom.procesarFidelizacion(tx, {
+                clienteId: deuda.clienteId,
+                totalVenta: montoNum,
+                estadoPago: 'PAGADO'
+            });
+        } catch (fidErr) {
+            console.error('[Abono] Error no crítico en fidelización:', fidErr);
+            // No detenemos la transacción por puntos
+        }
 
-        // --- INTEGRACIÓN CAJA ---
-        // Si hay un usuario responsable y tiene caja abierta, registrar el ingreso
-        if (usuarioId) {
+        // 7. INTEGRACIÓN CAJA
+        if (usuarioIdNum) {
+            console.log(`[Abono] Buscando caja para usuario #${usuarioIdNum}`);
             const cajaAbierta = await tx.caja.findFirst({
-                where: { usuarioId: Number(usuarioId), estado: 'ABIERTA' }
+                where: { usuarioId: usuarioIdNum, estado: 'ABIERTA' }
             })
 
             if (cajaAbierta) {
-                // CORRECCIÓN SOLICITADA POR USUARIO:
-                // Si el pago es en EFECTIVO y se recibe un monto mayor (para dar cambio),
-                // registramos el INGRESO por el total recibido y luego el EGRESO por el cambio.
-
-                let montoIngresoReal = monto;
-                if (metodoPago === 'EFECTIVO' && montoRecibido > monto) {
-                    montoIngresoReal = montoRecibido;
+                console.log(`[Abono] Caja encontrada. Registrando movimientos...`);
+                // Si es efectivo y dieron más, registramos el ingreso completo y un egreso por el vuelto
+                let montoIngresoReal = montoNum;
+                if (metodoPago === 'EFECTIVO' && montoRecibidoNum > montoNum) {
+                    montoIngresoReal = montoRecibidoNum;
                 }
 
-                // Registrar el INGRESO del abono
                 await tx.movimientoCaja.create({
                     data: {
                         cajaId: cajaAbierta.id,
-                        usuarioId: Number(usuarioId),
+                        usuarioId: usuarioIdNum,
                         tipo: 'ABONO_VENTA',
-                        metodoPago: metodoPago,
+                        metodoPago,
                         monto: montoIngresoReal,
-                        descripcion: `Abono Venta #${deuda.ventaId} - Valor: $${Number(monto).toLocaleString('es-CO')} Recibido: $${(Number(montoRecibido) > 0 ? Number(montoRecibido) : Number(monto)).toLocaleString('es-CO')} ${nota ? '| ' + nota : ''}`,
-                        abonoId: abono.id,
-                        fecha: new Date()
+                        descripcion: `Abono Deuda Venta #${deuda.ventaId} | Valor: $${montoNum.toLocaleString()} Recibido: $${montoRecibidoNum > 0 ? montoRecibidoNum.toLocaleString() : montoNum.toLocaleString()} ${nota ? '| ' + nota : ''}`,
+                        abonoId: abono.id
                     }
                 })
 
-                // Si hubo un monto recibido mayor al del abono, y el método es EFECTIVO, registramos el EGRESO del cambio
-                if (metodoPago === 'EFECTIVO' && montoRecibido > monto) {
-                    const cambio = montoRecibido - monto;
+                if (metodoPago === 'EFECTIVO' && montoRecibidoNum > montoNum) {
+                    const cambio = montoRecibidoNum - montoNum;
                     await tx.movimientoCaja.create({
                         data: {
                             cajaId: cajaAbierta.id,
-                            usuarioId: Number(usuarioId),
+                            usuarioId: usuarioIdNum,
                             tipo: 'EGRESO',
                             metodoPago: 'EFECTIVO',
                             monto: cambio,
-                            descripcion: `Cambio/Vuelto de Abono a Venta #${deuda.ventaId} - Valor: $${Number(monto).toLocaleString('es-CO')} - Recibido: $${Number(montoRecibido).toLocaleString('es-CO')} ${nota ? '| ' + nota : ''}`,
-                            abonoId: abono.id,
-                            fecha: new Date()
+                            descripcion: `Cambio de Abono a Venta #${deuda.ventaId}`,
+                            abonoId: abono.id
                         }
                     })
                 }
+            } else {
+                console.log(`[Abono] Usuario #${usuarioIdNum} no tiene caja abierta. Se omite movimiento.`);
             }
         }
-        // ------------------------
 
-        // Actualizar la venta vinculada de forma consistente
-        const venta = await tx.venta.findUnique({ where: { id: deuda.ventaId } })
-        if (venta) {
+        // 8. Actualizar Venta vinculada
+        if (deuda.venta) {
+            console.log(`[Abono] Sincronizando venta # ${deuda.ventaId}`);
             await tx.venta.update({
                 where: { id: deuda.ventaId },
                 data: {
-                    estadoPago: nuevoEstado === 'PAGADO' ? 'PAGADO' : venta.estadoPago,
-                    montoPagado: { increment: monto },
-                    saldoPendiente: { decrement: monto }
+                    estadoPago: nuevoEstado === 'PAGADO' ? 'PAGADO' : deuda.venta.estadoPago,
+                    montoPagado: { increment: montoNum },
+                    saldoPendiente: { decrement: montoNum }
                 }
             })
         }
 
+        console.log(`[Abono] ÉXITO en la transacción.`);
         return {
             abono,
             deudaActualizada: await tx.deuda.findUnique({
                 where: { id: deuda.id },
-                include: {
-                    cliente: true,
-                    abonos: {
-                        orderBy: { fecha: 'desc' }
-                    }
-                }
+                include: { cliente: true, abonos: { orderBy: { fecha: 'desc' } } }
             })
         }
+    }, {
+        timeout: 10000 // Aumentamos timeout a 10s por si la DB está lenta
     })
 }
 

@@ -497,17 +497,9 @@ export class SalesCartComponent implements OnInit {
 
       const ventaData = this.ventaForm.value;
       const montoRecibido = Number(ventaData.montoRecibido || 0);
-      const total = this.totalConDescuento; // Usar el total con descuento para el cambio
-
-      // Verificar si hay cambio que entregar ANTES de llamar al servicio
-      if (ventaData.metodoPago === 'EFECTIVO' && montoRecibido > total) {
-        const cambio = montoRecibido - total;
-        // Cerramos el loading momentáneamente para mostrar el cambio
-        this.alertService.closeLoading();
-        await this.mostrarAlertaCambio(cambio);
-        // Volvemos a mostrar el loading
-        this.alertService.showLoading('Finalizando proceso...', 'Guardando información de la venta.');
-      }
+      const total = this.totalConDescuento;
+      const tieneCambio = ventaData.metodoPago === 'EFECTIVO' && montoRecibido > total;
+      const cambioCalculado = tieneCambio ? (montoRecibido - total) : 0;
 
       this.ventaForm.patchValue({ fecha: new Date().toISOString() });
 
@@ -515,7 +507,7 @@ export class SalesCartComponent implements OnInit {
         usuarioId: ventaData.usuarioId,
         metodoPago: ventaData.metodoPago,
         estadoPago: ventaData.estadoPago,
-        montoRecibido: Number(ventaData.montoRecibido || 0),
+        montoRecibido: montoRecibido,
         puntosARedimir: this.puntosARedimirValue,
         items: ventaData.detalles.map((d: any) => ({
           productoId: d.productoId,
@@ -545,7 +537,6 @@ export class SalesCartComponent implements OnInit {
       this.ventaService.crearVenta(payload).subscribe({
         next: async (venta) => {
           if (!venta) {
-            // Fallback para venta nula
             venta = {
               id: 0,
               fecha: new Date().toISOString(),
@@ -574,7 +565,7 @@ export class SalesCartComponent implements OnInit {
             clienteId: null,
             registrarCliente: false,
             puntosARedimir: 0,
-            montoRecibido: 0 // Limpiar monto recibido
+            montoRecibido: 0
           });
           this.datosClienteGroup.reset({
             nombre: '',
@@ -587,6 +578,11 @@ export class SalesCartComponent implements OnInit {
           this.datosClienteGroup.disable();
 
           this.alertService.closeLoading();
+
+          // Primero mostramos el cambio si existe
+          if (tieneCambio) {
+            await this.mostrarAlertaCambio(cambioCalculado);
+          }
 
           let mensaje = `Total: $${venta.total.toLocaleString('es-CO', { maximumFractionDigits: 0 })}\nMetodo: ${venta.metodoPago}`;
           if (venta.estadoPago === 'FIADO') mensaje += `\n\n⚠️ Venta FIADA registrada`;

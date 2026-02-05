@@ -37,6 +37,7 @@ async function obtenerReporteGeneral(periodo = 'month', groupBy = 'category') {
             }
         } : {},
         include: {
+            venta: true,
             detalles: {
                 include: { producto: true }
             }
@@ -67,12 +68,22 @@ async function obtenerReporteGeneral(periodo = 'month', groupBy = 'category') {
         }
     });
 
+    // 1. Obtener Movimientos de Caja para el Recaudo Real
+    const movimientos = await prisma.movimientoCaja.findMany({
+        where: startDate && endDate ? {
+            fecha: {
+                gte: new Date(startDate),
+                lte: new Date(endDate)
+            }
+        } : {}
+    });
+
     const statsAgrupados = {};
-    let totalRevenue = 0;
-    let totalCollected = 0;
-    let totalPending = 0;
-    let totalCost = 0;
-    let totalVolume = 0;
+    let totalRevenue = 0;   // Ventas Facturadas (lo que se acordó vender)
+    let totalCollected = 0; // Recaudo Real (lo que entró a caja/banco)
+    let totalPending = 0;   // Lo que los clientes deben de estas ventas
+    let totalCost = 0;      // Costo de los productos vendidos
+    let totalVolume = 0;    // Unidades vendidas
 
     let revenueCash = 0;
     let revenueTransfer = 0;
@@ -85,30 +96,49 @@ async function obtenerReporteGeneral(periodo = 'month', groupBy = 'category') {
     let transactionsContado = 0;
     let transactionsFiado = 0;
 
-    // Procesar periodo actual
+    // A. PROCESAR MOVIMIENTOS DE CAJA (Fuente primaria de RECAUDO REAL)
+    movimientos.forEach(m => {
+        const tipo = m.tipo.toUpperCase();
+        const metodo = (m.metodoPago || 'EFECTIVO').toUpperCase();
+        const monto = Number(m.monto || 0);
+        const desc = (m.descripcion || '').toLowerCase();
+
+        // Ingresos: VENTA, ABONO_VENTA, INGRESO manual
+        if (['VENTA', 'ABONO_VENTA', 'ABONO_DEUDA', 'INGRESO'].includes(tipo)) {
+            totalCollected += monto;
+            if (metodo === 'EFECTIVO') collectedCash += monto;
+            else collectedTransfer += monto;
+        }
+        // Egresos que restan del recaudo: Devoluciones y cambios (vuelto)
+        else if (tipo === 'EGRESO') {
+            // Nota: No restamos PAGO_GASTO aquí porque eso es un gasto operativo, 
+            // no una reducción del recaudo por ventas. 
+            // Las devoluciones y cambios SÍ restan del recaudo de ventas.
+            if (desc.includes('devolución') || desc.includes('cambio') || desc.includes('vuelto') || m.ventaId || m.abonoId) {
+                totalCollected -= monto;
+                if (metodo === 'EFECTIVO') collectedCash -= monto;
+                else collectedTransfer -= monto;
+            }
+        }
+    });
+
+    // B. PROCESAR VENTAS (Fuente de FACTURACIÓN, COSTO y VOLUMEN)
     ventas.forEach(v => {
-        const pagado = Number(v.montoPagado) || 0;
         const pendiente = Number(v.saldoPendiente) || 0;
         const totalVenta = Number(v.total) || 0;
         const metodo = (v.metodoPago || 'EFECTIVO').toUpperCase();
         const estado = (v.estadoPago || 'PAGADO').toUpperCase();
 
-        if (estado === 'PAGADO') {
-            transactionsContado++;
-        } else {
-            transactionsFiado++;
-        }
+        if (estado === 'PAGADO') transactionsContado++;
+        else transactionsFiado++;
 
-        totalCollected += pagado;
         totalPending += pendiente;
 
         if (metodo === 'EFECTIVO') {
             revenueCash += totalVenta;
-            collectedCash += pagado;
             pendingCash += pendiente;
         } else {
             revenueTransfer += totalVenta;
-            collectedTransfer += pagado;
             pendingTransfer += pendiente;
         }
 
@@ -116,16 +146,12 @@ async function obtenerReporteGeneral(periodo = 'month', groupBy = 'category') {
             const product = detalle.producto;
             if (!product) return;
 
-            let key = '';
-            if (groupBy === 'category') {
-                key = (product.categoria || product.tipo || 'General').trim();
-            } else {
-                key = product.nombre.trim();
-            }
+            let key = (groupBy === 'category')
+                ? (product.categoria || product.tipo || 'General').trim()
+                : product.nombre.trim();
 
             const qty = Number(detalle.cantidad) || 0;
             const itemRevenue = Number(detalle.subtotal) || 0;
-            // USAR COSTO HISTÓRICO SI EXISTE, SI NO EL DEL PRODUCTO
             const unitCost = Number(detalle.precioCosto || product.precioCosto || 0);
             const itemCost = unitCost * qty;
 
@@ -141,31 +167,32 @@ async function obtenerReporteGeneral(periodo = 'month', groupBy = 'category') {
             totalCost += itemCost;
             totalVolume += qty;
 
-            if (estado === 'PAGADO') {
-                volumeContado += qty;
-            } else {
-                volumeFiado += qty;
-            }
+            if (estado === 'PAGADO') volumeContado += qty;
+            else volumeFiado += qty;
         });
     });
 
-    // RESTAR DEVOLUCIONES DEL PERIODO ACTUAL
+    // C. PROCESAR DEVOLUCIONES (Afectan Facturación, Costo y Volumen)
     devolucionesPeriodo.forEach(dev => {
-        totalRevenue -= (dev.totalDevuelto || 0);
+        const montoDev = Number(dev.totalDevuelto || 0);
+        totalRevenue -= montoDev;
+        // Nota: NO restamos totalCollected aquí porque ya lo hizo el loop de Movimientos de Caja (EGRESO).
+
+        if (dev.venta) {
+            const metodoOrig = (dev.venta.metodoPago || 'EFECTIVO').toUpperCase();
+            if (metodoOrig === 'EFECTIVO') revenueCash -= montoDev;
+            else revenueTransfer -= montoDev;
+        }
 
         dev.detalles.forEach(dd => {
             const product = dd.producto;
-            let key = '';
-            if (groupBy === 'category') {
-                key = (product?.categoria || product?.tipo || 'General').trim();
-            } else {
-                key = (product?.nombre || 'Producto Eliminado').trim();
-            }
+            let key = (groupBy === 'category')
+                ? (product?.categoria || product?.tipo || 'General').trim()
+                : (product?.nombre || 'Producto Eliminado').trim();
 
             if (statsAgrupados[key]) {
                 statsAgrupados[key].volume -= dd.cantidad;
                 statsAgrupados[key].revenue -= dd.subtotal;
-                // USAR COSTO HISTÓRICO SI EXISTE
                 const unitCost = Number(dd.precioCosto || product?.precioCosto || 0);
                 statsAgrupados[key].cost -= (unitCost * dd.cantidad);
 
@@ -175,7 +202,7 @@ async function obtenerReporteGeneral(periodo = 'month', groupBy = 'category') {
         });
     });
 
-    // Procesar periodo anterior para crecimiento por categoría/producto
+    // Procesar periodo anterior para crecimiento
     ventasAnteriores.forEach(v => {
         v.detalles.forEach(detalle => {
             const product = detalle.producto;
@@ -197,20 +224,13 @@ async function obtenerReporteGeneral(periodo = 'month', groupBy = 'category') {
         });
     });
 
-    // Restar devoluciones del periodo anterior para crecimiento real
-    const totalDevAnteriores = devolucionesAnteriores.reduce((acc, d) => acc + (d.totalDevuelto || 0), 0);
-    // Nota: Esto es una simplificación global ya que no tenemos el desglose por categoria fácil de las devoluciones anteriores sin más queries.
-    // Pero ayuda al totalRevenue anterior.
-
     const metrics = Object.entries(statsAgrupados).map(([name, stats]) => {
         const margin = stats.revenue > 0 ? ((stats.revenue - stats.cost) / stats.revenue) * 100 : 0;
-
-        // Cálculo de crecimiento: ((Actual - Anterior) / Anterior) * 100
         let growth = 0;
         if (stats.prevRevenue > 0) {
             growth = ((stats.revenue - stats.prevRevenue) / stats.prevRevenue) * 100;
         } else if (stats.revenue > 0) {
-            growth = 100; // Si no hubo ventas antes, el crecimiento es 100%
+            growth = 100;
         }
 
         const share = totalRevenue > 0 ? (stats.revenue / totalRevenue) * 100 : 0;

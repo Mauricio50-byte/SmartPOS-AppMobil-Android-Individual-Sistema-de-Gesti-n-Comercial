@@ -11,10 +11,11 @@ export interface Venta {
   metodoPago?: string;
   estadoPago?: string;
   montoPagado?: number;
-  montoRecibido?: number; // Nuevo
+  montoRecibido?: number;
   saldoPendiente?: number;
   detalles: DetalleVenta[];
   cliente?: Cliente | null;
   usuario?: Usuario;
+  devoluciones?: any[];
 }
 

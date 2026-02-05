@@ -1,51 +1,29 @@
 const { prisma } = require('../../infraestructura/bd')
+const ContabilidadDom = require('../ventas/servicios/contabilidad.dominio');
 
 /**
  * Calcula el Estado de Resultados (Ingresos, Costos, Gastos, Utilidad)
  */
 async function obtenerEstadoResultados(fechaInicio, fechaFin) {
-    // Al recibir YYYY-MM-DD, new Date() lo interpreta como UTC 00:00
     const fInicio = new Date(fechaInicio);
     const fFin = new Date(fechaFin);
-    // Para incluir todo el día final, usamos setUTCHours ya que Prisma/DB usa UTC
     fFin.setUTCHours(23, 59, 59, 999);
 
-    // 1. Ingresos (Ventas)
-    const ventas = await prisma.venta.aggregate({
-        where: {
-            fecha: { gte: fInicio, lte: fFin }
-        },
-        _sum: {
-            total: true,
-            subtotal: true,
-            impuestos: true
-        }
+    // 1. Obtener Ventas y Devoluciones mediante el dominio centralizado
+    const { ventasBrutas, totalDevoluciones, ventasNetas } = await ContabilidadDom.obtenerVentasNetasPeriodo(prisma, { start: fInicio, end: fFin });
+
+    // 2. Calcular otros detalles (IVA, Subtotal)
+    const ventasAggr = await prisma.venta.aggregate({
+        where: { fecha: { gte: fInicio, lte: fFin } },
+        _sum: { subtotal: true, impuestos: true }
     });
 
-    const ingresosTotales = ventas._sum.total || 0;
-    const ingresosNetosVentas = ventas._sum.subtotal || 0;
-    const totalIVA = ventas._sum.impuestos || 0;
+    const ingresosNetosVentas = ventasAggr._sum.subtotal || 0;
+    const totalIVA = ventasAggr._sum.impuestos || 0;
 
-    // 2. Devoluciones (Restamos del ingreso)
-    const devoluciones = await prisma.devolucion.aggregate({
-        where: {
-            fecha: { gte: fInicio, lte: fFin }
-        },
-        _sum: { totalDevuelto: true }
-    });
-    const totalDevolucionesBruto = devoluciones._sum.totalDevuelto || 0;
-
-    // Ajustar devoluciones para obtener el neto (Aproximación si no guardamos IVA en devolucion global, 
-    // pero podemos calcularlo de los detalles si quisiéramos perfección total. 
-    // Por simplicidad en este nivel, restamos del neto lo proporcional o usamos los detalles)
-
-    // 3. Costos de Ventas (Basado en el precio de costo HISTÓRICO guardado en DetalleVenta)
+    // 3. Costos de Ventas (Netos)
     const todosLosDetalles = await prisma.detalleVenta.findMany({
-        where: {
-            venta: {
-                fecha: { gte: fInicio, lte: fFin }
-            }
-        }
+        where: { venta: { fecha: { gte: fInicio, lte: fFin } } }
     });
 
     let costosVentas = 0;
@@ -53,13 +31,9 @@ async function obtenerEstadoResultados(fechaInicio, fechaFin) {
         costosVentas += (d.precioCosto || 0) * d.cantidad;
     });
 
-    // 3b. Restar costo de lo devuelto (USANDO COSTO HISTÓRICO del detalle de devolución)
+    // Detalle de Devoluciones para restar del costo
     const detallesDevoluciones = await prisma.detalleDevolucion.findMany({
-        where: {
-            devolucion: {
-                fecha: { gte: fInicio, lte: fFin }
-            }
-        }
+        where: { devolucion: { fecha: { gte: fInicio, lte: fFin } } }
     });
 
     let costoDevoluciones = 0;
@@ -69,22 +43,16 @@ async function obtenerEstadoResultados(fechaInicio, fechaFin) {
 
     const costos = costosVentas - costoDevoluciones;
 
-    // Ingresos Netos Reales (Sin impuestos y sin devoluciones)
-    // Nota: El totalDevuelto ya incluye IVA. Debemos restar el impacto neto en el ingreso.
-    // Si no tenemos subtotal neto en devolucion, lo calculamos asumiendo el mismo IVA o de los detalles.
-    // Para este caso, usaremos el totalDevuelto directamente para el "Neto de Caja" y el subtotal para el "Neto Contable".
-    const ingresosContablesNetos = ingresosNetosVentas - (totalDevolucionesBruto * 0.84); // Simplificación 19% IVA aprox si no hay campo
-    // MEJOR: Vamos a ser precisos.
-
     // 4. Utilidad Bruta
-    // Ingresos (sin IVA) - Costos
-    const utilidadBruta = ingresosNetosVentas - costos;
+    // La utilidad bruta se basa en ingresos netos (sin IVA y sin devoluciones) - costos netos
+    // Asumimos que el subtotal de las ventas ya no incluye IVA. 
+    // Para las devoluciones, necesitamos el impacto en el subtotal.
+    const subtotalDevoluciones = detallesDevoluciones.reduce((acc, dd) => acc + (dd.subtotal || 0), 0);
+    const utilidadBruta = (ingresosNetosVentas - subtotalDevoluciones) - costos;
 
-    // 5. Gastos (Registrados en el módulo de gastos)
+    // 5. Gastos
     const gastosData = await prisma.gasto.aggregate({
-        where: {
-            fechaRegistro: { gte: fInicio, lte: fFin }
-        },
+        where: { fechaRegistro: { gte: fInicio, lte: fFin } },
         _sum: { montoTotal: true }
     });
     const gastos = gastosData._sum.montoTotal || 0;
@@ -93,8 +61,10 @@ async function obtenerEstadoResultados(fechaInicio, fechaFin) {
     const utilidadNeta = utilidadBruta - gastos;
 
     return {
-        ingresos: ingresosTotales,
-        ingresosNetos: ingresosNetosVentas,
+        ingresos: ventasNetas, // USAMOS NETO POR REQUERIMIENTO
+        ingresosBrutos: ventasBrutas,
+        devoluciones: totalDevoluciones,
+        ingresosNetosContables: ingresosNetosVentas - subtotalDevoluciones,
         impuestosRecaudados: totalIVA,
         costos,
         utilidadBruta,
@@ -114,61 +84,82 @@ async function obtenerFlujoCaja(fechaInicio, fechaFin) {
     const fFin = new Date(fechaFin);
     fFin.setUTCHours(23, 59, 59, 999);
 
-    // Saldo Inicial: Suma de montos iniciales de cajas + movimientos previos
-    const cajasPrevias = await prisma.caja.findMany({
-        where: { fechaApertura: { lt: fInicio } }
-    });
+    // Saldo Inicial: Suma de montos iniciales de cajas + movimientos previos (Balance consolidado)
+    let saldoHistorico = 0;
 
-    const movsPrevios = await prisma.movimientoCaja.findMany({
-        where: { fecha: { lt: fInicio } }
-    });
+    const cajasPrevias = await prisma.caja.findMany({ where: { fechaApertura: { lt: fInicio } } });
+    const movsPrevios = await prisma.movimientoCaja.findMany({ where: { fecha: { lt: fInicio } } });
 
-    let saldoInicial = 0;
-
-    // 1. Sumar bases de cajas anteriores y sus movimientos (Saldo histórico)
-    cajasPrevias.forEach(c => saldoInicial += (c.montoInicial || 0));
+    cajasPrevias.forEach(c => saldoHistorico += Number(c.montoInicial || 0));
     movsPrevios.forEach(m => {
         const tipoNorm = m.tipo.toUpperCase();
+        const monto = Number(m.monto || 0);
         if (['INGRESO', 'VENTA', 'ABONO_VENTA', 'ABONO_DEUDA'].includes(tipoNorm)) {
-            saldoInicial += m.monto;
+            saldoHistorico += monto;
         } else if (['EGRESO', 'PAGO_GASTO', 'RETIRO'].includes(tipoNorm)) {
-            saldoInicial -= m.monto;
+            saldoHistorico -= monto;
         }
     });
 
-    // 2. Sumar bases de las cajas abiertas EN EL PERIODO actual al saldo inicial
-    const cajasPeriodo = await prisma.caja.findMany({
-        where: {
-            fechaApertura: { gte: fInicio, lte: fFin }
-        }
-    });
-    cajasPeriodo.forEach(c => saldoInicial += (c.montoInicial || 0));
+    // 1. Saldo Inicial del periodo = Saldo histórico + Bases de cajas abiertas en el periodo
+    const cajasPeriodo = await prisma.caja.findMany({ where: { fechaApertura: { gte: fInicio, lte: fFin } } });
+    let saldoBaseCajas = 0;
+    cajasPeriodo.forEach(c => saldoBaseCajas += Number(c.montoInicial || 0));
 
-    // 3. Entradas y Salidas Operativas (Ventas, Gastos, etc)
+    const saldoInicial = saldoHistorico + saldoBaseCajas;
+
+    // 2. Entradas y Salidas Operativas (Ventas, Gastos, etc)
     const movimientosPeriodo = await prisma.movimientoCaja.findMany({
-        where: {
-            fecha: { gte: fInicio, lte: fFin }
-        }
+        where: { fecha: { gte: fInicio, lte: fFin } }
     });
 
-    let entradas = 0;
-    let salidas = 0;
+    let ingresosVentas = 0;
+    let otrosIngresos = 0;
+    let devoluciones = 0;
+    let salidasGastos = 0;
+    let otrasSalidas = 0;
 
     movimientosPeriodo.forEach(m => {
         const tipoNorm = m.tipo.toUpperCase();
-        if (['INGRESO', 'VENTA', 'ABONO_VENTA', 'ABONO_DEUDA'].includes(tipoNorm)) {
-            entradas += m.monto;
-        } else if (['EGRESO', 'PAGO_GASTO', 'RETIRO'].includes(tipoNorm)) {
-            salidas += m.monto;
+        const desc = (m.descripcion || '').toLowerCase();
+        const monto = Number(m.monto || 0);
+
+        if (tipoNorm === 'VENTA' || m.ventaId) {
+            if (tipoNorm === 'EGRESO' && desc.includes('devolución')) {
+                devoluciones += monto;
+            } else if (tipoNorm === 'EGRESO') {
+                otrasSalidas += monto;
+            } else {
+                ingresosVentas += monto;
+            }
+        } else if (['ABONO_VENTA', 'ABONO_DEUDA', 'INGRESO'].includes(tipoNorm)) {
+            otrosIngresos += monto;
+        } else if (tipoNorm === 'PAGO_GASTO') {
+            salidasGastos += monto;
+        } else if (['EGRESO', 'RETIRO'].includes(tipoNorm)) {
+            otrasSalidas += monto;
         }
     });
 
-    const saldoFinal = saldoInicial + entradas - salidas;
+    // Para consistencia visual para el usuario:
+    // Entradas: Todo lo que entró (Ventas Brutas + Otros Ingresos)
+    // Salidas: Todo lo que salió (Gastos + Otros Egresos + Devoluciones)
+    const entradasTotales = ingresosVentas + otrosIngresos;
+    const salidasTotales = salidasGastos + otrasSalidas + devoluciones;
+    const saldoFinal = saldoInicial + entradasTotales - salidasTotales;
 
     return {
         saldoInicial,
-        entradas,
-        salidas,
+        ingresosVentas,
+        devoluciones,
+        ingresosNetos: ingresosVentas - devoluciones,
+        otrosIngresos,
+        entradasTotales,
+        entradas: entradasTotales, // Alias para el frontend
+        salidasGastos,
+        otrasSalidas,
+        salidasTotales,
+        salidas: salidasTotales, // Alias para el frontend
         saldoFinal,
         fechaInicio,
         fechaFin
