@@ -5,7 +5,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Cliente } from 'src/app/core/models/cliente';
 import { NumericFormatDirective } from 'src/app/shared/directives/numeric-format.directive';
 import { addIcons } from 'ionicons';
-import { closeOutline, lockClosedOutline, createOutline, helpCircleOutline, starOutline } from 'ionicons/icons';
+import { closeOutline, lockClosedOutline, createOutline, helpCircleOutline, starOutline, calendarOutline, walletOutline, cashOutline } from 'ionicons/icons';
 import { AlertService } from 'src/app/shared/services/alert.service';
 
 @Component({
@@ -23,7 +23,7 @@ export class ClientEditModalComponent implements OnInit {
     private fb: FormBuilder,
     private alertService: AlertService
   ) {
-    addIcons({ closeOutline, lockClosedOutline, createOutline, helpCircleOutline, starOutline });
+    addIcons({ closeOutline, lockClosedOutline, createOutline, helpCircleOutline, starOutline, calendarOutline, walletOutline, cashOutline });
   }
 
   ngOnInit() {
@@ -33,6 +33,7 @@ export class ClientEditModalComponent implements OnInit {
       cedula: [this.cliente.cedula],
       correo: [this.cliente.correo],
       creditoMaximo: [this.cliente.creditoMaximo || 0],
+      diasCredito: [this.cliente.diasCredito || 30],
       saldoDeuda: [{ value: this.cliente.saldoDeuda || 0, disabled: true }], // Read only by default
       puntos: [{ value: this.cliente.puntos || 0, disabled: true }] // Read only by default
     });

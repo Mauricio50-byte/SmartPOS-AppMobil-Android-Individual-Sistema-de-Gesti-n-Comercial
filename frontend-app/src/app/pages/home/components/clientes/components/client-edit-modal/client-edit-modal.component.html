@@ -56,6 +56,17 @@
         </div>
       </div>
 
+      <div class="financial-card">
+        <div class="card-header">
+          <span class="card-label">Días de Crédito</span>
+          <ion-icon name="calendar-outline" class="card-icon"></ion-icon>
+        </div>
+        <div class="card-value">
+          <ion-input type="number" formControlName="diasCredito" placeholder="30"></ion-input>
+          <span class="unit">días</span>
+        </div>
+      </div>
+
       <div class="financial-card" [class.readonly]="editForm.get('saldoDeuda')?.disabled">
         <div class="card-header">
           <span class="card-label">Deuda Actual</span>

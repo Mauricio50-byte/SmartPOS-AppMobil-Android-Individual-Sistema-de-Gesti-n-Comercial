@@ -6,6 +6,7 @@ export interface Cliente {
   cedula?: string | null;
   activo?: boolean;
   creditoMaximo?: number;
+  diasCredito?: number;
   saldoDeuda?: number;
   puntos?: number;
   creadoEn?: string;
