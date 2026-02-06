@@ -103,22 +103,17 @@ async function obtenerReporteGeneral(periodo = 'month', groupBy = 'category') {
         const monto = Number(m.monto || 0);
         const desc = (m.descripcion || '').toLowerCase();
 
-        // Ingresos: VENTA, ABONO_VENTA, INGRESO manual
+        // Ingresos: VENTA, ABONO_VENTA, ABONO_DEUDA, INGRESO manual
         if (['VENTA', 'ABONO_VENTA', 'ABONO_DEUDA', 'INGRESO'].includes(tipo)) {
             totalCollected += monto;
             if (metodo === 'EFECTIVO') collectedCash += monto;
             else collectedTransfer += monto;
         }
-        // Egresos que restan del recaudo: Devoluciones y cambios (vuelto)
-        else if (tipo === 'EGRESO') {
-            // Nota: No restamos PAGO_GASTO aquí porque eso es un gasto operativo, 
-            // no una reducción del recaudo por ventas. 
-            // Las devoluciones y cambios SÍ restan del recaudo de ventas.
-            if (desc.includes('devolución') || desc.includes('cambio') || desc.includes('vuelto') || m.ventaId || m.abonoId) {
-                totalCollected -= monto;
-                if (metodo === 'EFECTIVO') collectedCash -= monto;
-                else collectedTransfer -= monto;
-            }
+        // Egresos que restan del recaudo: Devoluciones, Gastos, Retiros, etc.
+        else if (['EGRESO', 'PAGO_GASTO', 'RETIRO'].includes(tipo)) {
+            totalCollected -= monto;
+            if (metodo === 'EFECTIVO') collectedCash -= monto;
+            else collectedTransfer -= monto;
         }
     });
 
@@ -128,6 +123,10 @@ async function obtenerReporteGeneral(periodo = 'month', groupBy = 'category') {
         const totalVenta = Number(v.total) || 0;
         const metodo = (v.metodoPago || 'EFECTIVO').toUpperCase();
         const estado = (v.estadoPago || 'PAGADO').toUpperCase();
+
+        // Identificar si hubo descuento (ej. redención de puntos) prorrateando sobre los items
+        const sumDetalles = v.detalles.reduce((acc, b) => acc + (Number(b.subtotal) || 0), 0);
+        const factorDescuento = sumDetalles > 0 ? (totalVenta / sumDetalles) : 1;
 
         if (estado === 'PAGADO') transactionsContado++;
         else transactionsFiado++;
@@ -151,7 +150,7 @@ async function obtenerReporteGeneral(periodo = 'month', groupBy = 'category') {
                 : product.nombre.trim();
 
             const qty = Number(detalle.cantidad) || 0;
-            const itemRevenue = Number(detalle.subtotal) || 0;
+            const itemRevenue = (Number(detalle.subtotal) || 0) * factorDescuento; // Aplicamos el factor de descuento
             const unitCost = Number(detalle.precioCosto || product.precioCosto || 0);
             const itemCost = unitCost * qty;
 
@@ -204,6 +203,10 @@ async function obtenerReporteGeneral(periodo = 'month', groupBy = 'category') {
 
     // Procesar periodo anterior para crecimiento
     ventasAnteriores.forEach(v => {
+        const totalVenta = Number(v.total) || 0;
+        const sumDetalles = v.detalles.reduce((acc, dt) => acc + (Number(dt.subtotal) || 0), 0);
+        const factorDescuento = sumDetalles > 0 ? (totalVenta / sumDetalles) : 1;
+
         v.detalles.forEach(detalle => {
             const product = detalle.producto;
             if (!product) return;
@@ -215,7 +218,7 @@ async function obtenerReporteGeneral(periodo = 'month', groupBy = 'category') {
                 key = product.nombre.trim();
             }
 
-            const itemRevenue = Number(detalle.subtotal) || 0;
+            const itemRevenue = (Number(detalle.subtotal) || 0) * factorDescuento;
 
             if (!statsAgrupados[key]) {
                 statsAgrupados[key] = { volume: 0, revenue: 0, cost: 0, prevRevenue: 0 };

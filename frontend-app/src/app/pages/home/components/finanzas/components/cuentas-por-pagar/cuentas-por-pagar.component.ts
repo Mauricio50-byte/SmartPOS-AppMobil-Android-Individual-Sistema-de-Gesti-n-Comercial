@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { GastoService } from 'src/app/core/services/gasto.service';
+import { CajaService } from 'src/app/core/services/caja.service';
 import { Gasto } from 'src/app/core/models/gasto';
 import { addIcons } from 'ionicons';
 import { searchOutline, filterOutline, addOutline, cashOutline, trashOutline, fileTrayOutline, eyeOutline } from 'ionicons/icons';
@@ -24,11 +25,12 @@ export class CuentasPorPagarComponent implements OnInit {
   loading: boolean = false;
   showForm: boolean = false;
   skeletonRows = [1, 2, 3, 4, 5];
-  
+
   gastoForm: FormGroup;
 
   constructor(
     private gastoService: GastoService,
+    private cajaService: CajaService, // Injected CajaService
     private modalController: ModalController,
     private fb: FormBuilder,
     private alertService: AlertService
@@ -80,8 +82,8 @@ export class CuentasPorPagarComponent implements OnInit {
       return;
     }
     const term = this.searchTerm.toLowerCase();
-    this.filteredGastos = this.gastos.filter(g => 
-      g.proveedor.toLowerCase().includes(term) || 
+    this.filteredGastos = this.gastos.filter(g =>
+      g.proveedor.toLowerCase().includes(term) ||
       g.concepto.toLowerCase().includes(term)
     );
   }
@@ -98,13 +100,17 @@ export class CuentasPorPagarComponent implements OnInit {
     }
 
     this.loading = true;
+    this.alertService.showLoading('Registrando gasto...', 'Por favor espere.');
+
     this.gastoService.crearGasto(this.gastoForm.value).subscribe({
       next: () => {
+        this.alertService.closeLoading();
         this.mostrarToast('Gasto registrado exitosamente', 'success');
         this.toggleForm();
         this.cargarGastos();
       },
       error: (err) => {
+        this.alertService.closeLoading();
         console.error(err);
         this.mostrarToast('Error al registrar gasto', 'danger');
         this.loading = false;
@@ -144,6 +150,16 @@ export class CuentasPorPagarComponent implements OnInit {
         this.alertService.alert('Monto excedido', 'El monto a pagar no puede ser mayor al saldo pendiente de la deuda.', 'warning');
         return;
       }
+
+      // --- VALIDACIÓN DE CAJA ANTES DE REGISTRAR ---
+      if (data.metodoPago === 'EFECTIVO' || data.metodoPago === 'TRANSFERENCIA') {
+        const cajaAbierta = await this.verificarCajaAbierta();
+        if (!cajaAbierta) {
+          await this.alertService.alert('Caja Cerrada', `No hay una caja abierta para procesar este pago (${data.metodoPago}). Si es un fondo externo, usa el método 'EXTERNO'.`, 'warning');
+          return;
+        }
+      }
+
       this.procesarPago(gasto.id, monto, data.descripcion, data.metodoPago);
     }
   }
@@ -152,11 +168,13 @@ export class CuentasPorPagarComponent implements OnInit {
     // metodoPago comes directly as 'EFECTIVO', 'TRANSFERENCIA' or 'EXTERNO' from the modal.
     // 'EFECTIVO' and 'TRANSFERENCIA' will trigger box deduction in backend.
     // 'EXTERNO' will not.
-    
+
     let notaSuffix = '';
     if (metodoPago === 'EFECTIVO') notaSuffix = ' (Caja Efectivo)';
     else if (metodoPago === 'TRANSFERENCIA') notaSuffix = ' (Caja Transferencia)';
     else notaSuffix = ' (Fondos Externos)';
+
+    this.alertService.showLoading('Procesando pago...', 'Por favor espere mientras registramos su pago.');
 
     this.gastoService.registrarPago(gastoId, {
       monto,
@@ -164,24 +182,26 @@ export class CuentasPorPagarComponent implements OnInit {
       nota: nota + notaSuffix
     }).subscribe({
       next: (response) => {
+        this.alertService.closeLoading();
         this.mostrarToast('Pago registrado exitosamente', 'success');
-        
+
         // Update with the fresh object from backend which includes updated history
         const gastoIndex = this.gastos.findIndex(g => g.id === gastoId);
         if (gastoIndex !== -1) {
-            // Backend returns { pago, gasto }
-            this.gastos[gastoIndex] = response.gasto;
-            
-            // Check filters to see if we should keep showing it
-            const gasto = this.gastos[gastoIndex];
-            if (gasto.estado === 'PAGADO' && (this.filterEstado === 'PENDIENTE' || this.filterEstado === 'VENCIDO')) {
-                this.gastos.splice(gastoIndex, 1);
-            }
+          // Backend returns { pago, gasto }
+          this.gastos[gastoIndex] = response.gasto;
 
-            this.filterGastos();
+          // Check filters to see if we should keep showing it
+          const gasto = this.gastos[gastoIndex];
+          if (gasto.estado === 'PAGADO' && (this.filterEstado === 'PENDIENTE' || this.filterEstado === 'VENCIDO')) {
+            this.gastos.splice(gastoIndex, 1);
+          }
+
+          this.filterGastos();
         }
       },
       error: (err) => {
+        this.alertService.closeLoading();
         console.error(err);
         // Extraer mensaje de error del backend si existe
         const errorMessage = err.error?.error || err.error?.message || 'Error al registrar pago';
@@ -204,8 +224,8 @@ export class CuentasPorPagarComponent implements OnInit {
         try {
           const fecha = new Date(pago.fecha);
           if (!isNaN(fecha.getTime())) {
-             // Formato corto para móvil: "29 ene. 2026"
-             fechaStr = fecha.toLocaleString('es-CO', { 
+            // Formato corto para móvil: "29 ene. 2026"
+            fechaStr = fecha.toLocaleString('es-CO', {
               year: 'numeric', month: 'short', day: 'numeric',
               hour: '2-digit', minute: '2-digit'
             });
@@ -217,12 +237,12 @@ export class CuentasPorPagarComponent implements OnInit {
 
         let montoStr = '$0';
         try {
-           // Sin decimales si son ceros para ahorrar espacio
-           montoStr = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(pago.monto);
+          // Sin decimales si son ceros para ahorrar espacio
+          montoStr = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(pago.monto);
         } catch (e) {
-           montoStr = `$${pago.monto}`;
+          montoStr = `$${pago.monto}`;
         }
-        
+
         const notaStr = pago.nota ? pago.nota : '-';
 
         htmlRows += `
@@ -284,5 +304,22 @@ export class CuentasPorPagarComponent implements OnInit {
     if (color === 'danger') icon = 'error';
     if (color === 'warning') icon = 'warning';
     this.alertService.toast(mensaje, icon);
+  }
+
+  // --- VALIDACIÓN DE CAJA ---
+  async verificarCajaAbierta(): Promise<boolean> {
+    this.alertService.showLoading('Verificando caja...', 'Comprobando estado actual.');
+    return new Promise((resolve) => {
+      this.cajaService.obtenerEstadoCaja().subscribe({
+        next: (caja) => {
+          this.alertService.closeLoading();
+          resolve(caja && caja.estado === 'ABIERTA');
+        },
+        error: () => {
+          this.alertService.closeLoading();
+          resolve(false);
+        }
+      });
+    });
   }
 }

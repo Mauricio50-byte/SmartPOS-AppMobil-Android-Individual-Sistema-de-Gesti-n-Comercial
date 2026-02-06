@@ -127,6 +127,35 @@ async function registrarMovimiento({ usuarioId, cajaId, tipo, monto, descripcion
 
   const metodoPagoUpper = String(metodoPago).toUpperCase();
 
+  // --- VALIDACIÓN DE SALDO ---
+  // Solo validamos para tipos que RESTAN dinero de la caja
+  const tiposEgreso = ['EGRESO', 'PAGO_GASTO', 'RETIRO'];
+  if (tiposEgreso.includes(tipo.toUpperCase())) {
+    // Obtenemos el estado actual de la caja
+    const caja = await prisma.caja.findFirst({
+      where: { usuarioId, estado: 'ABIERTA' },
+      include: { movimientos: true }
+    });
+
+    if (caja) {
+      // Calcular saldo disponible para el método de pago específico
+      let saldoMetodo = (metodoPagoUpper === 'EFECTIVO') ? (caja.montoInicial || 0) : 0;
+
+      const tiposIngreso = ['INGRESO', 'VENTA', 'ABONO_VENTA', 'ABONO_DEUDA'];
+      caja.movimientos.forEach(m => {
+        if (m.metodoPago !== metodoPagoUpper) return;
+        const mt = m.tipo.toUpperCase();
+        if (tiposIngreso.includes(mt)) saldoMetodo += m.monto;
+        else if (tiposEgreso.includes(mt)) saldoMetodo -= m.monto;
+      });
+
+      if (saldoMetodo < montoNum) {
+        throw new Error(`Saldo insuficiente en CAJA (${metodoPagoUpper}). Disponible: $${new Intl.NumberFormat('es-CO').format(saldoMetodo)}. Tu egreso es de $${new Intl.NumberFormat('es-CO').format(montoNum)}.`);
+      }
+    }
+  }
+  // ---------------------------
+
   const movimiento = await prisma.movimientoCaja.create({
     data: {
       cajaId: idCaja,

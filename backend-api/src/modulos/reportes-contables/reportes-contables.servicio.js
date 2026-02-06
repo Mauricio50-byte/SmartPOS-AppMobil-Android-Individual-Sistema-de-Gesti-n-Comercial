@@ -50,12 +50,12 @@ async function obtenerEstadoResultados(fechaInicio, fechaFin) {
     const subtotalDevoluciones = detallesDevoluciones.reduce((acc, dd) => acc + (dd.subtotal || 0), 0);
     const utilidadBruta = (ingresosNetosVentas - subtotalDevoluciones) - costos;
 
-    // 5. Gastos
-    const gastosData = await prisma.gasto.aggregate({
-        where: { fechaRegistro: { gte: fInicio, lte: fFin } },
-        _sum: { montoTotal: true }
+    // 5. Gastos (Efectivamente pagados en el periodo)
+    const pagosGastosData = await prisma.pagoGasto.aggregate({
+        where: { fecha: { gte: fInicio, lte: fFin } },
+        _sum: { monto: true }
     });
-    const gastos = gastosData._sum.montoTotal || 0;
+    const gastos = pagosGastosData._sum.monto || 0;
 
     // 6. Utilidad Neta
     const utilidadNeta = utilidadBruta - gastos;
