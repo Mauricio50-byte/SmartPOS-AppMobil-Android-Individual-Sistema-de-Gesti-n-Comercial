@@ -1,83 +1,94 @@
 <div class="sales-wrapper">
 
   <div class="sales-container">
-    <!-- Panel de Catálogo (Siempre visible en desktop, visible atrás en móvil) -->
+    <!-- Panel de Catálogo -->
     <div class="catalog-panel">
+
+      <!-- Barra de filtros -->
       <div class="catalog-header">
-        <div class="search-bar">
-          <ion-searchbar
-            placeholder="Buscar productos por nombre/sku"
-            [(ngModel)]="searchTerm"
-            (ionInput)="onSearch($event)"
-            mode="ios"
-            showCancelButton="focus">
-          </ion-searchbar>
+        <div class="filters-row">
+          <div class="search-wrapper">
+            <ion-searchbar placeholder="Buscar por nombre o SKU..." [(ngModel)]="searchTerm"
+              (ionInput)="onSearch($event)" mode="ios" debounce="300" showCancelButton="focus">
+            </ion-searchbar>
+          </div>
+          <div class="filter-wrapper">
+            <ion-item lines="none" class="filter-item">
+              <ion-icon name="filter-outline" slot="start" color="medium"></ion-icon>
+              <ion-select [(ngModel)]="selectedCategoria" (ionChange)="onCategoriaChange($event)" interface="popover"
+                placeholder="Categoría">
+                <ion-select-option value="TODOS">Todos</ion-select-option>
+                @for (cat of categorias; track cat) {
+                <ion-select-option [value]="cat">{{ cat }}</ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+          </div>
         </div>
       </div>
 
+      <!-- Skeleton Loading -->
       @if (isLoading) {
-        <div class="product-grid skeleton-grid">
-          @for (item of [1,2,3,4,5,6,7,8,9]; track item) {
-            <ion-card class="product-card-skeleton" style="margin: 0; box-shadow: none; border: 1px solid #eee;">
-              <ion-skeleton-text animated style="width: 100%; height: 120px;"></ion-skeleton-text>
-              <ion-card-header>
-                <ion-skeleton-text animated style="width: 80%; height: 20px; margin-bottom: 8px;"></ion-skeleton-text>
-                <ion-skeleton-text animated style="width: 40%; height: 16px;"></ion-skeleton-text>
-              </ion-card-header>
-            </ion-card>
-          }
-        </div>
+      <div class="product-grid skeleton-grid">
+        @for (item of [1,2,3,4,5,6,7,8,9]; track item) {
+        <ion-card class="product-card-skeleton" style="margin: 0; box-shadow: none; border: 1px solid #eee;">
+          <ion-skeleton-text animated style="width: 100%; height: 120px;"></ion-skeleton-text>
+          <ion-card-header>
+            <ion-skeleton-text animated style="width: 80%; height: 20px; margin-bottom: 8px;"></ion-skeleton-text>
+            <ion-skeleton-text animated style="width: 40%; height: 16px;"></ion-skeleton-text>
+          </ion-card-header>
+        </ion-card>
+        }
+      </div>
       }
 
+      <!-- Grid de cards -->
       @if (!isLoading && filteredProductos.length > 0) {
-        <div class="product-grid">
-          @for (product of filteredProductos; track product) {
-            <app-product-card
-              [product]="product"
-              (add)="addToCart($event)">
-            </app-product-card>
-          }
-        </div>
+      <div class="product-grid">
+        @for (product of filteredProductos; track product.id) {
+        <app-product-card [product]="product" (add)="addToCart($event)">
+        </app-product-card>
+        }
+      </div>
       }
 
+      <!-- Estado vacío -->
       @if (!isLoading && filteredProductos.length === 0) {
-        <div class="empty-state">
-          <ion-icon name="search-outline"></ion-icon>
-          <p>No se encontraron productos.</p>
-        </div>
+      <div class="empty-state">
+        <ion-icon name="search-outline"></ion-icon>
+        <p>No se encontraron productos.</p>
+      </div>
       }
     </div>
 
-    <!-- Panel de Ticket/Carrito (Sidebar en Desktop, Overlay en Móvil) -->
-    <app-sales-cart
-      [cartVisibleMobile]="cartVisibleMobile"
-      (closeCart)="toggleCartMobile()"
+    <!-- Panel de Ticket/Carrito -->
+    <app-sales-cart [cartVisibleMobile]="cartVisibleMobile" (closeCart)="toggleCartMobile()"
       (cartUpdated)="onCartUpdate($event)">
     </app-sales-cart>
   </div>
 
   <!-- Bottom Bar Flotante (Solo Móvil) -->
   @if (!cartVisibleMobile) {
-    <div class="mobile-bottom-bar">
-      <div class="cart-summary" (click)="toggleCartMobile()">
-        <div class="cart-info">
-          <div class="badge-count">
-            <ion-icon name="cart"></ion-icon>
-            @if (cartItemCount > 0) {
-              <span>{{ cartItemCount }}</span>
-            }
-          </div>
-          <div class="total-preview">
-            <span class="label">Total:</span>
-            <span class="value">{{ cartTotal | currency:'USD':'symbol':'1.0-0' }}</span>
-          </div>
+  <div class="mobile-bottom-bar">
+    <div class="cart-summary" (click)="toggleCartMobile()">
+      <div class="cart-info">
+        <div class="badge-count">
+          <ion-icon name="cart"></ion-icon>
+          @if (cartItemCount > 0) {
+          <span>{{ cartItemCount }}</span>
+          }
         </div>
-        <ion-button size="small" fill="solid" color="light" class="view-cart-btn">
-          Ver Carrito
-          <ion-icon name="chevron-up-outline" slot="end"></ion-icon>
-        </ion-button>
+        <div class="total-preview">
+          <span class="label">Total:</span>
+          <span class="value">{{ cartTotal | currency:'USD':'symbol':'1.0-0' }}</span>
+        </div>
       </div>
+      <ion-button size="small" fill="solid" color="light" class="view-cart-btn">
+        Ver Carrito
+        <ion-icon name="chevron-up-outline" slot="end"></ion-icon>
+      </ion-button>
     </div>
+  </div>
   }
 
 </div>

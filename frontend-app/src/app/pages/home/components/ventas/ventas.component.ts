@@ -18,6 +18,9 @@ export class VentasComponent implements OnInit {
   productos: Producto[] = [];
   filteredProductos: Producto[] = [];
   searchTerm: string = '';
+  selectedCategoria: string = 'TODOS';
+  categorias: string[] = [];
+
   private allowedTipos: Set<string> | null = null;
   private moduloIdToTipo: Record<string, string> = {
     ropa: 'ROPA',
@@ -40,7 +43,7 @@ export class VentasComponent implements OnInit {
     private productoService: ProductosServices,
     private authService: AuthService,
     private alertService: AlertService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.loadProducts();
@@ -61,7 +64,7 @@ export class VentasComponent implements OnInit {
         if (tipo) tipos.add(tipo);
       }
       this.allowedTipos = tipos;
-      this.aplicarFiltroModulosEnProductos();
+      this.aplicarFiltros();
     });
   }
 
@@ -69,10 +72,12 @@ export class VentasComponent implements OnInit {
     this.isLoading = true;
     this.productoService.listarProductos().subscribe({
       next: (data) => {
-        this.allProductos = data || [];
-        this.productos = this.allProductos;
-        this.filteredProductos = this.allProductos;
-        this.aplicarFiltroModulosEnProductos();
+        // Ordenar por ID descendente: los más nuevos primero
+        const sorted = (data || []).slice().sort((a, b) => b.id - a.id);
+        this.allProductos = sorted;
+        this.productos = sorted;
+        this.buildCategorias();
+        this.aplicarFiltros();
         this.isLoading = false;
       },
       error: (err) => {
@@ -83,38 +88,57 @@ export class VentasComponent implements OnInit {
     });
   }
 
-  onSearch(event: any) {
-    const term = event.target.value;
-    this.searchTerm = term;
-    if (!term) {
-      this.filteredProductos = this.productos;
-      return;
-    }
-
-    this.filteredProductos = this.productos.filter(p =>
-      p.nombre.toLowerCase().includes(term.toLowerCase())
-    );
+  /** Extrae la lista de categorías únicas para el selector de filtro */
+  private buildCategorias() {
+    const cats = new Set<string>();
+    this.allProductos.forEach(p => {
+      const cat = p.categoria || p.tipo;
+      if (cat) cats.add(cat);
+    });
+    this.categorias = Array.from(cats).sort();
   }
 
-  private aplicarFiltroModulosEnProductos() {
-    // Se elimina el filtro estricto por módulos para que en Ventas aparezcan todos los productos
-    // independientemente de si el usuario tiene asignado el módulo de gestión específico.
-    this.productos = this.allProductos;
+  onSearch(event: any) {
+    this.searchTerm = event.target.value ?? '';
+    this.aplicarFiltros();
+  }
 
-    const term = this.searchTerm;
-    if (!term) {
-      this.filteredProductos = this.productos;
-      return;
+  onCategoriaChange(event: any) {
+    this.selectedCategoria = event.detail.value;
+    this.aplicarFiltros();
+  }
+
+  private aplicarFiltros() {
+    // Se eliminó el filtro estricto por módulos: aparecen todos los productos en Ventas
+    let temp = this.allProductos;
+
+    // Filtro por categoría
+    if (this.selectedCategoria && this.selectedCategoria !== 'TODOS') {
+      temp = temp.filter(p =>
+        p.categoria === this.selectedCategoria || p.tipo === this.selectedCategoria
+      );
     }
-    const lower = String(term).toLowerCase();
-    this.filteredProductos = this.productos.filter(p => p.nombre.toLowerCase().includes(lower));
+
+    // Filtro por búsqueda
+    const term = this.searchTerm?.toLowerCase().trim();
+    if (term) {
+      temp = temp.filter(p =>
+        p.nombre.toLowerCase().includes(term) ||
+        (p.sku && p.sku.toLowerCase().includes(term)) ||
+        (p.proveedor && p.proveedor.toLowerCase().includes(term))
+      );
+    }
+
+    this.productos = this.allProductos;
+    this.filteredProductos = temp;
   }
 
   addToCart(product: Producto) {
     if (this.salesCart) {
       this.salesCart.addItem(product);
       this.searchTerm = '';
-      this.filteredProductos = this.productos;
+      this.selectedCategoria = 'TODOS';
+      this.filteredProductos = this.allProductos;
     } else {
       console.error('SalesCart component not found');
     }
