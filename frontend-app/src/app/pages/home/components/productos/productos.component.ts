@@ -73,7 +73,7 @@ export class ProductosComponent implements OnInit {
   async deleteConfirm(product: Producto) {
     const confirmed = await this.alertService.confirm(
       'Confirmar Eliminación',
-      `¿Estás seguro de eliminar el producto <strong>${product.nombre}</strong>?`,
+      `¿Estás seguro de eliminar el producto "${product.nombre}"?`,
       'Eliminar'
     );
 
