@@ -3,29 +3,29 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 model Usuario {
-  id              Int              @id @default(autoincrement())
-  nombre          String
-  correo          String           @unique
-  passwordHash    String
-  activo          Boolean          @default(true)
-  creadoEn        DateTime         @default(now())
-  negocioId       Int?
-  adminPorDefecto Boolean          @default(false)
-  pagosGastos     PagoGasto[]
-  negocio         Negocio?         @relation(fields: [negocioId], references: [id])
-  modulos         UsuarioModulo[]
-  permisos        UsuarioPermiso[]
-  roles           UsuarioRol[]
-  ventas          Venta[]
-  cajas           Caja[]
-  movimientosCaja MovimientoCaja[]
-  notificaciones  Notificacion[]
+  id                    Int                    @id @default(autoincrement())
+  nombre                String
+  correo                String                 @unique
+  passwordHash          String
+  activo                Boolean                @default(true)
+  creadoEn              DateTime               @default(now())
+  negocioId             Int?
+  adminPorDefecto       Boolean                @default(false)
+  pagosGastos           PagoGasto[]
+  negocio               Negocio?               @relation(fields: [negocioId], references: [id])
+  modulos               UsuarioModulo[]
+  permisos              UsuarioPermiso[]
+  roles                 UsuarioRol[]
+  ventas                Venta[]
+  cajas                 Caja[]
+  movimientosCaja       MovimientoCaja[]
+  notificaciones        Notificacion[]
   movimientosInventario MovimientoInventario[]
-  devoluciones    Devolucion[]
+  devoluciones          Devolucion[]
 }
 
 model Caja {
@@ -35,9 +35,9 @@ model Caja {
   fechaApertura DateTime         @default(now())
   fechaCierre   DateTime?
   montoInicial  Float
-  montoFinal    Float?           // Monto real en caja al cierre
-  montoSistema  Float?           // Monto calculado por el sistema
-  diferencia    Float?           // Diferencia (montoFinal - montoSistema)
+  montoFinal    Float? // Monto real en caja al cierre
+  montoSistema  Float? // Monto calculado por el sistema
+  diferencia    Float? // Diferencia (montoFinal - montoSistema)
   estado        String           @default("ABIERTA") // ABIERTA, CERRADA
   observaciones String?
   movimientos   MovimientoCaja[]
@@ -51,46 +51,46 @@ model MovimientoCaja {
   caja        Caja     @relation(fields: [cajaId], references: [id])
   usuarioId   Int
   usuario     Usuario  @relation(fields: [usuarioId], references: [id])
-  tipo        String   // INGRESO, EGRESO, VENTA, PAGO_GASTO, ABONO_VENTA
+  tipo        String // INGRESO, EGRESO, VENTA, PAGO_GASTO, ABONO_VENTA
   metodoPago  String   @default("EFECTIVO") // EFECTIVO, TRANSFERENCIA, TARJETA, ETC.
   monto       Float
   descripcion String?
   fecha       DateTime @default(now())
-  
+
   // Relaciones opcionales para trazabilidad
-  ventaId     Int?
-  gastoId     Int?
-  abonoId     Int?
+  ventaId Int?
+  gastoId Int?
+  abonoId Int?
 
   @@index([cajaId])
   @@index([tipo])
 }
 
 model Devolucion {
-  id              Int      @id @default(autoincrement())
-  ventaId         Int
-  venta           Venta    @relation(fields: [ventaId], references: [id])
-  totalDevuelto   Float
-  motivo          String?
-  fecha           DateTime @default(now())
-  usuarioId       Int
-  usuario         Usuario  @relation(fields: [usuarioId], references: [id])
-  detalles        DetalleDevolucion[]
+  id            Int                 @id @default(autoincrement())
+  ventaId       Int
+  venta         Venta               @relation(fields: [ventaId], references: [id])
+  totalDevuelto Float
+  motivo        String?
+  fecha         DateTime            @default(now())
+  usuarioId     Int
+  usuario       Usuario             @relation(fields: [usuarioId], references: [id])
+  detalles      DetalleDevolucion[]
 
   @@index([ventaId])
   @@index([fecha])
 }
 
 model DetalleDevolucion {
-  id               Int        @id @default(autoincrement())
-  devolucionId     Int
-  devolucion       Devolucion @relation(fields: [devolucionId], references: [id])
-  productoId       Int
-  producto         Producto   @relation(fields: [productoId], references: [id])
-  cantidad         Int
-  precioUnitario   Float
-  precioCosto      Float      @default(0)
-  subtotal         Float
+  id             Int        @id @default(autoincrement())
+  devolucionId   Int
+  devolucion     Devolucion @relation(fields: [devolucionId], references: [id])
+  productoId     Int
+  producto       Producto   @relation(fields: [productoId], references: [id])
+  cantidad       Int
+  precioUnitario Float
+  precioCosto    Float      @default(0)
+  subtotal       Float
 
   @@index([devolucionId])
 }
@@ -138,7 +138,6 @@ model UsuarioModulo {
   @@id([usuarioId, moduloId])
 }
 
-
 model Categoria {
   id          Int        @id @default(autoincrement())
   nombre      String     @unique
@@ -149,29 +148,29 @@ model Categoria {
 }
 
 model Producto {
-  id                 Int                  @id @default(autoincrement())
-  tipo               String               @default("GENERAL")
+  id                 Int                    @id @default(autoincrement())
+  tipo               String                 @default("GENERAL")
   nombre             String
-  sku                String?              @unique
+  sku                String?                @unique
   descripcion        String?
   imagen             String?
   categoriaId        Int?
-  categoriaRel       Categoria?           @relation(fields: [categoriaId], references: [id])
+  categoriaRel       Categoria?             @relation(fields: [categoriaId], references: [id])
   categoria          String?
   subcategoria       String?
   marca              String?
-  precioCosto        Float?               @default(0)
+  precioCosto        Float?                 @default(0)
   precioVenta        Float
-  descuento          Float?               @default(0)
-  stock              Int                  @default(0)
-  stockMinimo        Int?                 @default(0)
-  unidadMedida       String?              @default("UNIDAD")
-  margenGanancia     Float?               @default(0)
-  porcentajeIva      Float                @default(0)
+  descuento          Float?                 @default(0)
+  stock              Int                    @default(0)
+  stockMinimo        Int?                   @default(0)
+  unidadMedida       String?                @default("UNIDAD")
+  margenGanancia     Float?                 @default(0)
+  porcentajeIva      Float                  @default(0)
   proveedor          String?
-  activo             Boolean              @default(true)
-  creadoEn           DateTime             @default(now())
-  actualizadoEn      DateTime             @updatedAt
+  activo             Boolean                @default(true)
+  creadoEn           DateTime               @default(now())
+  actualizadoEn      DateTime               @updatedAt
   detalles           DetalleVenta[]
   movimientos        MovimientoInventario[]
   detalleAlimento    ProductoAlimento?
@@ -424,22 +423,22 @@ model Notificacion {
 }
 
 model MovimientoInventario {
-  id              Int      @id @default(autoincrement())
-  productoId      Int
-  producto        Producto @relation(fields: [productoId], references: [id])
-  tipo            String   // ENTRADA, SALIDA, AJUSTE, DEVOLUCION
-  cantidad        Int
-  costoUnitario   Float
-  valorTotal      Float
-  stockAnterior   Int
-  stockNuevo      Int
-  referencia      String?  // ID de venta, compra, etc.
-  tipoReferencia  String?  // VENTA, COMPRA, AJUSTE
-  usuarioId       Int
-  usuario         Usuario  @relation(fields: [usuarioId], references: [id])
-  motivo          String?
-  fecha           DateTime @default(now())
-  
+  id             Int      @id @default(autoincrement())
+  productoId     Int
+  producto       Producto @relation(fields: [productoId], references: [id])
+  tipo           String // ENTRADA, SALIDA, AJUSTE, DEVOLUCION
+  cantidad       Int
+  costoUnitario  Float
+  valorTotal     Float
+  stockAnterior  Int
+  stockNuevo     Int
+  referencia     String? // ID de venta, compra, etc.
+  tipoReferencia String? // VENTA, COMPRA, AJUSTE
+  usuarioId      Int
+  usuario        Usuario  @relation(fields: [usuarioId], references: [id])
+  motivo         String?
+  fecha          DateTime @default(now())
+
   @@index([productoId, fecha])
   @@index([tipo])
 }
